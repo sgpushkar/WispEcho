@@ -18,11 +18,20 @@ import { initSockets } from "./sockets/index.js";
 const app = express();
 const server = http.createServer(app);
 
+const allowedOrigins = (origin, callback) => {
+  if (!origin) return callback(null, true);
+  if (origin.includes("localhost") || origin.includes("vercel.app") || origin === process.env.CLIENT_URL) {
+    callback(null, true);
+  } else {
+    callback(new Error("Not allowed by CORS"));
+  }
+};
+
 const io = new Server(server, {
-  cors: { origin: process.env.CLIENT_URL, credentials: true },
+  cors: { origin: allowedOrigins, credentials: true },
 });
 
-app.use(cors({ origin: process.env.CLIENT_URL, credentials: true }));
+app.use(cors({ origin: allowedOrigins, credentials: true }));
 app.use(cookieParser());
 app.use(express.json({ limit: "10mb" }));
 app.use(morgan("dev"));
