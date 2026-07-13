@@ -1,6 +1,6 @@
 # WispEcho
 
-Real-time messaging app. Next.js 15 + Express/Socket.io + Postgres/Prisma.
+Real-time messaging app. Next.js 15 + Express/Socket.io + Postgres/Prisma
 
 ## What's actually wired up and working
 - Auth: register, login, JWT access + refresh (httpOnly cookie), logout, forgot/reset password, email verification, Google OAuth
