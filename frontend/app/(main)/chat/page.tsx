@@ -22,7 +22,7 @@ export default function ChatPage() {
   // Wait for zustand to rehydrate from localStorage before rendering
   if (!hydrated) {
     return (
-      <div className="flex h-screen w-screen items-center justify-center bg-base">
+      <div className="flex h-[100dvh] w-screen items-center justify-center bg-base">
         <div className="h-8 w-8 animate-spin rounded-full border-2 border-accent border-t-transparent" />
       </div>
     );

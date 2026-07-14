@@ -104,10 +104,16 @@
     z-index: 2;
     display: flex;
     width: 100vw;
-    height: 100vh;
-    padding: 20px;
+    height: 100dvh;
+    padding: 8px;
     gap: 16px;
     perspective: 1400px;
+  }
+
+  @media (min-width: 768px) {
+    .app {
+      padding: 20px;
+    }
   }
 
   /* Specific Components */
