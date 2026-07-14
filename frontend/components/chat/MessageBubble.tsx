@@ -28,7 +28,7 @@ export function MessageBubble({ message }: { message: Message }) {
       transition={{ type: "spring", stiffness: 300, damping: 24 }}
       className={`row ${isMine ? "mine" : ""}`}
     >
-      <div className="relative flex flex-col group">
+      <div className={`relative flex flex-col group ${isMine ? "items-end" : "items-start"}`}>
         {message.replyTo && (
           <div className="rounded-lg border-l-2 border-accent/60 bg-white/5 px-2 py-1 text-xs text-white/50 mb-1 max-w-[62%]">
             replying to {message.replyTo.sender?.displayName}
