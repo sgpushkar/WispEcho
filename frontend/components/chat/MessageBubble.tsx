@@ -5,24 +5,29 @@ import { motion } from "framer-motion";
 import { format } from "date-fns";
 import { Message } from "@/store/useChatStore";
 import { useAuthStore } from "@/store/useAuthStore";
+import { useChatStore } from "@/store/useChatStore";
+import { useUIStore } from "@/store/useUIStore";
 import { api } from "@/lib/api";
 import { Reply } from "lucide-react";
 import { ContextMenu, ContextMenuPosition } from "./ContextMenu";
 
 const QUICK_REACTIONS = ["❤️", "😂", "🔥", "😭", "👍"];
 
-export function MessageBubble({ message, onReply }: { message: Message; onReply?: (m: Message) => void }) {
+export function MessageBubble({ message, onReply, onEdit }: { message: Message; onReply?: (m: Message) => void; onEdit?: (m: Message) => void }) {
   const currentUserId = useAuthStore((s) => s.user?.id);
   const isMine = message.senderId === currentUserId;
   const [contextMenuPos, setContextMenuPos] = useState<ContextMenuPosition | null>(null);
+  const { removeMessage, activeConversationId } = useChatStore();
+  const { openForwardModal } = useUIStore();
 
   async function react(emoji: string) {
     await api.post(`/messages/${message.id}/reactions`, { emoji });
   }
 
   async function deleteMessage(m: Message) {
-    // Delete API placeholder
+    if (!activeConversationId) return;
     await api.delete(`/messages/${m.id}`);
+    removeMessage(activeConversationId, m.id);
   }
 
   const grouped = (message.reactions || []).reduce<Record<string, number>>((acc, r) => {
@@ -114,9 +119,10 @@ export function MessageBubble({ message, onReply }: { message: Message; onReply?
         message={message} 
         onClose={() => setContextMenuPos(null)} 
         onReply={(m) => onReply?.(m)}
-        onReact={(m) => react(QUICK_REACTIONS[0])} // Quick fallback react for context menu
+        onReact={(m) => react(QUICK_REACTIONS[0])}
         onDelete={deleteMessage}
-        onEdit={(m) => { /* Not implemented in this iteration */ }}
+        onEdit={(m) => onEdit?.(m)}
+        onForward={(m) => openForwardModal(m)}
       />
     </>
   );

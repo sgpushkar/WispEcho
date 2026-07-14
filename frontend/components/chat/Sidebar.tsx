@@ -6,20 +6,20 @@ import { useQuery } from "@tanstack/react-query";
 import { api } from "@/lib/api";
 import { useAuthStore } from "@/store/useAuthStore";
 import { useChatStore, Conversation } from "@/store/useChatStore";
+import { useUIStore } from "@/store/useUIStore";
 import { formatDistanceToNowStrict } from "date-fns";
 import { FriendsModal } from "../friends/FriendsModal";
 import { CreateGroupModal } from "./CreateGroupModal";
 import { SettingsModal } from "./SettingsModal";
+import { ForwardModal } from "./ForwardModal";
 
 export function Sidebar() {
   const user = useAuthStore((s) => s.user);
   const logout = useAuthStore((s) => s.logout);
   const { conversations, setConversations, activeConversationId, setActiveConversation, onlineUsers } = useChatStore();
   
+  const { friendsOpen, setFriendsOpen, groupOpen, setGroupOpen, settingsOpen, setSettingsOpen } = useUIStore();
   const [query, setQuery] = useState("");
-  const [friendsOpen, setFriendsOpen] = useState(false);
-  const [groupOpen, setGroupOpen] = useState(false);
-  const [settingsOpen, setSettingsOpen] = useState(false);
 
   const isNewUser = useAuthStore((s) => s.isNewUser);
   const setIsNewUser = useAuthStore((s) => s.setIsNewUser);
@@ -162,6 +162,7 @@ export function Sidebar() {
       <FriendsModal isOpen={friendsOpen} onClose={() => setFriendsOpen(false)} />
       <CreateGroupModal isOpen={groupOpen} onClose={() => setGroupOpen(false)} />
       <SettingsModal isOpen={settingsOpen} onClose={handleSettingsClose} />
+      <ForwardModal />
     </>
   );
 }

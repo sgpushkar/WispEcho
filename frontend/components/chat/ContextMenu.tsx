@@ -19,9 +19,10 @@ interface ContextMenuProps {
   onReact: (m: Message) => void;
   onDelete: (m: Message) => void;
   onEdit: (m: Message) => void;
+  onForward: (m: Message) => void;
 }
 
-export function ContextMenu({ position, message, onClose, onReply, onReact, onDelete, onEdit }: ContextMenuProps) {
+export function ContextMenu({ position, message, onClose, onReply, onReact, onDelete, onEdit, onForward }: ContextMenuProps) {
   const menuRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -52,7 +53,7 @@ export function ContextMenu({ position, message, onClose, onReply, onReact, onDe
   const y = Math.min(position.y, typeof window !== "undefined" ? window.innerHeight - 300 : position.y);
 
   const menu = (
-    <div className="fixed inset-0 z-50 pointer-events-none">
+    <div className="fixed inset-0 z-[200] pointer-events-none">
       <motion.div
         ref={menuRef}
         initial={{ opacity: 0, scale: 0.95, y: -5 }}
@@ -66,7 +67,7 @@ export function ContextMenu({ position, message, onClose, onReply, onReact, onDe
         <ContextItem icon={<SmilePlus size={14} />} label="React" onClick={() => { onReact(message); onClose(); }} />
         <div className="h-[1px] bg-white/5 my-1 mx-2" />
         <ContextItem icon={<Copy size={14} />} label="Copy Text" onClick={() => { navigator.clipboard.writeText(message.content || ""); onClose(); }} />
-        <ContextItem icon={<Forward size={14} />} label="Forward" onClick={() => { /* Not implemented in this UI iteration */ onClose(); }} />
+        <ContextItem icon={<Forward size={14} />} label="Forward" onClick={() => { onForward(message); onClose(); }} />
         <div className="h-[1px] bg-white/5 my-1 mx-2" />
         <ContextItem icon={<Edit2 size={14} />} label="Edit" onClick={() => { onEdit(message); onClose(); }} />
         <ContextItem icon={<Trash2 size={14} />} label="Delete" onClick={() => { onDelete(message); onClose(); }} danger />

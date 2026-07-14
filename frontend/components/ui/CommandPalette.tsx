@@ -4,12 +4,14 @@ import { useEffect, useState, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Search, Settings, Users, MessageSquare } from "lucide-react";
 import { useChatStore } from "@/store/useChatStore";
+import { useUIStore } from "@/store/useUIStore";
 
 export function CommandPalette() {
   const [isOpen, setIsOpen] = useState(false);
   const [query, setQuery] = useState("");
   const inputRef = useRef<HTMLInputElement>(null);
   const { conversations, setActiveConversation } = useChatStore();
+  const { setSettingsOpen, setGroupOpen } = useUIStore();
 
   useEffect(() => {
     function handleKeyDown(e: KeyboardEvent) {
@@ -40,7 +42,7 @@ export function CommandPalette() {
   }).slice(0, 5);
 
   return (
-    <div className="fixed inset-0 z-50 flex items-start justify-center pt-[15vh]">
+    <div className="fixed inset-0 z-[100] flex items-start justify-center pt-[15vh]">
       <motion.div
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
@@ -77,10 +79,16 @@ export function CommandPalette() {
           )}
           {query.length === 0 && (
             <>
-              <button onClick={() => setIsOpen(false)} className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-white/5 text-white/80 transition-colors text-[14px]">
+              <button 
+                onClick={() => { setSettingsOpen(true); setIsOpen(false); }} 
+                className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-white/5 text-white/80 transition-colors text-[14px]"
+              >
                 <Settings size={16} className="text-white/40" /> Settings
               </button>
-              <button onClick={() => setIsOpen(false)} className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-white/5 text-white/80 transition-colors text-[14px]">
+              <button 
+                onClick={() => { setGroupOpen(true); setIsOpen(false); }} 
+                className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-white/5 text-white/80 transition-colors text-[14px]"
+              >
                 <Users size={16} className="text-white/40" /> New Group
               </button>
             </>

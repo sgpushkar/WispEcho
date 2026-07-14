@@ -10,12 +10,15 @@ import { useAuthStore } from "@/store/useAuthStore";
 import { getSocket } from "@/lib/socket";
 import { MessageBubble } from "./MessageBubble";
 import { useVirtualScroll } from "@/hooks/useVirtualScroll";
+import { Edit2 } from "lucide-react";
 
 export function ChatWindow() {
   const accessToken = useAuthStore((s) => s.accessToken)!;
   const { activeConversationId, setActiveConversation, conversations, messages, setMessages, typingUsers, onlineUsers } = useChatStore();
   const [draft, setDraft] = useState("");
   const [replyToMessage, setReplyToMessage] = useState<Message | null>(null);
+  const [editingMessage, setEditingMessage] = useState<Message | null>(null);
+  const [isSending, setIsSending] = useState(false);
   const bottomRef = useRef<HTMLDivElement>(null);
   const typingTimeout = useRef<NodeJS.Timeout | null>(null);
 
@@ -49,6 +52,12 @@ export function ChatWindow() {
     api.post(`/messages/conversations/${activeConversationId}/read`);
   }, [activeConversationId]);
 
+  useEffect(() => {
+    if (editingMessage) {
+      setDraft(editingMessage.content || "");
+    }
+  }, [editingMessage]);
+
   function handleTyping() {
     if (!activeConversationId) return;
     const socket = getSocket(accessToken);
@@ -59,17 +68,23 @@ export function ChatWindow() {
     }, 1500);
   }
 
-  const [isSending, setIsSending] = useState(false);
-
   async function sendMessage() {
     if (!draft.trim() || !activeConversationId) return;
     const content = draft;
-    const replyToId = replyToMessage?.id;
     
-    setDraft("");
-    setReplyToMessage(null);
     setIsSending(true);
-    await api.post("/messages", { conversationId: activeConversationId, content, type: "TEXT", replyToId });
+
+    if (editingMessage) {
+      await api.patch(`/messages/${editingMessage.id}`, { content });
+      setEditingMessage(null);
+      setDraft("");
+    } else {
+      const replyToId = replyToMessage?.id;
+      setReplyToMessage(null);
+      setDraft("");
+      await api.post("/messages", { conversationId: activeConversationId, content, type: "TEXT", replyToId });
+    }
+    
     setTimeout(() => setIsSending(false), 300);
   }
 
@@ -150,7 +165,12 @@ export function ChatWindow() {
         <div style={{ paddingTop, paddingBottom }}>
           <AnimatePresence initial={false}>
             {visibleItems.map((msg) => (
-              <MessageBubble key={msg.id} message={msg} onReply={setReplyToMessage} />
+              <MessageBubble 
+                key={msg.id} 
+                message={msg} 
+                onReply={setReplyToMessage} 
+                onEdit={setEditingMessage}
+              />
             ))}
           </AnimatePresence>
 
@@ -175,6 +195,17 @@ export function ChatWindow() {
               <span className="truncate max-w-[200px] sm:max-w-[400px]">{replyToMessage.content}</span>
             </div>
             <button onClick={() => setReplyToMessage(null)} className="hover:text-white transition bg-white/5 p-1.5 rounded-full">
+              <X size={14} />
+            </button>
+          </div>
+        )}
+        {editingMessage && (
+          <div className="mb-3 flex items-center justify-between rounded-[20px] bg-white/5 border border-white/10 px-5 py-3 text-[13px] text-white/60">
+            <div className="flex flex-col">
+              <span className="text-white font-medium mb-1 flex items-center gap-2"><Edit2 size={12}/> Editing Message</span>
+              <span className="truncate max-w-[200px] sm:max-w-[400px]">{editingMessage.content}</span>
+            </div>
+            <button onClick={() => { setEditingMessage(null); setDraft(""); }} className="hover:text-white transition bg-white/5 p-1.5 rounded-full">
               <X size={14} />
             </button>
           </div>
