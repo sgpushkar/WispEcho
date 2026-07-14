@@ -2,10 +2,23 @@ import prisma from "../config/db.js";
 
 export async function updateProfile(req, res, next) {
   try {
-    const { displayName, bio, pronouns, avatarUrl, bannerUrl, accentColor, status } = req.body;
+    const { username, displayName, bio, pronouns, avatarUrl, bannerUrl, accentColor, status } = req.body;
+    
+    if (username) {
+      const existingUser = await prisma.user.findFirst({
+        where: {
+          username: username,
+          id: { not: req.userId },
+        },
+      });
+      if (existingUser) {
+        return res.status(409).json({ error: "Username is already taken" });
+      }
+    }
+
     const user = await prisma.user.update({
       where: { id: req.userId },
-      data: { displayName, bio, pronouns, avatarUrl, bannerUrl, accentColor, status },
+      data: { username, displayName, bio, pronouns, avatarUrl, bannerUrl, accentColor, status },
     });
     res.json({ user });
   } catch (err) {

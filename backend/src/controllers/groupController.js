@@ -24,7 +24,7 @@ export async function createGroup(req, res, next) {
           },
         },
       },
-      include: { group: { include: { members: true } } },
+      include: { group: { include: { members: { include: { user: { select: { id: true, username: true, displayName: true, avatarUrl: true } } } } } } },
     });
 
     res.status(201).json({ conversation });
@@ -114,7 +114,7 @@ export async function getGroupDetails(req, res, next) {
     const { groupId } = req.params;
     const group = await prisma.group.findUnique({
       where: { id: groupId },
-      include: { members: { include: { user: true } } },
+      include: { members: { include: { user: { select: { id: true, username: true, displayName: true, avatarUrl: true, isOnline: true } } } } },
     });
     if (!group) return res.status(404).json({ error: "Group not found" });
     res.json({ group });

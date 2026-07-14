@@ -11,12 +11,14 @@ export function SettingsModal({ isOpen, onClose }: { isOpen: boolean; onClose: (
   const user = useAuthStore((s) => s.user);
   const setUser = useAuthStore((s) => s.setUser);
 
+  const [username, setUsername] = useState("");
   const [displayName, setDisplayName] = useState("");
   const [bio, setBio] = useState("");
   const [avatarUrl, setAvatarUrl] = useState("");
 
   useEffect(() => {
     if (user && isOpen) {
+      setUsername(user.username || "");
       setDisplayName(user.displayName || "");
       setBio(user.bio || "");
       setAvatarUrl(user.avatarUrl || "");
@@ -24,7 +26,7 @@ export function SettingsModal({ isOpen, onClose }: { isOpen: boolean; onClose: (
   }, [user, isOpen]);
 
   const updateProfile = useMutation({
-    mutationFn: async () => api.patch("/users/me", { displayName, bio, avatarUrl }),
+    mutationFn: async () => api.patch("/users/me", { username, displayName, bio, avatarUrl }),
     onSuccess: (res) => {
       if (res.data.user) {
         setUser(res.data.user);
@@ -69,6 +71,16 @@ export function SettingsModal({ isOpen, onClose }: { isOpen: boolean; onClose: (
           </div>
 
           <div className="space-y-2">
+            <label className="text-sm font-medium text-white/60">Username</label>
+            <input
+              value={username}
+              onChange={(e) => setUsername(e.target.value)}
+              placeholder="Your username"
+              className="w-full rounded-xl border border-white/10 bg-white/5 px-3 py-2 text-sm outline-none placeholder:text-white/30 text-white"
+            />
+          </div>
+
+          <div className="space-y-2">
             <label className="text-sm font-medium text-white/60">Display Name</label>
             <input
               value={displayName}
@@ -110,7 +122,7 @@ export function SettingsModal({ isOpen, onClose }: { isOpen: boolean; onClose: (
           </button>
           <button
             onClick={() => updateProfile.mutate()}
-            disabled={!displayName || updateProfile.isPending}
+            disabled={!username || !displayName || updateProfile.isPending}
             className="flex-1 rounded-xl bg-white/10 border border-white/10 px-4 py-2 font-medium text-white hover:bg-white/16 transition disabled:opacity-50"
           >
             {updateProfile.isPending ? "Saving..." : "Save Changes"}

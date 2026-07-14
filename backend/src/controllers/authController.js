@@ -264,6 +264,6 @@ export async function me(req, res, next) {
 }
 
 function sanitizeUser(user) {
-  const { password, googleId, ...safe } = user;
+  const { password, googleId, email, ...safe } = user;
   return safe;
 }

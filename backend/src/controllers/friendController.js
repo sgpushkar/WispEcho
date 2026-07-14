@@ -32,7 +32,7 @@ export async function sendFriendRequest(req, res, next) {
     });
     notifyUser(addresseeId, "notification:new", {
       type: "FRIEND_REQUEST",
-      from: requester,
+      from: { id: requester.id, username: requester.username, displayName: requester.displayName, avatarUrl: requester.avatarUrl },
     });
 
     res.status(201).json({ friendship });
@@ -151,7 +151,7 @@ export async function listFriends(req, res, next) {
 
     const friends = friendships.map((f) => {
       const friend = f.requesterId === req.userId ? f.addressee : f.requester;
-      const { password, googleId, ...safe } = friend;
+      const { password, googleId, email, ...safe } = friend;
       return safe;
     });
 
@@ -165,11 +165,11 @@ export async function listPendingRequests(req, res, next) {
   try {
     const incoming = await prisma.friendship.findMany({
       where: { addresseeId: req.userId, status: "PENDING" },
-      include: { requester: true },
+      include: { requester: { select: { id: true, username: true, displayName: true, avatarUrl: true } } },
     });
     const outgoing = await prisma.friendship.findMany({
       where: { requesterId: req.userId, status: "PENDING" },
-      include: { addressee: true },
+      include: { addressee: { select: { id: true, username: true, displayName: true, avatarUrl: true } } },
     });
     res.json({ incoming, outgoing });
   } catch (err) {
