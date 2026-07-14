@@ -5,6 +5,7 @@ interface UIState {
   groupOpen: boolean;
   groupSettingsOpen: boolean;
   activeGroupId: string | null;
+  settingsOpen: boolean;
   forwardModalOpen: boolean;
   messageToForward: any | null; // using any for now, will cast to Message
 
