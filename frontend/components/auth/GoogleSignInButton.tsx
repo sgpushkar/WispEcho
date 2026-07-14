@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { api } from "@/lib/api";
 import { useAuthStore } from "@/store/useAuthStore";
@@ -51,7 +51,7 @@ export default function GoogleSignInButton() {
           size: "large",
           text: "continue_with",
           shape: "pill",
-          width: "100%",
+          width: 352,
           logo_alignment: "center",
         });
       }
