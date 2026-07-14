@@ -18,7 +18,7 @@ declare global {
   }
 }
 
-export default function GoogleSignInButton() {
+export default function GoogleSignInButton({ mode }: { mode?: "login" | "register" }) {
   const router = useRouter();
   const setAuth = useAuthStore((s) => s.setAuth);
   const buttonRef = useRef<HTMLDivElement>(null);
@@ -69,6 +69,7 @@ export default function GoogleSignInButton() {
     try {
       const { data } = await api.post("/auth/google", {
         idToken: response.credential,
+        mode,
       });
       setAuth(data.user, data.accessToken, data.isNewUser);
       router.push("/chat");

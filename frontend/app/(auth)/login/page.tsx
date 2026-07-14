@@ -74,7 +74,7 @@ export default function LoginPage() {
           {loading ? "logging in..." : "log in"}
         </motion.button>
 
-        <GoogleSignInButton />
+        <GoogleSignInButton mode="login" />
 
         <p className="mt-4 text-center text-sm text-white/50">
           new here?{" "}

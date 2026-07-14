@@ -98,7 +98,7 @@ export async function login(req, res, next) {
 
 export async function googleLogin(req, res, next) {
   try {
-    const { idToken } = req.body;
+    const { idToken, mode } = req.body;
     const ticket = await googleClient.verifyIdToken({
       idToken,
       audience: process.env.GOOGLE_CLIENT_ID,
@@ -113,6 +113,10 @@ export async function googleLogin(req, res, next) {
     let isNewUser = false;
 
     if (!user) {
+      if (mode === "login") {
+        return res.status(404).json({ error: "Account not found. Please create an account first." });
+      }
+
       const baseUsername = payload.email.split("@")[0];
       user = await prisma.user.create({
         data: {
@@ -125,11 +129,17 @@ export async function googleLogin(req, res, next) {
         },
       });
       isNewUser = true;
-    } else if (!user.googleId) {
-      user = await prisma.user.update({
-        where: { id: user.id },
-        data: { googleId: payload.sub, isEmailVerified: true },
-      });
+    } else {
+      if (mode === "register") {
+        return res.status(409).json({ error: "Account already exists. Please log in." });
+      }
+
+      if (!user.googleId) {
+        user = await prisma.user.update({
+          where: { id: user.id },
+          data: { googleId: payload.sub, isEmailVerified: true },
+        });
+      }
     }
 
     const accessToken = signAccessToken(user.id);

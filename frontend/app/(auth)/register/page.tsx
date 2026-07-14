@@ -91,7 +91,7 @@ export default function RegisterPage() {
           {loading ? "creating..." : "create account"}
         </motion.button>
 
-        <GoogleSignInButton />
+        <GoogleSignInButton mode="register" />
 
         <p className="mt-4 text-center text-sm text-white/50">
           already have one?{" "}
