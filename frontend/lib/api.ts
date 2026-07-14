@@ -31,12 +31,16 @@ api.interceptors.response.use(
 
       isRefreshing = true;
       try {
+        const refreshToken = useAuthStore.getState().refreshToken;
         const { data } = await axios.post(
           `${process.env.NEXT_PUBLIC_API_URL}/auth/refresh`,
-          {},
+          { refreshToken },
           { withCredentials: true }
         );
         useAuthStore.getState().setAccessToken(data.accessToken);
+        if (data.refreshToken) {
+          useAuthStore.getState().setRefreshToken(data.refreshToken);
+        }
         queue.forEach((cb) => cb());
         queue = [];
         return api(originalRequest);

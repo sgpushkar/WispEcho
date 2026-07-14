@@ -26,7 +26,7 @@ export default function RegisterPage() {
     setLoading(true);
     try {
       const { data } = await api.post("/auth/register", form);
-      setAuth(data.user, data.accessToken);
+      setAuth(data.user, data.accessToken, data.refreshToken, true);
       router.push("/chat");
     } catch (err: any) {
       setError(err.response?.data?.error || "Something went wrong");

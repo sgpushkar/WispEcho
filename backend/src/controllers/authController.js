@@ -62,6 +62,7 @@ export async function register(req, res, next) {
 
     res.status(201).json({
       accessToken,
+      refreshToken,
       user: sanitizeUser(user),
     });
   } catch (err) {
@@ -90,7 +91,7 @@ export async function login(req, res, next) {
     const refreshToken = await signRefreshToken(user.id);
     res.cookie("refreshToken", refreshToken, COOKIE_OPTIONS);
 
-    res.json({ accessToken, user: sanitizeUser(user) });
+    res.json({ accessToken, refreshToken, user: sanitizeUser(user) });
   } catch (err) {
     next(err);
   }
@@ -146,7 +147,7 @@ export async function googleLogin(req, res, next) {
     const refreshToken = await signRefreshToken(user.id);
     res.cookie("refreshToken", refreshToken, COOKIE_OPTIONS);
 
-    res.json({ accessToken, user: sanitizeUser(user), isNewUser });
+    res.json({ accessToken, refreshToken, user: sanitizeUser(user), isNewUser });
   } catch (err) {
     next(err);
   }
@@ -154,7 +155,7 @@ export async function googleLogin(req, res, next) {
 
 export async function refresh(req, res, next) {
   try {
-    const token = req.cookies?.refreshToken;
+    const token = req.cookies?.refreshToken || req.body?.refreshToken;
     if (!token) return res.status(401).json({ error: "No refresh token" });
 
     const result = await rotateRefreshToken(token);
@@ -162,7 +163,7 @@ export async function refresh(req, res, next) {
 
     res.cookie("refreshToken", result.newToken, COOKIE_OPTIONS);
     const accessToken = signAccessToken(result.userId);
-    res.json({ accessToken });
+    res.json({ accessToken, refreshToken: result.newToken });
   } catch (err) {
     next(err);
   }
@@ -170,7 +171,7 @@ export async function refresh(req, res, next) {
 
 export async function logout(req, res, next) {
   try {
-    const token = req.cookies?.refreshToken;
+    const token = req.cookies?.refreshToken || req.body?.refreshToken;
     if (token) {
       await prisma.refreshToken.deleteMany({ where: { token } });
     }

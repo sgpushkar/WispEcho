@@ -71,7 +71,7 @@ export default function GoogleSignInButton({ mode }: { mode?: "login" | "registe
         idToken: response.credential,
         mode,
       });
-      setAuth(data.user, data.accessToken, data.isNewUser);
+      setAuth(data.user, data.accessToken, data.refreshToken, data.isNewUser);
       router.push("/chat");
     } catch (err: any) {
       setError(

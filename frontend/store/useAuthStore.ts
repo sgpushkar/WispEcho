@@ -17,12 +17,14 @@ export interface User {
 interface AuthState {
   user: User | null;
   accessToken: string | null;
+  refreshToken: string | null;
+  isAuthenticated: boolean;
   isNewUser: boolean;
-  setAuth: (user: User, token: string, isNew?: boolean) => void;
+  setAuth: (user: User, accessToken: string, refreshToken: string, isNewUser?: boolean) => void;
   setAccessToken: (token: string) => void;
-  setUser: (user: User) => void;
-  setIsNewUser: (isNew: boolean) => void;
+  setRefreshToken: (token: string) => void;
   logout: () => void;
+  setIsNewUser: (isNew: boolean) => void;
 }
 
 export const useAuthStore = create<AuthState>()(
@@ -30,16 +32,26 @@ export const useAuthStore = create<AuthState>()(
     (set) => ({
       user: null,
       accessToken: null,
+      refreshToken: null,
+      isAuthenticated: false,
       isNewUser: false,
-      setAuth: (user, token, isNew = false) => set({ user, accessToken: token, isNewUser: isNew }),
-      setAccessToken: (accessToken) => set({ accessToken }),
-      setUser: (user) => set({ user }),
+      setAuth: (user, accessToken, refreshToken, isNewUser = false) => {
+        set({ user, accessToken, refreshToken, isAuthenticated: true, isNewUser });
+      },
+      setAccessToken: (token) => {
+        set({ accessToken: token, isAuthenticated: true });
+      },
+      setRefreshToken: (token) => {
+        set({ refreshToken: token });
+      },
+      logout: () => {
+        set({ user: null, accessToken: null, refreshToken: null, isAuthenticated: false, isNewUser: false });
+      },
       setIsNewUser: (isNew) => set({ isNewUser: isNew }),
-      logout: () => set({ user: null, accessToken: null, isNewUser: false }),
     }),
     {
       name: "wispecho-auth",
-      partialize: (state) => ({ user: state.user, accessToken: state.accessToken }),
+      partialize: (state) => ({ user: state.user, accessToken: state.accessToken, refreshToken: state.refreshToken }),
     }
   )
 );

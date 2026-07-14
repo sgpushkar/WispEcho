@@ -23,7 +23,7 @@ export default function LoginPage() {
     setLoading(true);
     try {
       const { data } = await api.post("/auth/login", { email, password });
-      setAuth(data.user, data.accessToken);
+      setAuth(data.user, data.accessToken, data.refreshToken);
       router.push("/chat");
     } catch (err: any) {
       setError(err.response?.data?.error || "Something went wrong");
