@@ -27,14 +27,20 @@ export function MessageBubble({ message, onReply }: { message: Message; onReply?
       initial={{ opacity: 0, y: 10, scale: 0.98 }}
       animate={{ opacity: 1, y: 0, scale: 1 }}
       transition={{ type: "spring", stiffness: 300, damping: 24 }}
-      className={`row ${isMine ? "mine" : ""}`}
+      className={`row ${isMine ? "mine" : ""} items-center gap-2`}
     >
-      <div className={`relative flex flex-col group max-w-[70%] ${isMine ? "items-end" : "items-start"}`}>
+      {isMine && (
+        <button onClick={() => onReply?.(message)} className="text-white/30 hover:text-white transition p-2 rounded-full hover:bg-white/5" title="Reply">
+          <Reply size={16} />
+        </button>
+      )}
+      <div className="flex flex-col flex-1 max-w-[70%] relative group">
         {message.replyTo && (
-          <div className="rounded-lg border-l-2 border-accent/60 bg-white/5 px-2 py-1 text-xs text-white/50 mb-1 max-w-[62%]">
-            replying to {message.replyTo.sender?.displayName}
+          <div className={`rounded-lg border-l-2 border-white/20 bg-white/5 px-3 py-1.5 text-xs text-white/50 mb-1 w-fit max-w-full line-clamp-2 ${isMine ? "self-end" : "self-start"}`}>
+            <span className="font-medium text-white/70">{message.replyTo.sender?.displayName}</span>: {message.replyTo.content}
           </div>
         )}
+        <div className={`relative flex flex-col group/bubble ${isMine ? "items-end" : "items-start"}`}>
 
         <div className={`bubble ${isMine ? "mine" : "theirs"} ${message.isDeleted ? "italic opacity-60" : ""}`}>
           {message.isDeleted ? "this message was deleted" : message.content}
@@ -63,20 +69,24 @@ export function MessageBubble({ message, onReply }: { message: Message; onReply?
         )}
 
         {/* Hover Actions */}
-        <div className={`pointer-events-none absolute -top-8 ${isMine ? "right-0" : "left-0"} flex gap-1 rounded-full opacity-0 transition group-hover:pointer-events-auto group-hover:opacity-100 z-10`}>
-          <div className="glass flex gap-1 rounded-full px-2 py-1 items-center">
+        <div className={`pointer-events-none absolute -top-10 ${isMine ? "right-0" : "left-0"} flex gap-1 rounded-full opacity-0 transition group-hover/bubble:pointer-events-auto group-hover/bubble:opacity-100 z-20`}>
+          <div className="glass flex gap-1 rounded-full px-2 py-1 items-center shadow-xl">
             {QUICK_REACTIONS.map((emoji) => (
               <button key={emoji} onClick={() => react(emoji)} className="text-sm hover:scale-125 transition">
                 {emoji}
               </button>
             ))}
-            <div className="w-[1px] h-4 bg-white/20 mx-1"></div>
-            <button onClick={() => onReply?.(message)} className="text-white/60 hover:text-white transition p-1" title="Reply">
-              <Reply size={14} />
-            </button>
           </div>
         </div>
+        </div>
       </div>
+
+      {/* Always Visible Reply Button */}
+      {!isMine && (
+        <button onClick={() => onReply?.(message)} className="text-white/30 hover:text-white transition p-2 rounded-full hover:bg-white/5" title="Reply">
+          <Reply size={16} />
+        </button>
+      )}
     </motion.div>
   );
 }
