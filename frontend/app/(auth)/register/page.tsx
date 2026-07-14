@@ -6,6 +6,7 @@ import { motion } from "framer-motion";
 import Link from "next/link";
 import { api } from "@/lib/api";
 import { useAuthStore } from "@/store/useAuthStore";
+import GoogleSignInButton from "@/components/auth/GoogleSignInButton";
 
 export default function RegisterPage() {
   const router = useRouter();
@@ -90,7 +91,9 @@ export default function RegisterPage() {
           {loading ? "creating..." : "create account"}
         </motion.button>
 
-        <p className="mt-5 text-center text-sm text-white/50">
+        <GoogleSignInButton />
+
+        <p className="mt-4 text-center text-sm text-white/50">
           already have one?{" "}
           <Link href="/login" className="text-accent-soft hover:underline">
             log in
