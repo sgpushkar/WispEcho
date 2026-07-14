@@ -2,7 +2,7 @@
 
 import { useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { useAuthStore } from "@/store/useAuthStore";
+import { useAuthStore, useHasHydrated } from "@/store/useAuthStore";
 import { useSocketEvents } from "@/hooks/useSocketEvents";
 import { Sidebar } from "@/components/chat/Sidebar";
 import { ChatWindow } from "@/components/chat/ChatWindow";
@@ -12,11 +12,21 @@ export default function ChatPage() {
   const router = useRouter();
   const accessToken = useAuthStore((s) => s.accessToken);
   const activeConversationId = useChatStore((s) => s.activeConversationId);
+  const hydrated = useHasHydrated();
   useSocketEvents();
 
   useEffect(() => {
-    if (!accessToken) router.replace("/login");
-  }, [accessToken, router]);
+    if (hydrated && !accessToken) router.replace("/login");
+  }, [hydrated, accessToken, router]);
+
+  // Wait for zustand to rehydrate from localStorage before rendering
+  if (!hydrated) {
+    return (
+      <div className="flex h-screen w-screen items-center justify-center bg-base">
+        <div className="h-8 w-8 animate-spin rounded-full border-2 border-accent border-t-transparent" />
+      </div>
+    );
+  }
 
   if (!accessToken) return null;
 

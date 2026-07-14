@@ -1,5 +1,6 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
+import { useEffect, useState } from "react";
 
 export interface User {
   id: string;
@@ -38,3 +39,22 @@ export const useAuthStore = create<AuthState>()(
     }
   )
 );
+
+/**
+ * Returns true once zustand's persist middleware has finished
+ * rehydrating state from localStorage. Use this to avoid the
+ * SSR flash where accessToken is null before hydration.
+ */
+export function useHasHydrated() {
+  const [hydrated, setHydrated] = useState(false);
+
+  useEffect(() => {
+    const unsub = useAuthStore.persist.onFinishHydration(() => setHydrated(true));
+    // If hydration already finished before this effect ran
+    if (useAuthStore.persist.hasHydrated()) setHydrated(true);
+    return unsub;
+  }, []);
+
+  return hydrated;
+}
+

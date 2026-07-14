@@ -107,7 +107,7 @@ export function LiquidBackground({ children }: { children: React.ReactNode }) {
         const dt = Math.max(now - lastT, 1);
         const dist = Math.hypot(clientX - lastX, clientY - lastY);
         const speed = dist / dt;
-        energy = Math.min(energy + speed * 6, 40);
+        energy = Math.min(energy + speed * 4, 25);
       }
       lastX = clientX; lastY = clientY; lastT = now;
     };
@@ -123,7 +123,7 @@ export function LiquidBackground({ children }: { children: React.ReactNode }) {
     let decayFrame: number;
     const decayLoop = () => {
       energy *= 0.93;
-      if (dispMap) dispMap.setAttribute("scale", (18 + energy).toFixed(1));
+      if (dispMap) dispMap.setAttribute("scale", (10 + energy).toFixed(1));
       decayFrame = requestAnimationFrame(decayLoop);
     };
     decayFrame = requestAnimationFrame(decayLoop);
@@ -147,10 +147,10 @@ export function LiquidBackground({ children }: { children: React.ReactNode }) {
     <>
       <svg width="0" height="0" style={{ position: "absolute" }}>
         <filter id="liquidWarp" x="-20%" y="-20%" width="140%" height="140%">
-          <feTurbulence id="turb" type="fractalNoise" baseFrequency="0.006 0.010" numOctaves={2} seed="7" result="noise">
-            <animate attributeName="baseFrequency" dur="34s" values="0.006 0.010;0.011 0.016;0.006 0.010" repeatCount="indefinite" />
+          <feTurbulence id="turb" type="fractalNoise" baseFrequency="0.006 0.010" numOctaves={1} seed="7" result="noise">
+            <animate attributeName="baseFrequency" dur="40s" values="0.006 0.010;0.009 0.013;0.006 0.010" repeatCount="indefinite" />
           </feTurbulence>
-          <feDisplacementMap id="dispMap" in="SourceGraphic" in2="noise" scale="24" xChannelSelector="R" yChannelSelector="G" />
+          <feDisplacementMap id="dispMap" in="SourceGraphic" in2="noise" scale="14" xChannelSelector="R" yChannelSelector="G" />
         </filter>
       </svg>
 

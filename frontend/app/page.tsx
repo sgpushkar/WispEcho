@@ -2,15 +2,18 @@
 
 import { useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { useAuthStore } from "@/store/useAuthStore";
+import { useAuthStore, useHasHydrated } from "@/store/useAuthStore";
 
 export default function RootPage() {
   const router = useRouter();
   const accessToken = useAuthStore((s) => s.accessToken);
+  const hydrated = useHasHydrated();
 
   useEffect(() => {
-    router.replace(accessToken ? "/chat" : "/login");
-  }, [accessToken, router]);
+    if (hydrated) {
+      router.replace(accessToken ? "/chat" : "/login");
+    }
+  }, [hydrated, accessToken, router]);
 
   return (
     <div className="flex h-screen w-screen items-center justify-center bg-base">
