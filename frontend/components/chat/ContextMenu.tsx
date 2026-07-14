@@ -2,9 +2,10 @@
 
 import { useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Reply, SmilePlus, Copy, Edit2, Trash2, Forward } from "lucide-react";
+import { Reply, SmilePlus, Copy, Edit2, Trash2, Forward, Bookmark } from "lucide-react";
 import { createPortal } from "react-dom";
 import { Message } from "@/store/useChatStore";
+import { useAuthStore } from "@/store/useAuthStore";
 
 export interface ContextMenuPosition {
   x: number;
@@ -17,13 +18,15 @@ interface ContextMenuProps {
   onClose: () => void;
   onReply: (m: Message) => void;
   onReact: (m: Message) => void;
-  onDelete: (m: Message) => void;
+  onDelete: (m: Message, forEveryone: boolean) => void;
   onEdit: (m: Message) => void;
   onForward: (m: Message) => void;
+  onSave: (m: Message) => void;
 }
 
-export function ContextMenu({ position, message, onClose, onReply, onReact, onDelete, onEdit, onForward }: ContextMenuProps) {
+export function ContextMenu({ position, message, onClose, onReply, onReact, onDelete, onEdit, onForward, onSave }: ContextMenuProps) {
   const menuRef = useRef<HTMLDivElement>(null);
+  const currentUserId = useAuthStore(s => s.user?.id);
 
   useEffect(() => {
     function handleClickOutside(e: MouseEvent) {
@@ -68,9 +71,15 @@ export function ContextMenu({ position, message, onClose, onReply, onReact, onDe
         <div className="h-[1px] bg-white/5 my-1 mx-2" />
         <ContextItem icon={<Copy size={14} />} label="Copy Text" onClick={() => { navigator.clipboard.writeText(message.content || ""); onClose(); }} />
         <ContextItem icon={<Forward size={14} />} label="Forward" onClick={() => { onForward(message); onClose(); }} />
+        <ContextItem icon={<Bookmark size={14} />} label="Save Message" onClick={() => { onSave(message); onClose(); }} />
         <div className="h-[1px] bg-white/5 my-1 mx-2" />
-        <ContextItem icon={<Edit2 size={14} />} label="Edit" onClick={() => { onEdit(message); onClose(); }} />
-        <ContextItem icon={<Trash2 size={14} />} label="Delete" onClick={() => { onDelete(message); onClose(); }} danger />
+        {currentUserId === message.senderId && (
+          <ContextItem icon={<Edit2 size={14} />} label="Edit" onClick={() => { onEdit(message); onClose(); }} />
+        )}
+        <ContextItem icon={<Trash2 size={14} />} label="Delete for me" onClick={() => { onDelete(message, false); onClose(); }} danger />
+        {currentUserId === message.senderId && (
+          <ContextItem icon={<Trash2 size={14} />} label="Delete for everyone" onClick={() => { onDelete(message, true); onClose(); }} danger />
+        )}
       </motion.div>
     </div>
   );

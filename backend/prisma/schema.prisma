@@ -57,6 +57,7 @@ model User {
   reactions             Reaction[]
   refreshTokens         RefreshToken[]
   emailTokens            EmailToken[]
+  savedMessages          SavedMessage[]
 }
 
 model RefreshToken {
@@ -157,6 +158,7 @@ model Message {
   replyToId      String?
   isEdited       Boolean     @default(false)
   isDeleted      Boolean     @default(false)
+  deletedByIds   String[]    @default([])
   isPinned       Boolean     @default(false)
   createdAt      DateTime    @default(now())
   updatedAt      DateTime    @updatedAt
@@ -167,6 +169,7 @@ model Message {
   replies      Message[]    @relation("Replies")
   reactions    Reaction[]
   readReceipts ReadReceipt[]
+  savedBy      SavedMessage[]
 }
 
 model Reaction {
@@ -202,4 +205,16 @@ model Notification {
   createdAt DateTime @default(now())
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model SavedMessage {
+  id        String   @id @default(uuid())
+  userId    String
+  messageId String
+  createdAt DateTime @default(now())
+
+  user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  message Message @relation(fields: [messageId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, messageId])
 }

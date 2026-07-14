@@ -28,10 +28,16 @@ export function MessageBubble({ message, onReply, onEdit }: { message: Message; 
     await api.post(`/messages/${message.id}/reactions`, { emoji });
   }
 
-  async function deleteMessage(m: Message) {
+  async function deleteMessage(m: Message, forEveryone: boolean) {
     if (!activeConversationId) return;
-    await api.delete(`/messages/${m.id}`);
-    removeMessage(activeConversationId, m.id);
+    await api.delete(`/messages/${m.id}`, { data: { forEveryone } });
+    if (!forEveryone) {
+      removeMessage(activeConversationId, m.id);
+    }
+  }
+
+  async function saveMessage(m: Message) {
+    await api.post(`/messages/${m.id}/save`);
   }
 
   const grouped = (message.reactions || []).reduce<Record<string, number>>((acc, r) => {
@@ -139,6 +145,7 @@ export function MessageBubble({ message, onReply, onEdit }: { message: Message; 
         onDelete={deleteMessage}
         onEdit={(m) => onEdit?.(m)}
         onForward={(m) => openForwardModal(m)}
+        onSave={saveMessage}
       />
     </>
   );

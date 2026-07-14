@@ -49,6 +49,7 @@ interface ChatState {
   addMessage: (msg: Message) => void;
   updateMessage: (msg: Partial<Message> & { id: string; conversationId: string }) => void;
   removeMessage: (conversationId: string, messageId: string) => void;
+  togglePin: (conversationId: string) => void;
   addReaction: (reaction: { id: string; emoji: string; userId: string; messageId: string; conversationId?: string }) => void;
   removeReaction: (payload: { messageId: string; userId: string; emoji: string; conversationId?: string }) => void;
   setTyping: (conversationId: string, userId: string, isTyping: boolean) => void;
@@ -119,6 +120,17 @@ export const useChatStore = create<ChatState>((set, get) => ({
           m.id === messageId ? { ...m, isDeleted: true, content: null, mediaUrl: null } : m
         ),
       },
+    })),
+
+  togglePin: (conversationId) =>
+    set((state) => ({
+      conversations: state.conversations.map((c) => 
+        c.id === conversationId ? { ...c, isPinned: !c.isPinned } : c
+      ).sort((a, b) => {
+        if (a.isPinned && !b.isPinned) return -1;
+        if (!a.isPinned && b.isPinned) return 1;
+        return +new Date(b.updatedAt) - +new Date(a.updatedAt);
+      }),
     })),
 
   addReaction: (reaction) =>

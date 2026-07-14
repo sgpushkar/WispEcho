@@ -1,6 +1,6 @@
 import prisma from "../config/db.js";
 import { sendMessageSchema } from "../utils/validators.js";
-import { emitToConversation } from "../sockets/index.js";
+import { emitToConversation, notifyUser } from "../sockets/index.js";
 
 // Get or create a 1:1 conversation, then list conversations for sidebar
 export async function listConversations(req, res, next) {
@@ -94,7 +94,10 @@ export async function getMessages(req, res, next) {
     if (!isParticipant) return res.status(403).json({ error: "Not a participant" });
 
     const messages = await prisma.message.findMany({
-      where: { conversationId },
+      where: { 
+        conversationId,
+        NOT: { deletedByIds: { has: req.userId } }
+      },
       orderBy: { createdAt: "desc" },
       take,
       ...(cursor && { cursor: { id: cursor }, skip: 1 }),
@@ -165,6 +168,36 @@ export async function sendMessage(req, res, next) {
     });
 
     emitToConversation(conversationId, "message:new", message);
+
+    // Extract mentions and notify users
+    if (data.content) {
+      const mentionRegex = /@([a-zA-Z0-9_]+)/g;
+      const matches = [...data.content.matchAll(mentionRegex)];
+      if (matches.length > 0) {
+        const usernames = matches.map(m => m[1]);
+        const mentionedUsers = await prisma.user.findMany({
+          where: { username: { in: usernames } },
+          select: { id: true, username: true }
+        });
+        
+        mentionedUsers.forEach(user => {
+          if (user.id !== req.userId) {
+            // Check if they are in the conversation
+            prisma.conversationParticipant.findUnique({
+              where: { conversationId_userId: { conversationId, userId: user.id } }
+            }).then(participant => {
+              if (participant) {
+                notifyUser(user.id, "notification:mention", {
+                  conversationId,
+                  message: `${message.sender.displayName} mentioned you: ${data.content}`
+                });
+              }
+            });
+          }
+        });
+      }
+    }
+
     res.status(201).json({ message });
   } catch (err) {
     next(err);
@@ -199,21 +232,27 @@ export async function deleteMessage(req, res, next) {
     const { forEveryone } = req.body;
 
     const existing = await prisma.message.findUnique({ where: { id: messageId } });
-    if (!existing || existing.senderId !== req.userId) {
-      return res.status(403).json({ error: "Cannot delete this message" });
+    if (!existing) {
+      return res.status(404).json({ error: "Message not found" });
     }
 
     if (forEveryone) {
+      if (existing.senderId !== req.userId) {
+        return res.status(403).json({ error: "Cannot delete others' messages for everyone" });
+      }
       const message = await prisma.message.update({
         where: { id: messageId },
         data: { isDeleted: true, content: null, mediaUrl: null },
       });
-      emitToConversation(existing.conversationId, "message:deleted", { id: messageId });
+      emitToConversation(existing.conversationId, "message:deleted", { id: messageId, forEveryone: true });
       return res.json({ message });
+    } else {
+      const message = await prisma.message.update({
+        where: { id: messageId },
+        data: { deletedByIds: { push: req.userId } },
+      });
+      res.json({ success: true, forMe: true });
     }
-
-    // "delete for me" would need a per-user hidden-message join table; kept minimal here
-    res.json({ success: true });
   } catch (err) {
     next(err);
   }
@@ -256,6 +295,68 @@ export async function markRead(req, res, next) {
     });
     emitToConversation(conversationId, "conversation:read", { conversationId, userId: req.userId });
     res.json({ success: true });
+  } catch (err) {
+    next(err);
+  }
+}
+
+export async function togglePinChat(req, res, next) {
+  try {
+    const { conversationId } = req.params;
+    const participant = await prisma.conversationParticipant.findUnique({
+      where: { conversationId_userId: { conversationId, userId: req.userId } }
+    });
+    if (!participant) return res.status(404).json({ error: "Conversation not found" });
+
+    const updated = await prisma.conversationParticipant.update({
+      where: { conversationId_userId: { conversationId, userId: req.userId } },
+      data: { isPinned: !participant.isPinned },
+    });
+    res.json({ isPinned: updated.isPinned });
+  } catch (err) {
+    next(err);
+  }
+}
+
+export async function toggleSaveMessage(req, res, next) {
+  try {
+    const { messageId } = req.params;
+    const existing = await prisma.savedMessage.findUnique({
+      where: { userId_messageId: { userId: req.userId, messageId } }
+    });
+    if (existing) {
+      await prisma.savedMessage.delete({ where: { id: existing.id } });
+      return res.json({ saved: false });
+    }
+    await prisma.savedMessage.create({
+      data: { userId: req.userId, messageId }
+    });
+    res.json({ saved: true });
+  } catch (err) {
+    next(err);
+  }
+}
+
+export async function searchMessages(req, res, next) {
+  try {
+    const { q } = req.query;
+    if (!q) return res.json({ messages: [] });
+
+    const messages = await prisma.message.findMany({
+      where: {
+        content: { contains: q, mode: "insensitive" },
+        conversation: { participants: { some: { userId: req.userId } } },
+        isDeleted: false,
+        NOT: { deletedByIds: { has: req.userId } }
+      },
+      include: {
+        sender: { select: { id: true, username: true, displayName: true, avatarUrl: true } },
+        conversation: { include: { group: true, participants: { include: { user: true } } } }
+      },
+      orderBy: { createdAt: "desc" },
+      take: 50
+    });
+    res.json({ messages });
   } catch (err) {
     next(err);
   }

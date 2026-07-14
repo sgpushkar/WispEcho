@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Search, LogOut, Users, Plus, Settings } from "lucide-react";
+import { Search, LogOut, Users, Plus, Settings, Pin, PinOff } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { api } from "@/lib/api";
 import { useAuthStore } from "@/store/useAuthStore";
@@ -55,10 +55,26 @@ export function Sidebar() {
   });
   const incomingRequestsCount = requestsData?.incoming?.length || 0;
 
-  const filtered = conversations.filter((c) => {
-    const name = c.isGroup ? c.group?.name : c.otherUser?.displayName;
-    return name?.toLowerCase().includes(query.toLowerCase());
-  });
+  const filtered = conversations
+    .filter((c) => {
+      const name = c.isGroup ? c.group?.name : c.otherUser?.displayName;
+      return name?.toLowerCase().includes(query.toLowerCase());
+    })
+    .sort((a, b) => {
+      if (a.isPinned && !b.isPinned) return -1;
+      if (!a.isPinned && b.isPinned) return 1;
+      return +new Date(b.updatedAt) - +new Date(a.updatedAt);
+    });
+
+  const togglePin = async (e: React.MouseEvent, conversationId: string) => {
+    e.stopPropagation();
+    useChatStore.getState().togglePin(conversationId);
+    try {
+      await api.patch(`/messages/conversations/${conversationId}/pin`);
+    } catch (err) {
+      useChatStore.getState().togglePin(conversationId); // revert on failure
+    }
+  };
 
   return (
     <>
@@ -143,10 +159,16 @@ export function Sidebar() {
                   </div>
                 </div>
 
-                <div className="flex flex-col items-end gap-1">
-                  <div className="conv-time">
+                <div className="flex flex-col items-end gap-1 relative group">
+                  <div className="conv-time group-hover:opacity-0 transition-opacity">
                     {conv.lastMessage ? formatDistanceToNowStrict(new Date(conv.lastMessage.createdAt), { addSuffix: false }) : ""}
                   </div>
+                  <button 
+                    onClick={(e) => togglePin(e, conv.id)} 
+                    className="absolute top-0 right-0 opacity-0 group-hover:opacity-100 transition-opacity text-white/50 hover:text-white"
+                  >
+                    {conv.isPinned ? <PinOff size={14} /> : <Pin size={14} />}
+                  </button>
                   {hasUnread && <div className="w-2 h-2 rounded-full bg-white mt-1" />}
                 </div>
               </div>
