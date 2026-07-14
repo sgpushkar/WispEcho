@@ -5,10 +5,11 @@ import { format } from "date-fns";
 import { Message } from "@/store/useChatStore";
 import { useAuthStore } from "@/store/useAuthStore";
 import { api } from "@/lib/api";
+import { Reply } from "lucide-react";
 
 const QUICK_REACTIONS = ["❤️", "😂", "🔥", "😭", "👍"];
 
-export function MessageBubble({ message }: { message: Message }) {
+export function MessageBubble({ message, onReply }: { message: Message; onReply?: (m: Message) => void }) {
   const currentUserId = useAuthStore((s) => s.user?.id);
   const isMine = message.senderId === currentUserId;
 
@@ -61,14 +62,18 @@ export function MessageBubble({ message }: { message: Message }) {
           </div>
         )}
 
-        {/* Reaction Picker Hover */}
-        <div className="pointer-events-none absolute -top-8 left-0 flex gap-0.5 rounded-full opacity-0 transition group-hover:pointer-events-auto group-hover:opacity-100 z-10">
-          <div className="glass flex gap-1 rounded-full px-2 py-1">
+        {/* Hover Actions */}
+        <div className={`pointer-events-none absolute -top-8 ${isMine ? "right-0" : "left-0"} flex gap-1 rounded-full opacity-0 transition group-hover:pointer-events-auto group-hover:opacity-100 z-10`}>
+          <div className="glass flex gap-1 rounded-full px-2 py-1 items-center">
             {QUICK_REACTIONS.map((emoji) => (
               <button key={emoji} onClick={() => react(emoji)} className="text-sm hover:scale-125 transition">
                 {emoji}
               </button>
             ))}
+            <div className="w-[1px] h-4 bg-white/20 mx-1"></div>
+            <button onClick={() => onReply?.(message)} className="text-white/60 hover:text-white transition p-1" title="Reply">
+              <Reply size={14} />
+            </button>
           </div>
         </div>
       </div>

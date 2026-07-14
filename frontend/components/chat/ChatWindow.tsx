@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Send, Image as ImageIcon, ArrowLeft, Mic } from "lucide-react";
+import { Send, Image as ImageIcon, ArrowLeft, Mic, X } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { api } from "@/lib/api";
 import { useChatStore, Message } from "@/store/useChatStore";
@@ -14,6 +14,7 @@ export function ChatWindow() {
   const accessToken = useAuthStore((s) => s.accessToken)!;
   const { activeConversationId, setActiveConversation, conversations, messages, setMessages, typingUsers, onlineUsers } = useChatStore();
   const [draft, setDraft] = useState("");
+  const [replyToMessage, setReplyToMessage] = useState<Message | null>(null);
   const bottomRef = useRef<HTMLDivElement>(null);
   const typingTimeout = useRef<NodeJS.Timeout | null>(null);
 
@@ -58,8 +59,11 @@ export function ChatWindow() {
   async function sendMessage() {
     if (!draft.trim() || !activeConversationId) return;
     const content = draft;
+    const replyToId = replyToMessage?.id;
+    
     setDraft("");
-    await api.post("/messages", { conversationId: activeConversationId, content, type: "TEXT" });
+    setReplyToMessage(null);
+    await api.post("/messages", { conversationId: activeConversationId, content, type: "TEXT", replyToId });
   }
 
   if (!conversation) {
@@ -102,7 +106,7 @@ export function ChatWindow() {
       <div className="messages">
         <AnimatePresence initial={false}>
           {conversationMessages.map((msg) => (
-            <MessageBubble key={msg.id} message={msg} />
+            <MessageBubble key={msg.id} message={msg} onReply={setReplyToMessage} />
           ))}
         </AnimatePresence>
 
@@ -119,6 +123,14 @@ export function ChatWindow() {
       </div>
 
       <div className="composer">
+        {replyToMessage && (
+          <div className="mb-2 flex items-center justify-between rounded-xl bg-white/5 border border-white/10 px-4 py-2 text-sm text-white/60">
+            <span>Replying to <span className="text-white font-medium">{replyToMessage.sender?.displayName}</span>: "{replyToMessage.content}"</span>
+            <button onClick={() => setReplyToMessage(null)} className="hover:text-white transition">
+              <X size={14} />
+            </button>
+          </div>
+        )}
         <div className="composer-glass">
           <div className="icon-btn hover:text-white transition">
             <ImageIcon size={18} />
