@@ -11,8 +11,10 @@ import { formatDistanceToNowStrict } from "date-fns";
 import { FriendsModal } from "../friends/FriendsModal";
 import { CreateGroupModal } from "./CreateGroupModal";
 import { SettingsModal } from "./SettingsModal";
+import { SettingsModal } from "./SettingsModal";
 import { GroupSettingsModal } from "./GroupSettingsModal";
 import { ForwardModal } from "./ForwardModal";
+import Link from "next/link";
 
 export function Sidebar() {
   const user = useAuthStore((s) => s.user);
@@ -154,19 +156,21 @@ export function Sidebar() {
 
         {/* Current User Card */}
         {user && (
-          <div className="me-card mt-auto">
-            <div className="avatar avatar-font">
-              {user.avatarUrl ? (
-                <img src={user.avatarUrl} className="h-full w-full object-cover rounded-[14px]" alt="" />
-              ) : (
-                user.displayName[0]?.toUpperCase()
-              )}
+          <Link href={`/profile/${user.username}`} className="me-card mt-auto hover:opacity-80 transition cursor-pointer block">
+            <div className="flex items-center gap-3">
+              <div className="avatar avatar-font">
+                {user.avatarUrl ? (
+                  <img src={user.avatarUrl} className="h-full w-full object-cover rounded-[14px]" alt="" />
+                ) : (
+                  user.displayName[0]?.toUpperCase()
+                )}
+              </div>
+              <div>
+                <div className="me-name">{user.displayName}</div>
+                <div className="me-handle">@{user.username}</div>
+              </div>
             </div>
-            <div>
-              <div className="me-name">{user.displayName}</div>
-              <div className="me-handle">@{user.username}</div>
-            </div>
-          </div>
+          </Link>
         )}
       </aside>
 

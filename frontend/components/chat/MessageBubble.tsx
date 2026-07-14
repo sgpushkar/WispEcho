@@ -10,6 +10,7 @@ import { useUIStore } from "@/store/useUIStore";
 import { api } from "@/lib/api";
 import { Reply } from "lucide-react";
 import { ContextMenu, ContextMenuPosition } from "./ContextMenu";
+import Link from "next/link";
 
 const QUICK_REACTIONS = ["❤️", "😂", "🔥", "😭", "👍"];
 
@@ -59,16 +60,16 @@ export function MessageBubble({ message, onReply, onEdit }: { message: Message; 
           }}
         >
           {!isMine && isGroup && (
-             <div className="flex items-center gap-2 mb-1 ml-2">
+             <Link href={`/profile/${message.sender?.username}`} className="flex items-center gap-2 mb-1 ml-2 group/profile">
                <div className="w-5 h-5 rounded-full overflow-hidden bg-white/10 shrink-0 flex items-center justify-center shadow-sm">
                  {message.sender?.avatarUrl ? (
                    <img src={message.sender.avatarUrl} alt="" className="w-full h-full object-cover" />
                  ) : (
-                   <span className="text-[10px] font-medium text-white/60">{message.sender?.displayName?.[0]?.toUpperCase()}</span>
+                   <span className="text-[10px] font-medium text-white/60 group-hover/profile:text-white transition">{message.sender?.displayName?.[0]?.toUpperCase()}</span>
                  )}
                </div>
-               <span className="text-[12px] font-medium text-white/60">{message.sender?.displayName}</span>
-             </div>
+               <span className="text-[12px] font-medium text-white/60 group-hover/profile:text-white group-hover/profile:underline transition">{message.sender?.displayName}</span>
+             </Link>
           )}
           {message.replyTo && (
             <div className={`border-l-[2px] border-white/20 pl-3 py-0.5 text-[13px] text-white/50 mb-1 w-fit max-w-full line-clamp-2 ${isMine ? "self-end" : "self-start"}`}>

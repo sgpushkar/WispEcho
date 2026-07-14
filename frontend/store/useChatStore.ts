@@ -49,6 +49,8 @@ interface ChatState {
   addMessage: (msg: Message) => void;
   updateMessage: (msg: Partial<Message> & { id: string; conversationId: string }) => void;
   removeMessage: (conversationId: string, messageId: string) => void;
+  addReaction: (reaction: { id: string; emoji: string; userId: string; messageId: string; conversationId?: string }) => void;
+  removeReaction: (payload: { messageId: string; userId: string; emoji: string; conversationId?: string }) => void;
   setTyping: (conversationId: string, userId: string, isTyping: boolean) => void;
   setPresence: (userId: string, isOnline: boolean) => void;
 }
@@ -114,10 +116,62 @@ export const useChatStore = create<ChatState>((set, get) => ({
       messages: {
         ...state.messages,
         [conversationId]: (state.messages[conversationId] || []).map((m) =>
-          m.id === messageId ? { ...m, isDeleted: true, content: null } : m
+          m.id === messageId ? { ...m, isDeleted: true, content: null, mediaUrl: null } : m
         ),
       },
     })),
+
+  addReaction: (reaction) =>
+    set((state) => {
+      // We need to find the conversation that has this message
+      let convId = reaction.conversationId;
+      if (!convId) {
+        for (const [cId, msgs] of Object.entries(state.messages)) {
+          if (msgs.some(m => m.id === reaction.messageId)) {
+            convId = cId;
+            break;
+          }
+        }
+      }
+      if (!convId) return state;
+
+      return {
+        messages: {
+          ...state.messages,
+          [convId]: (state.messages[convId] || []).map((m) => {
+            if (m.id !== reaction.messageId) return m;
+            const currentReactions = m.reactions || [];
+            if (currentReactions.some(r => r.userId === reaction.userId && r.emoji === reaction.emoji)) return m;
+            return { ...m, reactions: [...currentReactions, reaction] };
+          }),
+        },
+      };
+    }),
+
+  removeReaction: (payload) =>
+    set((state) => {
+      let convId = payload.conversationId;
+      if (!convId) {
+        for (const [cId, msgs] of Object.entries(state.messages)) {
+          if (msgs.some(m => m.id === payload.messageId)) {
+            convId = cId;
+            break;
+          }
+        }
+      }
+      if (!convId) return state;
+
+      return {
+        messages: {
+          ...state.messages,
+          [convId]: (state.messages[convId] || []).map((m) => {
+            if (m.id !== payload.messageId) return m;
+            const currentReactions = m.reactions || [];
+            return { ...m, reactions: currentReactions.filter(r => !(r.userId === payload.userId && r.emoji === payload.emoji)) };
+          }),
+        },
+      };
+    }),
 
   setTyping: (conversationId, userId, isTyping) =>
     set((state) => {

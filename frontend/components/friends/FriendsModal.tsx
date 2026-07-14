@@ -5,7 +5,10 @@ import { motion, AnimatePresence } from "framer-motion";
 import { X, Search, UserPlus, Check, X as XIcon, MessageSquare } from "lucide-react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { api } from "@/lib/api";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { api } from "@/lib/api";
 import { useChatStore } from "@/store/useChatStore";
+import Link from "next/link";
 
 interface User {
   id: string;
@@ -136,7 +139,7 @@ export function FriendsModal({ isOpen, onClose }: { isOpen: boolean; onClose: ()
               ) : (
                 friends.map((friend: User) => (
                   <div key={friend.id} className="flex items-center justify-between rounded-xl bg-white/5 p-3">
-                    <div className="flex items-center gap-3">
+                    <Link href={`/profile/${friend.username}`} onClick={onClose} className="flex items-center gap-3 hover:opacity-80 transition cursor-pointer">
                       <div className="h-10 w-10 overflow-hidden rounded-full bg-white/10 border border-white/10 flex items-center justify-center font-bold">
                         {friend.avatarUrl ? <img src={friend.avatarUrl} alt="" className="h-full w-full object-cover" /> : friend.displayName[0]}
                       </div>
@@ -144,7 +147,7 @@ export function FriendsModal({ isOpen, onClose }: { isOpen: boolean; onClose: ()
                         <p className="font-medium text-sm">{friend.displayName}</p>
                         <p className="text-xs text-white/40">@{friend.username}</p>
                       </div>
-                    </div>
+                    </Link>
                     <button
                       onClick={() => startDirectMessage(friend.id)}
                       className="flex h-9 w-9 items-center justify-center rounded-full bg-white/10 text-white hover:bg-white/20 transition"
@@ -177,7 +180,7 @@ export function FriendsModal({ isOpen, onClose }: { isOpen: boolean; onClose: ()
                 ) : (
                   searchResults.map((user: User) => (
                     <div key={user.id} className="flex items-center justify-between rounded-xl bg-white/5 p-3">
-                      <div className="flex items-center gap-3">
+                      <Link href={`/profile/${user.username}`} onClick={onClose} className="flex items-center gap-3 hover:opacity-80 transition cursor-pointer">
                         <div className="h-10 w-10 overflow-hidden rounded-full bg-white/10 border border-white/10 flex items-center justify-center font-bold">
                           {user.avatarUrl ? <img src={user.avatarUrl} alt="" className="h-full w-full object-cover" /> : user.displayName[0]}
                         </div>
@@ -185,7 +188,7 @@ export function FriendsModal({ isOpen, onClose }: { isOpen: boolean; onClose: ()
                           <p className="font-medium text-sm">{user.displayName}</p>
                           <p className="text-xs text-white/40">@{user.username}</p>
                         </div>
-                      </div>
+                      </Link>
                       <button
                         onClick={() => sendRequest.mutate(user.id)}
                         disabled={sendRequest.isPending}
@@ -210,7 +213,7 @@ export function FriendsModal({ isOpen, onClose }: { isOpen: boolean; onClose: ()
                   if (!user) return null;
                   return (
                     <div key={req.id} className="flex items-center justify-between rounded-xl bg-white/5 p-3">
-                      <div className="flex items-center gap-3">
+                      <Link href={`/profile/${user.username}`} onClick={onClose} className="flex items-center gap-3 hover:opacity-80 transition cursor-pointer">
                         <div className="h-10 w-10 overflow-hidden rounded-full bg-white/10 border border-white/10 flex items-center justify-center font-bold">
                           {user.avatarUrl ? <img src={user.avatarUrl} alt="" className="h-full w-full object-cover" /> : user.displayName[0]}
                         </div>
@@ -218,7 +221,7 @@ export function FriendsModal({ isOpen, onClose }: { isOpen: boolean; onClose: ()
                           <p className="font-medium text-sm">{user.displayName}</p>
                           <p className="text-xs text-white/40">@{user.username}</p>
                         </div>
-                      </div>
+                      </Link>
                       <div className="flex gap-2">
                         <button
                           onClick={() => respondRequest.mutate({ id: req.id, action: "accept" })}

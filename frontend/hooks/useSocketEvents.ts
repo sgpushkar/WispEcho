@@ -7,7 +7,7 @@ import { getSocket, disconnectSocket } from "@/lib/socket";
 
 export function useSocketEvents() {
   const accessToken = useAuthStore((s) => s.accessToken);
-  const { addMessage, updateMessage, removeMessage, setTyping, setPresence } = useChatStore();
+  const { addMessage, updateMessage, removeMessage, setTyping, setPresence, addReaction, removeReaction } = useChatStore();
 
   useEffect(() => {
     if (!accessToken) return;
@@ -16,6 +16,8 @@ export function useSocketEvents() {
     socket.on("message:new", (msg) => addMessage(msg));
     socket.on("message:edited", (msg) => updateMessage(msg));
     socket.on("message:deleted", ({ id, conversationId }) => removeMessage(conversationId, id));
+    socket.on("reaction:added", (reaction) => addReaction(reaction));
+    socket.on("reaction:removed", (payload) => removeReaction(payload));
 
     socket.on("typing:start", ({ conversationId, userId }) => setTyping(conversationId, userId, true));
     socket.on("typing:stop", ({ conversationId, userId }) => setTyping(conversationId, userId, false));
@@ -26,6 +28,8 @@ export function useSocketEvents() {
       socket.off("message:new");
       socket.off("message:edited");
       socket.off("message:deleted");
+      socket.off("reaction:added");
+      socket.off("reaction:removed");
       socket.off("typing:start");
       socket.off("typing:stop");
       socket.off("presence:update");

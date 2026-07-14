@@ -12,8 +12,10 @@ import { MessageBubble } from "./MessageBubble";
 import { useVirtualScroll } from "@/hooks/useVirtualScroll";
 import { Edit2 } from "lucide-react";
 import { useUIStore } from "@/store/useUIStore";
+import { useRouter } from "next/navigation";
 
 export function ChatWindow() {
+  const router = useRouter();
   const { setGroupSettingsOpen } = useUIStore();
   const accessToken = useAuthStore((s) => s.accessToken)!;
   const { activeConversationId, setActiveConversation, conversations, messages, setMessages, typingUsers, onlineUsers } = useChatStore();
@@ -135,6 +137,8 @@ export function ChatWindow() {
           onClick={() => {
             if (conversation.isGroup && conversation.group) {
               setGroupSettingsOpen(true, conversation.group.id);
+            } else if (conversation.otherUser) {
+              router.push(`/profile/${conversation.otherUser.username}`);
             }
           }}
         >
@@ -146,10 +150,12 @@ export function ChatWindow() {
           {isOnline && <span className="dot" />}
         </motion.div>
         <div 
-          className={conversation.isGroup ? "cursor-pointer" : ""}
+          className="cursor-pointer"
           onClick={() => {
             if (conversation.isGroup && conversation.group) {
               setGroupSettingsOpen(true, conversation.group.id);
+            } else if (conversation.otherUser) {
+              router.push(`/profile/${conversation.otherUser.username}`);
             }
           }}
         >
