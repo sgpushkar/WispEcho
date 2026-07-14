@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Search, LogOut, Users, Plus } from "lucide-react";
+import { Search, LogOut, Users, Plus, Settings } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { api } from "@/lib/api";
 import { useAuthStore } from "@/store/useAuthStore";
@@ -9,6 +9,7 @@ import { useChatStore, Conversation } from "@/store/useChatStore";
 import { formatDistanceToNowStrict } from "date-fns";
 import { FriendsModal } from "../friends/FriendsModal";
 import { CreateGroupModal } from "./CreateGroupModal";
+import { SettingsModal } from "./SettingsModal";
 
 export function Sidebar() {
   const user = useAuthStore((s) => s.user);
@@ -18,6 +19,7 @@ export function Sidebar() {
   const [query, setQuery] = useState("");
   const [friendsOpen, setFriendsOpen] = useState(false);
   const [groupOpen, setGroupOpen] = useState(false);
+  const [settingsOpen, setSettingsOpen] = useState(false);
 
   const { data } = useQuery({
     queryKey: ["conversations"],
@@ -48,6 +50,9 @@ export function Sidebar() {
             </button>
             <button onClick={() => setGroupOpen(true)} className="icon-btn" title="New Group">
               <Plus size={16} />
+            </button>
+            <button onClick={() => setSettingsOpen(true)} className="icon-btn" title="Settings">
+              <Settings size={16} />
             </button>
             <button onClick={logout} className="icon-btn" title="Logout">
               <LogOut size={16} />
@@ -122,6 +127,7 @@ export function Sidebar() {
 
       <FriendsModal isOpen={friendsOpen} onClose={() => setFriendsOpen(false)} />
       <CreateGroupModal isOpen={groupOpen} onClose={() => setGroupOpen(false)} />
+      <SettingsModal isOpen={settingsOpen} onClose={() => setSettingsOpen(false)} />
     </>
   );
 }
