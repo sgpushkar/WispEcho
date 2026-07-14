@@ -28,8 +28,8 @@ export async function updateProfile(req, res, next) {
 
 export async function getUserByUsername(req, res, next) {
   try {
-    const user = await prisma.user.findUnique({
-      where: { username: req.params.username },
+    const user = await prisma.user.findFirst({
+      where: { username: { equals: req.params.username, mode: "insensitive" } },
       select: {
         id: true,
         username: true,

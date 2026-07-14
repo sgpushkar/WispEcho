@@ -53,7 +53,7 @@ export function ContextMenu({ position, message, onClose, onReply, onReact, onDe
 
   // Simple boundary collision detection
   const x = Math.min(position.x, typeof window !== "undefined" ? window.innerWidth - 200 : position.x);
-  const y = Math.min(position.y, typeof window !== "undefined" ? window.innerHeight - 300 : position.y);
+  const y = Math.min(position.y, typeof window !== "undefined" ? window.innerHeight - 400 : position.y);
 
   const menu = (
     <div className="fixed inset-0 z-[200] pointer-events-none">

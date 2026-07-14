@@ -45,6 +45,22 @@ export function MessageBubble({ message, onReply, onEdit }: { message: Message; 
     return acc;
   }, {});
 
+  const renderContent = (text: string | null) => {
+    if (!text) return null;
+    const parts = text.split(/(@[a-zA-Z0-9_]+)/g);
+    return parts.map((part, i) => {
+      if (part.startsWith("@")) {
+        const username = part.slice(1);
+        return (
+          <Link key={i} href={`/profile/${username}`} className="text-accent hover:underline font-medium">
+            {part}
+          </Link>
+        );
+      }
+      return <span key={i}>{part}</span>;
+    });
+  };
+
   return (
     <>
       <motion.div
@@ -85,7 +101,7 @@ export function MessageBubble({ message, onReply, onEdit }: { message: Message; 
           <div className={`relative flex flex-col group/bubble ${isMine ? "items-end" : "items-start"}`}>
 
           <div className={`bubble ${isMine ? "mine" : "theirs"} ${message.isDeleted ? "italic opacity-60" : ""}`}>
-            {message.isDeleted ? "this message was deleted" : message.content}
+            {message.isDeleted ? "this message was deleted" : renderContent(message.content)}
             {message.type === "IMAGE" && message.mediaUrl && (
               <img src={message.mediaUrl} alt="" className="mt-2 max-w-full rounded-xl" />
             )}

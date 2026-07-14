@@ -41,14 +41,18 @@ export function ChatWindow() {
       (await api.get(`/messages/conversations/${activeConversationId}/messages`)).data.messages as Message[],
   });
 
-  const { containerRef, visibleItems, paddingTop, paddingBottom } = useVirtualScroll({ items: conversationMessages });
+  const { containerRef, visibleItems, paddingTop, paddingBottom, isAtBottom } = useVirtualScroll({ items: conversationMessages });
 
   useEffect(() => {
     if (data && activeConversationId) setMessages(activeConversationId, data);
   }, [data, activeConversationId]);
 
   useEffect(() => {
-    bottomRef.current?.scrollIntoView({ behavior: "smooth" });
+    // Only auto-scroll if we were already at the bottom, 
+    // or if the newest message is from us (handled in sendMessage)
+    if (isAtBottom) {
+      bottomRef.current?.scrollIntoView({ behavior: "smooth" });
+    }
   }, [conversationMessages.length]);
 
   useEffect(() => {
@@ -92,7 +96,10 @@ export function ChatWindow() {
     }
     
     setShowEmojiPicker(false);
-    setTimeout(() => setIsSending(false), 300);
+    setTimeout(() => {
+      setIsSending(false);
+      bottomRef.current?.scrollIntoView({ behavior: "smooth" });
+    }, 300);
   }
 
   if (!conversation) {

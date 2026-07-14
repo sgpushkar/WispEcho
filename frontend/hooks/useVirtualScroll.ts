@@ -13,6 +13,7 @@ export function useVirtualScroll<T>({ items, itemHeightEstimate = 80, overscan =
   const containerRef = useRef<HTMLDivElement>(null);
   const [scrollTop, setScrollTop] = useState(0);
   const [containerHeight, setContainerHeight] = useState(800);
+  const [isAtBottom, setIsAtBottom] = useState(true);
 
   useEffect(() => {
     const el = containerRef.current;
@@ -20,6 +21,7 @@ export function useVirtualScroll<T>({ items, itemHeightEstimate = 80, overscan =
     
     const handleScroll = () => {
       setScrollTop(el.scrollTop);
+      setIsAtBottom(el.scrollHeight - el.scrollTop - el.clientHeight < 150);
     };
     
     const handleResize = () => {
@@ -55,5 +57,6 @@ export function useVirtualScroll<T>({ items, itemHeightEstimate = 80, overscan =
     endIndex,
     paddingTop,
     paddingBottom,
+    isAtBottom,
   };
 }
