@@ -109,7 +109,7 @@ export function MessageBubble({ message, onReply, onEdit }: { message: Message; 
           )}
 
           {/* Hover Actions */}
-          <div className={`pointer-events-none absolute -top-10 ${isMine ? "right-0" : "left-0"} flex gap-1 rounded-full opacity-0 transition group-hover/bubble:pointer-events-auto group-hover/bubble:opacity-100 z-20`}>
+          <div className={`pointer-events-none absolute bottom-full pb-2 ${isMine ? "right-0" : "left-0"} flex gap-1 rounded-full opacity-0 transition group-hover/bubble:pointer-events-auto group-hover/bubble:opacity-100 z-20`}>
             <div className="glass flex gap-1 rounded-full px-2 py-1 items-center shadow-xl">
               {QUICK_REACTIONS.map((emoji) => (
                 <button key={emoji} onClick={() => react(emoji)} className="text-sm hover:scale-125 transition">
