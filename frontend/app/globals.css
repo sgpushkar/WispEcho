@@ -160,7 +160,7 @@
   .messages { flex: 1; padding: 24px; display: flex; flex-direction: column; gap: 14px; overflow-y: auto; }
   .row { display: flex; }
   .row.mine { justify-content: flex-end; }
-  .bubble { max-width: 62%; padding: 11px 16px; border-radius: 20px; font-size: 13.5px; line-height: 1.5; }
+  .bubble { padding: 11px 16px; border-radius: 20px; font-size: 13.5px; line-height: 1.5; word-wrap: break-word; }
 
   .stamp { font-size: 10px; color: var(--ink-faint); margin-top: 4px; padding: 0 4px; }
   .row.mine .stamp { text-align: right; }
