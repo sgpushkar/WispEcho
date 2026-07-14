@@ -17,9 +17,11 @@ export interface User {
 interface AuthState {
   user: User | null;
   accessToken: string | null;
-  setAuth: (user: User, accessToken: string) => void;
+  isNewUser: boolean;
+  setAuth: (user: User, token: string, isNew?: boolean) => void;
   setAccessToken: (token: string) => void;
   setUser: (user: User) => void;
+  setIsNewUser: (isNew: boolean) => void;
   logout: () => void;
 }
 
@@ -28,10 +30,12 @@ export const useAuthStore = create<AuthState>()(
     (set) => ({
       user: null,
       accessToken: null,
-      setAuth: (user, accessToken) => set({ user, accessToken }),
+      isNewUser: false,
+      setAuth: (user, token, isNew = false) => set({ user, accessToken: token, isNewUser: isNew }),
       setAccessToken: (accessToken) => set({ accessToken }),
       setUser: (user) => set({ user }),
-      logout: () => set({ user: null, accessToken: null }),
+      setIsNewUser: (isNew) => set({ isNewUser: isNew }),
+      logout: () => set({ user: null, accessToken: null, isNewUser: false }),
     }),
     {
       name: "wispecho-auth",

@@ -70,7 +70,7 @@ export default function GoogleSignInButton() {
       const { data } = await api.post("/auth/google", {
         idToken: response.credential,
       });
-      setAuth(data.user, data.accessToken);
+      setAuth(data.user, data.accessToken, data.isNewUser);
       router.push("/chat");
     } catch (err: any) {
       setError(

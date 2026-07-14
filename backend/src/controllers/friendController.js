@@ -1,5 +1,5 @@
 import prisma from "../config/db.js";
-import { notifyUser } from "../sockets/index.js";
+import { notifyUser, emitToConversation } from "../sockets/index.js";
 
 export async function sendFriendRequest(req, res, next) {
   try {
@@ -57,6 +57,50 @@ export async function respondFriendRequest(req, res, next) {
         data: { status: "ACCEPTED" },
       });
       notifyUser(friendship.requesterId, "friend:accepted", { friendshipId });
+
+      // Automatically create or find a conversation and send a welcome message
+      let conv = await prisma.conversation.findFirst({
+        where: {
+          isGroup: false,
+          AND: [
+            { participants: { some: { userId: friendship.requesterId } } },
+            { participants: { some: { userId: friendship.addresseeId } } },
+          ],
+        },
+      });
+
+      if (!conv) {
+        conv = await prisma.conversation.create({
+          data: {
+            isGroup: false,
+            participants: {
+              create: [{ userId: friendship.requesterId }, { userId: friendship.addresseeId }],
+            },
+          },
+        });
+      }
+
+      // Send the system welcome message
+      const message = await prisma.message.create({
+        data: {
+          conversationId: conv.id,
+          senderId: friendship.requesterId,
+          type: "TEXT",
+          content: "You are now friends! Say hi! 👋",
+        },
+        include: {
+          sender: { select: { id: true, username: true, displayName: true, avatarUrl: true } },
+          replyTo: true,
+        },
+      });
+
+      await prisma.conversation.update({
+        where: { id: conv.id },
+        data: { updatedAt: new Date() },
+      });
+
+      emitToConversation(conv.id, "message:new", message);
+      
       return res.json({ friendship: updated });
     }
 

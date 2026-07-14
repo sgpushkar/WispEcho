@@ -110,6 +110,8 @@ export async function googleLogin(req, res, next) {
       user = await prisma.user.findUnique({ where: { email: payload.email } });
     }
 
+    let isNewUser = false;
+
     if (!user) {
       const baseUsername = payload.email.split("@")[0];
       user = await prisma.user.create({
@@ -122,6 +124,7 @@ export async function googleLogin(req, res, next) {
           isEmailVerified: true,
         },
       });
+      isNewUser = true;
     } else if (!user.googleId) {
       user = await prisma.user.update({
         where: { id: user.id },
@@ -133,7 +136,7 @@ export async function googleLogin(req, res, next) {
     const refreshToken = await signRefreshToken(user.id);
     res.cookie("refreshToken", refreshToken, COOKIE_OPTIONS);
 
-    res.json({ accessToken, user: sanitizeUser(user) });
+    res.json({ accessToken, user: sanitizeUser(user), isNewUser });
   } catch (err) {
     next(err);
   }

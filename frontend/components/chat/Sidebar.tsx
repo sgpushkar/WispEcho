@@ -21,6 +21,22 @@ export function Sidebar() {
   const [groupOpen, setGroupOpen] = useState(false);
   const [settingsOpen, setSettingsOpen] = useState(false);
 
+  const isNewUser = useAuthStore((s) => s.isNewUser);
+  const setIsNewUser = useAuthStore((s) => s.setIsNewUser);
+
+  useEffect(() => {
+    if (isNewUser) {
+      setSettingsOpen(true);
+    }
+  }, [isNewUser]);
+
+  const handleSettingsClose = () => {
+    setSettingsOpen(false);
+    if (isNewUser) {
+      setIsNewUser(false);
+    }
+  };
+
   const { data } = useQuery({
     queryKey: ["conversations"],
     queryFn: async () => (await api.get("/messages/conversations")).data.conversations as Conversation[],
@@ -127,7 +143,7 @@ export function Sidebar() {
 
       <FriendsModal isOpen={friendsOpen} onClose={() => setFriendsOpen(false)} />
       <CreateGroupModal isOpen={groupOpen} onClose={() => setGroupOpen(false)} />
-      <SettingsModal isOpen={settingsOpen} onClose={() => setSettingsOpen(false)} />
+      <SettingsModal isOpen={settingsOpen} onClose={handleSettingsClose} />
     </>
   );
 }
