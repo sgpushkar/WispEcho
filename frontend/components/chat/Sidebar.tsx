@@ -56,9 +56,8 @@ export function Sidebar() {
       <aside className="sidebar glass h-full w-full md:w-[300px]">
         {/* Header / Brand */}
         <div className="flex items-center justify-between pb-2">
-          <div className="brand">
-            <div className="brand-mark"></div>
-            <span className="brand-name">WispEcho</span>
+          <div className="flex items-center gap-2">
+            <img src="/logo.png" alt="WispEcho" className="h-8 w-auto rounded-[6px]" />
           </div>
           <div className="flex items-center gap-2">
             <button onClick={() => setFriendsOpen(true)} className="icon-btn" title="Friends">
