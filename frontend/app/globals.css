@@ -11,11 +11,12 @@
 
   * { box-sizing: border-box; margin: 0; padding: 0; }
 
-  /* Premium scrollbar: hidden by default, fades in on hover/scroll (using modern CSS overlay or custom webkit styles) */
+  /* Premium scrollbar: completely hidden until hover */
   ::-webkit-scrollbar { width: 6px; height: 6px; background: transparent; }
-  ::-webkit-scrollbar-thumb { background: transparent; border-radius: 10px; }
-  *:hover::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); }
-  ::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,0.2); }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: transparent; border-radius: 10px; transition: background 0.2s ease; }
+  :hover::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.15); }
+  ::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,0.25); }
 
   html, body {
     height: 100%;

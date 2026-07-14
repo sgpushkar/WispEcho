@@ -3,6 +3,7 @@ import { Inter, Space_Grotesk } from "next/font/google";
 import "./globals.css";
 import { Providers } from "./providers";
 import { LiquidBackground } from "@/components/ui/LiquidBackground";
+import { CommandPalette } from "@/components/ui/CommandPalette";
 
 const inter = Inter({ subsets: ["latin"], variable: "--font-inter" });
 const space = Space_Grotesk({ subsets: ["latin"], variable: "--font-space" });
@@ -17,7 +18,10 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     <html lang="en" className={`dark ${inter.variable} ${space.variable}`}>
       <body className="antialiased">
         <LiquidBackground>
-          <Providers>{children}</Providers>
+          <Providers>
+            {children}
+            <CommandPalette />
+          </Providers>
         </LiquidBackground>
       </body>
     </html>

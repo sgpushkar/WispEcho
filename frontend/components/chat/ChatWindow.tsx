@@ -9,6 +9,7 @@ import { useChatStore, Message } from "@/store/useChatStore";
 import { useAuthStore } from "@/store/useAuthStore";
 import { getSocket } from "@/lib/socket";
 import { MessageBubble } from "./MessageBubble";
+import { useVirtualScroll } from "@/hooks/useVirtualScroll";
 
 export function ChatWindow() {
   const accessToken = useAuthStore((s) => s.accessToken)!;
@@ -30,6 +31,8 @@ export function ChatWindow() {
     queryFn: async () =>
       (await api.get(`/messages/conversations/${activeConversationId}/messages`)).data.messages as Message[],
   });
+
+  const { containerRef, visibleItems, paddingTop, paddingBottom } = useVirtualScroll({ items: conversationMessages });
 
   useEffect(() => {
     if (data && activeConversationId) setMessages(activeConversationId, data);
@@ -56,6 +59,8 @@ export function ChatWindow() {
     }, 1500);
   }
 
+  const [isSending, setIsSending] = useState(false);
+
   async function sendMessage() {
     if (!draft.trim() || !activeConversationId) return;
     const content = draft;
@@ -63,7 +68,9 @@ export function ChatWindow() {
     
     setDraft("");
     setReplyToMessage(null);
+    setIsSending(true);
     await api.post("/messages", { conversationId: activeConversationId, content, type: "TEXT", replyToId });
+    setTimeout(() => setIsSending(false), 300);
   }
 
   if (!conversation) {
@@ -76,8 +83,11 @@ export function ChatWindow() {
           className="flex flex-col items-center text-center"
         >
           <motion.div
-            animate={{ y: [0, -8, 0] }}
-            transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
+            animate={{ 
+              y: [0, -8, 0],
+              rotate: [-2, 2, -2]
+            }}
+            transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
             className="mb-6 h-16 w-16 rounded-full bg-white/5 border border-white/10 flex items-center justify-center text-white/40 shadow-[0_0_40px_rgba(255,255,255,0.05)]"
           >
             <Send size={24} className="ml-1" />
@@ -95,53 +105,66 @@ export function ChatWindow() {
 
   return (
     <main className="chat glass h-full w-full flex flex-col">
-      <div className="chat-header">
+      <div className="chat-header h-[64px] shrink-0">
         <button 
           onClick={() => setActiveConversation(null)}
           className="md:hidden mr-2 p-2 -ml-2 rounded-full hover:bg-white/10"
         >
           <ArrowLeft size={18} />
         </button>
-        <div className="avatar">
+        <motion.div whileHover={{ scale: 1.05, rotate: 2 }} className="avatar cursor-pointer shadow-md">
           {avatar ? (
             <img src={avatar} className="h-full w-full object-cover rounded-[14px]" alt="" />
           ) : (
             name?.[0]?.toUpperCase()
           )}
           {isOnline && <span className="dot" />}
-        </div>
+        </motion.div>
         <div>
-          <div className="chat-title">{name}</div>
+          <div className="chat-title leading-tight">{name}</div>
           <div className="chat-sub">
             {typingInThisChat.length > 0 ? (
-              <div className="flex items-center gap-1">
-                <span>typing</span>
-                <span className="typing-dot bg-white/50 w-1 h-1" />
-                <span className="typing-dot bg-white/50 w-1 h-1" />
-                <span className="typing-dot bg-white/50 w-1 h-1" />
+              <div className="flex items-center gap-1 mt-0.5">
+                <motion.span 
+                  animate={{ y: [0, -2, 0] }} 
+                  transition={{ repeat: Infinity, duration: 0.6, delay: 0 }} 
+                  className="w-1 h-1 bg-white/50 rounded-full" 
+                />
+                <motion.span 
+                  animate={{ y: [0, -2, 0] }} 
+                  transition={{ repeat: Infinity, duration: 0.6, delay: 0.2 }} 
+                  className="w-1 h-1 bg-white/50 rounded-full" 
+                />
+                <motion.span 
+                  animate={{ y: [0, -2, 0] }} 
+                  transition={{ repeat: Infinity, duration: 0.6, delay: 0.4 }} 
+                  className="w-1 h-1 bg-white/50 rounded-full" 
+                />
               </div>
             ) : isOnline ? "online" : "offline"}
           </div>
         </div>
       </div>
 
-      <div className="messages">
-        <AnimatePresence initial={false}>
-          {conversationMessages.map((msg) => (
-            <MessageBubble key={msg.id} message={msg} onReply={setReplyToMessage} />
-          ))}
-        </AnimatePresence>
+      <div className="messages" ref={containerRef}>
+        <div style={{ paddingTop, paddingBottom }}>
+          <AnimatePresence initial={false}>
+            {visibleItems.map((msg) => (
+              <MessageBubble key={msg.id} message={msg} onReply={setReplyToMessage} />
+            ))}
+          </AnimatePresence>
 
-        {typingInThisChat.length > 0 && (
-          <div className="row">
-            <div className="typing-row">
-              <span className="typing-dot"></span>
-              <span className="typing-dot"></span>
-              <span className="typing-dot"></span>
+          {typingInThisChat.length > 0 && (
+            <div className="row">
+              <div className="typing-row">
+                <span className="typing-dot"></span>
+                <span className="typing-dot"></span>
+                <span className="typing-dot"></span>
+              </div>
             </div>
-          </div>
-        )}
-        <div ref={bottomRef} />
+          )}
+          <div ref={bottomRef} />
+        </div>
       </div>
 
       <div className="composer">
@@ -157,9 +180,9 @@ export function ChatWindow() {
           </div>
         )}
         <div className="composer-glass">
-          <div className="icon-btn">
+          <motion.div whileHover={{ scale: 1.1, filter: "brightness(1.2)" }} className="icon-btn">
             <ImageIcon size={18} />
-          </div>
+          </motion.div>
           <textarea
             value={draft}
             rows={1}
@@ -177,20 +200,24 @@ export function ChatWindow() {
               }
             }}
             placeholder="say something..."
+            className="flex-1 bg-transparent border-none outline-none text-white font-inter text-[14px] min-h-[22px] max-h-[120px] resize-none py-1 placeholder:text-white/30 transition-opacity focus:placeholder:opacity-50"
           />
-          <div className="icon-btn hidden sm:flex">
+          <motion.div whileHover={{ scale: 1.1, filter: "brightness(1.2)" }} className="icon-btn hidden sm:flex">
             <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><path d="M8 14s1.5 2 4 2 4-2 4-2"/><line x1="9" y1="9" x2="9.01" y2="9"/><line x1="15" y1="9" x2="15.01" y2="9"/></svg>
-          </div>
-          <div className="icon-btn hidden sm:flex">
+          </motion.div>
+          <motion.div whileHover={{ scale: 1.1, filter: "brightness(1.2)" }} className="icon-btn hidden sm:flex">
             <Mic size={18} />
-          </div>
-          <motion.div
+          </motion.div>
+          <motion.button
+            whileHover={{ scale: 1.05, rotate: -5, filter: "brightness(1.2)" }}
             whileTap={{ scale: 0.9 }}
+            animate={isSending ? { scale: [1, 1.2, 1], filter: ["brightness(1)", "brightness(1.5)", "brightness(1)"] } : {}}
+            transition={{ type: "spring", stiffness: 400, damping: 17 }}
             onClick={sendMessage}
             className="send-btn"
           >
-            <Send size={16} color="#e4e4e7" />
-          </motion.div>
+            <Send size={16} color="#ffffff" />
+          </motion.button>
         </div>
       </div>
     </main>
