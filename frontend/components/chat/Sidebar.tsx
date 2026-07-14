@@ -47,6 +47,12 @@ export function Sidebar() {
     if (data) setConversations(data);
   }, [data]);
 
+  const { data: requestsData } = useQuery({
+    queryKey: ["friend-requests"],
+    queryFn: async () => (await api.get("/friends/requests")).data,
+  });
+  const incomingRequestsCount = requestsData?.incoming?.length || 0;
+
   const filtered = conversations.filter((c) => {
     const name = c.isGroup ? c.group?.name : c.otherUser?.displayName;
     return name?.toLowerCase().includes(query.toLowerCase());
@@ -61,8 +67,13 @@ export function Sidebar() {
             <img src="/logo.png" alt="WispEcho" className="h-8 w-auto rounded-[6px]" />
           </div>
           <div className="flex items-center gap-2">
-            <button onClick={() => setFriendsOpen(true)} className="icon-btn" title="Friends">
+            <button onClick={() => setFriendsOpen(true)} className="icon-btn relative" title="Friends">
               <Users size={16} />
+              {incomingRequestsCount > 0 && (
+                <span className="absolute -top-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full bg-red-500 text-[10px] font-bold text-white shadow-sm ring-2 ring-[#0f0f11]">
+                  {incomingRequestsCount > 9 ? "9+" : incomingRequestsCount}
+                </span>
+              )}
             </button>
             <button onClick={() => setGroupOpen(true)} className="icon-btn" title="New Group">
               <Plus size={16} />
