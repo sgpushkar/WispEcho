@@ -34,7 +34,7 @@ export function MessageBubble({ message, onReply }: { message: Message; onReply?
           <Reply size={16} />
         </button>
       )}
-      <div className="flex flex-col flex-1 max-w-[70%] relative group">
+      <div className="flex flex-col max-w-[70%] relative group">
         {message.replyTo && (
           <div className={`rounded-lg border-l-2 border-white/20 bg-white/5 px-3 py-1.5 text-xs text-white/50 mb-1 w-fit max-w-full line-clamp-2 ${isMine ? "self-end" : "self-start"}`}>
             <span className="font-medium text-white/70">{message.replyTo.sender?.displayName}</span>: {message.replyTo.content}
