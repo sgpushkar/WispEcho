@@ -122,3 +122,29 @@ export async function getGroupDetails(req, res, next) {
     next(err);
   }
 }
+
+export async function updateGroupDetails(req, res, next) {
+  try {
+    const { groupId } = req.params;
+    const { name, description, avatarUrl } = req.body;
+
+    const requester = await prisma.groupMember.findUnique({
+      where: { groupId_userId: { groupId, userId: req.userId } },
+    });
+    
+    if (!requester || !["OWNER", "ADMIN"].includes(requester.role)) {
+      return res.status(403).json({ error: "Not authorized to update group" });
+    }
+
+    const group = await prisma.group.update({
+      where: { id: groupId },
+      data: { name, description, avatarUrl },
+      include: { members: { include: { user: { select: { id: true, username: true, displayName: true, avatarUrl: true, isOnline: true } } } } },
+    });
+
+    emitToConversation(group.conversationId, "group:updated", { group });
+    res.json({ group });
+  } catch (err) {
+    next(err);
+  }
+}

@@ -11,8 +11,10 @@ import { getSocket } from "@/lib/socket";
 import { MessageBubble } from "./MessageBubble";
 import { useVirtualScroll } from "@/hooks/useVirtualScroll";
 import { Edit2 } from "lucide-react";
+import { useUIStore } from "@/store/useUIStore";
 
 export function ChatWindow() {
+  const { setGroupSettingsOpen } = useUIStore();
   const accessToken = useAuthStore((s) => s.accessToken)!;
   const { activeConversationId, setActiveConversation, conversations, messages, setMessages, typingUsers, onlineUsers } = useChatStore();
   const [draft, setDraft] = useState("");
@@ -127,7 +129,15 @@ export function ChatWindow() {
         >
           <ArrowLeft size={18} />
         </button>
-        <motion.div whileHover={{ scale: 1.05, rotate: 2 }} className="avatar cursor-pointer shadow-md">
+        <motion.div 
+          whileHover={{ scale: 1.05, rotate: 2 }} 
+          className="avatar cursor-pointer shadow-md"
+          onClick={() => {
+            if (conversation.isGroup && conversation.group) {
+              setGroupSettingsOpen(true, conversation.group.id);
+            }
+          }}
+        >
           {avatar ? (
             <img src={avatar} className="h-full w-full object-cover rounded-[14px]" alt="" />
           ) : (
@@ -135,8 +145,15 @@ export function ChatWindow() {
           )}
           {isOnline && <span className="dot" />}
         </motion.div>
-        <div>
-          <div className="chat-title leading-tight">{name}</div>
+        <div 
+          className={conversation.isGroup ? "cursor-pointer" : ""}
+          onClick={() => {
+            if (conversation.isGroup && conversation.group) {
+              setGroupSettingsOpen(true, conversation.group.id);
+            }
+          }}
+        >
+          <div className="chat-title leading-tight hover:underline">{name}</div>
           <div className="chat-sub">
             {typingInThisChat.length > 0 ? (
               <div className="flex items-center gap-1 mt-0.5">

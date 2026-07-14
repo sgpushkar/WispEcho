@@ -17,8 +17,11 @@ export function MessageBubble({ message, onReply, onEdit }: { message: Message; 
   const currentUserId = useAuthStore((s) => s.user?.id);
   const isMine = message.senderId === currentUserId;
   const [contextMenuPos, setContextMenuPos] = useState<ContextMenuPosition | null>(null);
-  const { removeMessage, activeConversationId } = useChatStore();
+  const { removeMessage, activeConversationId, conversations } = useChatStore();
   const { openForwardModal } = useUIStore();
+
+  const currentConversation = conversations.find(c => c.id === activeConversationId);
+  const isGroup = currentConversation?.isGroup;
 
   async function react(emoji: string) {
     await api.post(`/messages/${message.id}/reactions`, { emoji });
@@ -55,6 +58,18 @@ export function MessageBubble({ message, onReply, onEdit }: { message: Message; 
             setContextMenuPos({ x: e.clientX, y: e.clientY });
           }}
         >
+          {!isMine && isGroup && (
+             <div className="flex items-center gap-2 mb-1 ml-2">
+               <div className="w-5 h-5 rounded-full overflow-hidden bg-white/10 shrink-0 flex items-center justify-center shadow-sm">
+                 {message.sender?.avatarUrl ? (
+                   <img src={message.sender.avatarUrl} alt="" className="w-full h-full object-cover" />
+                 ) : (
+                   <span className="text-[10px] font-medium text-white/60">{message.sender?.displayName?.[0]?.toUpperCase()}</span>
+                 )}
+               </div>
+               <span className="text-[12px] font-medium text-white/60">{message.sender?.displayName}</span>
+             </div>
+          )}
           {message.replyTo && (
             <div className={`border-l-[2px] border-white/20 pl-3 py-0.5 text-[13px] text-white/50 mb-1 w-fit max-w-full line-clamp-2 ${isMine ? "self-end" : "self-start"}`}>
               <span className="font-medium text-white/70">{message.replyTo.sender?.displayName}</span>: {message.replyTo.content}

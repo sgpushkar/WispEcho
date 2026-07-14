@@ -11,6 +11,7 @@ import { formatDistanceToNowStrict } from "date-fns";
 import { FriendsModal } from "../friends/FriendsModal";
 import { CreateGroupModal } from "./CreateGroupModal";
 import { SettingsModal } from "./SettingsModal";
+import { GroupSettingsModal } from "./GroupSettingsModal";
 import { ForwardModal } from "./ForwardModal";
 
 export function Sidebar() {
@@ -161,6 +162,7 @@ export function Sidebar() {
       <FriendsModal isOpen={friendsOpen} onClose={() => setFriendsOpen(false)} />
       <CreateGroupModal isOpen={groupOpen} onClose={() => setGroupOpen(false)} />
       <SettingsModal isOpen={settingsOpen} onClose={handleSettingsClose} />
+      <GroupSettingsModal />
       <ForwardModal />
     </>
   );
