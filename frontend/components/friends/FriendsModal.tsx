@@ -5,8 +5,6 @@ import { motion, AnimatePresence } from "framer-motion";
 import { X, Search, UserPlus, Check, X as XIcon, MessageSquare } from "lucide-react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { api } from "@/lib/api";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { api } from "@/lib/api";
 import { useChatStore } from "@/store/useChatStore";
 import Link from "next/link";
 

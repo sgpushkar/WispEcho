@@ -11,7 +11,6 @@ import { formatDistanceToNowStrict } from "date-fns";
 import { FriendsModal } from "../friends/FriendsModal";
 import { CreateGroupModal } from "./CreateGroupModal";
 import { SettingsModal } from "./SettingsModal";
-import { SettingsModal } from "./SettingsModal";
 import { GroupSettingsModal } from "./GroupSettingsModal";
 import { ForwardModal } from "./ForwardModal";
 import Link from "next/link";
