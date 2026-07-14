@@ -13,6 +13,7 @@ import { useVirtualScroll } from "@/hooks/useVirtualScroll";
 import { Edit2 } from "lucide-react";
 import { useUIStore } from "@/store/useUIStore";
 import { useRouter } from "next/navigation";
+import EmojiPicker, { Theme } from "emoji-picker-react";
 
 export function ChatWindow() {
   const router = useRouter();
@@ -23,6 +24,7 @@ export function ChatWindow() {
   const [replyToMessage, setReplyToMessage] = useState<Message | null>(null);
   const [editingMessage, setEditingMessage] = useState<Message | null>(null);
   const [isSending, setIsSending] = useState(false);
+  const [showEmojiPicker, setShowEmojiPicker] = useState(false);
   const bottomRef = useRef<HTMLDivElement>(null);
   const typingTimeout = useRef<NodeJS.Timeout | null>(null);
 
@@ -89,6 +91,7 @@ export function ChatWindow() {
       await api.post("/messages", { conversationId: activeConversationId, content, type: "TEXT", replyToId });
     }
     
+    setShowEmojiPicker(false);
     setTimeout(() => setIsSending(false), 300);
   }
 
@@ -256,9 +259,32 @@ export function ChatWindow() {
             placeholder="say something..."
             className="flex-1 bg-transparent border-none outline-none text-white font-inter text-[14px] min-h-[22px] max-h-[120px] resize-none py-1 placeholder:text-white/30 transition-opacity focus:placeholder:opacity-50"
           />
-          <motion.div whileHover={{ scale: 1.1, filter: "brightness(1.2)" }} className="icon-btn hidden sm:flex">
-            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><path d="M8 14s1.5 2 4 2 4-2 4-2"/><line x1="9" y1="9" x2="9.01" y2="9"/><line x1="15" y1="9" x2="15.01" y2="9"/></svg>
-          </motion.div>
+          <div className="relative">
+            <motion.div 
+              whileHover={{ scale: 1.1, filter: "brightness(1.2)" }} 
+              className="icon-btn hidden sm:flex cursor-pointer"
+              onClick={() => setShowEmojiPicker((prev) => !prev)}
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><path d="M8 14s1.5 2 4 2 4-2 4-2"/><line x1="9" y1="9" x2="9.01" y2="9"/><line x1="15" y1="9" x2="15.01" y2="9"/></svg>
+            </motion.div>
+            <AnimatePresence>
+              {showEmojiPicker && (
+                <motion.div 
+                  initial={{ opacity: 0, y: 20, scale: 0.95 }}
+                  animate={{ opacity: 1, y: 0, scale: 1 }}
+                  exit={{ opacity: 0, y: 20, scale: 0.95 }}
+                  className="absolute bottom-12 right-0 z-50 shadow-2xl"
+                >
+                  <EmojiPicker 
+                    theme={Theme.DARK} 
+                    onEmojiClick={(emoji) => setDraft((prev) => prev + emoji.emoji)}
+                    autoFocusSearch={false}
+                    lazyLoadEmojis={true}
+                  />
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </div>
           <motion.div whileHover={{ scale: 1.1, filter: "brightness(1.2)" }} className="icon-btn hidden sm:flex">
             <Mic size={18} />
           </motion.div>
