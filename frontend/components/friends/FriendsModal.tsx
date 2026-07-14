@@ -112,7 +112,7 @@ export function FriendsModal({ isOpen, onClose }: { isOpen: boolean; onClose: ()
               }`}
             >
               {t === "requests" && incomingRequests.length > 0 && (
-                <span className="absolute -right-1 -top-1 flex h-4 w-4 items-center justify-center rounded-full bg-pink-500 text-[10px] text-white">
+                <span className="absolute -right-1 -top-1 flex h-4 w-4 items-center justify-center rounded-full bg-white/30 text-[10px] text-white">
                   {incomingRequests.length}
                 </span>
               )}
@@ -137,7 +137,7 @@ export function FriendsModal({ isOpen, onClose }: { isOpen: boolean; onClose: ()
                 friends.map((friend: User) => (
                   <div key={friend.id} className="flex items-center justify-between rounded-xl bg-white/5 p-3">
                     <div className="flex items-center gap-3">
-                      <div className="h-10 w-10 overflow-hidden rounded-full bg-gradient-to-br from-accent/60 to-pink-500/60 flex items-center justify-center font-bold">
+                      <div className="h-10 w-10 overflow-hidden rounded-full bg-white/10 border border-white/10 flex items-center justify-center font-bold">
                         {friend.avatarUrl ? <img src={friend.avatarUrl} alt="" className="h-full w-full object-cover" /> : friend.displayName[0]}
                       </div>
                       <div>
@@ -178,7 +178,7 @@ export function FriendsModal({ isOpen, onClose }: { isOpen: boolean; onClose: ()
                   searchResults.map((user: User) => (
                     <div key={user.id} className="flex items-center justify-between rounded-xl bg-white/5 p-3">
                       <div className="flex items-center gap-3">
-                        <div className="h-10 w-10 overflow-hidden rounded-full bg-gradient-to-br from-accent/60 to-pink-500/60 flex items-center justify-center font-bold">
+                        <div className="h-10 w-10 overflow-hidden rounded-full bg-white/10 border border-white/10 flex items-center justify-center font-bold">
                           {user.avatarUrl ? <img src={user.avatarUrl} alt="" className="h-full w-full object-cover" /> : user.displayName[0]}
                         </div>
                         <div>
@@ -189,7 +189,7 @@ export function FriendsModal({ isOpen, onClose }: { isOpen: boolean; onClose: ()
                       <button
                         onClick={() => sendRequest.mutate(user.id)}
                         disabled={sendRequest.isPending}
-                        className="flex h-9 w-9 items-center justify-center rounded-full bg-accent text-white hover:bg-accent/80 transition disabled:opacity-50"
+                        className="flex h-9 w-9 items-center justify-center rounded-full bg-white/10 text-white hover:bg-white/20 transition disabled:opacity-50"
                       >
                         <UserPlus size={16} />
                       </button>
@@ -211,7 +211,7 @@ export function FriendsModal({ isOpen, onClose }: { isOpen: boolean; onClose: ()
                   return (
                     <div key={req.id} className="flex items-center justify-between rounded-xl bg-white/5 p-3">
                       <div className="flex items-center gap-3">
-                        <div className="h-10 w-10 overflow-hidden rounded-full bg-gradient-to-br from-accent/60 to-pink-500/60 flex items-center justify-center font-bold">
+                        <div className="h-10 w-10 overflow-hidden rounded-full bg-white/10 border border-white/10 flex items-center justify-center font-bold">
                           {user.avatarUrl ? <img src={user.avatarUrl} alt="" className="h-full w-full object-cover" /> : user.displayName[0]}
                         </div>
                         <div>

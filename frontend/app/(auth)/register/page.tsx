@@ -36,7 +36,7 @@ export default function RegisterPage() {
 
   return (
     <div className="flex h-screen w-screen items-center justify-center overflow-hidden bg-base px-4">
-      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_80%_20%,rgba(139,92,246,0.15),transparent_40%),radial-gradient(circle_at_20%_80%,rgba(236,72,153,0.12),transparent_40%)]" />
+      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_80%_20%,rgba(255,255,255,0.03),transparent_40%),radial-gradient(circle_at_20%_80%,rgba(255,255,255,0.02),transparent_40%)]" />
 
       <motion.form
         onSubmit={handleSubmit}
@@ -86,7 +86,7 @@ export default function RegisterPage() {
         <motion.button
           whileTap={{ scale: 0.97 }}
           disabled={loading}
-          className="mt-5 w-full rounded-xl bg-gradient-to-r from-accent to-pink-500 py-3 text-sm font-medium disabled:opacity-50"
+          className="mt-5 w-full rounded-xl bg-white/10 border border-white/12 py-3 text-sm font-medium hover:bg-white/16 transition disabled:opacity-50"
         >
           {loading ? "creating..." : "create account"}
         </motion.button>

@@ -140,7 +140,7 @@ export function ChatWindow() {
             onClick={sendMessage}
             className="send-btn"
           >
-            <Send size={16} color="#0b0e16" />
+            <Send size={16} color="#e4e4e7" />
           </motion.div>
         </div>
       </div>

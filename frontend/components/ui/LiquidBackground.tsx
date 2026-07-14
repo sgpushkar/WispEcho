@@ -6,12 +6,11 @@ export function LiquidBackground({ children }: { children: React.ReactNode }) {
   const containerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    // 1. Specular highlights and tilt for .glass panels
+    // Specular highlights and tilt for .glass panels
     const panels = Array.from(document.querySelectorAll(".glass")) as HTMLElement[];
     const state = new Map<HTMLElement, any>();
 
     panels.forEach((panel) => {
-      // Add spec layer if not exists
       if (!panel.querySelector(".spec")) {
         const spec = document.createElement("div");
         spec.className = "spec";
@@ -20,8 +19,8 @@ export function LiquidBackground({ children }: { children: React.ReactNode }) {
       state.set(panel, { curX: 0, curY: 0, targetX: 0, targetY: 0, lastRipple: 0 });
     });
 
-    const MAX_TILT = 5;
-    const SPRING = 0.10;
+    const MAX_TILT = 3;
+    const SPRING = 0.08;
     const RIPPLE_MIN_DIST = 46;
 
     const spawnRipple = (panel: HTMLElement, x: number, y: number) => {
@@ -48,7 +47,7 @@ export function LiquidBackground({ children }: { children: React.ReactNode }) {
 
       const spec = panel.querySelector(".spec") as HTMLElement;
       if (spec) {
-        spec.style.background = `radial-gradient(circle at ${px * 100}% ${py * 100}%, rgba(255,255,255,0.35), transparent 45%)`;
+        spec.style.background = `radial-gradient(circle at ${px * 100}% ${py * 100}%, rgba(255,255,255,0.18), transparent 45%)`;
       }
 
       if (spawnRing) {
@@ -96,39 +95,6 @@ export function LiquidBackground({ children }: { children: React.ReactNode }) {
     };
     animationFrame = requestAnimationFrame(tick);
 
-    // 2. Global background warping based on cursor speed
-    const dispMap = document.getElementById("dispMap");
-    let lastX: number | null = null, lastY: number | null = null, lastT = performance.now();
-    let energy = 0;
-
-    const onMove = (clientX: number, clientY: number) => {
-      const now = performance.now();
-      if (lastX !== null && lastY !== null) {
-        const dt = Math.max(now - lastT, 1);
-        const dist = Math.hypot(clientX - lastX, clientY - lastY);
-        const speed = dist / dt;
-        energy = Math.min(energy + speed * 4, 25);
-      }
-      lastX = clientX; lastY = clientY; lastT = now;
-    };
-
-    const windowPointerMove = (e: PointerEvent) => onMove(e.clientX, e.clientY);
-    const windowTouchMove = (e: TouchEvent) => {
-      if (e.touches[0]) onMove(e.touches[0].clientX, e.touches[0].clientY);
-    };
-
-    window.addEventListener("pointermove", windowPointerMove);
-    window.addEventListener("touchmove", windowTouchMove, { passive: true });
-
-    let decayFrame: number;
-    const decayLoop = () => {
-      energy *= 0.93;
-      if (dispMap) dispMap.setAttribute("scale", (10 + energy).toFixed(1));
-      decayFrame = requestAnimationFrame(decayLoop);
-    };
-    decayFrame = requestAnimationFrame(decayLoop);
-
-    // Cleanup
     return () => {
       panels.forEach((panel) => {
         panel.removeEventListener("pointerenter", pointerEnter);
@@ -136,28 +102,17 @@ export function LiquidBackground({ children }: { children: React.ReactNode }) {
         panel.removeEventListener("pointermove", pointerMove as EventListener);
         panel.removeEventListener("pointerdown", pointerDown as EventListener);
       });
-      window.removeEventListener("pointermove", windowPointerMove);
-      window.removeEventListener("touchmove", windowTouchMove);
       cancelAnimationFrame(animationFrame);
-      cancelAnimationFrame(decayFrame);
     };
   }, []);
 
   return (
     <>
-      <svg width="0" height="0" style={{ position: "absolute" }}>
-        <filter id="liquidWarp" x="-20%" y="-20%" width="140%" height="140%">
-          <feTurbulence id="turb" type="fractalNoise" baseFrequency="0.006 0.010" numOctaves={1} seed="7" result="noise">
-            <animate attributeName="baseFrequency" dur="40s" values="0.006 0.010;0.009 0.013;0.006 0.010" repeatCount="indefinite" />
-          </feTurbulence>
-          <feDisplacementMap id="dispMap" in="SourceGraphic" in2="noise" scale="14" xChannelSelector="R" yChannelSelector="G" />
-        </filter>
-      </svg>
-
-      <div className="liquid-bg">
-        <div className="blob blob1"></div>
-        <div className="blob blob2"></div>
-        <div className="blob blob3"></div>
+      {/* Static monochrome ambient background — no SVG filters, no blobs */}
+      <div className="fixed inset-0 z-0 bg-[#08080c]">
+        {/* Very subtle radial glow for depth, not animated */}
+        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_left,rgba(255,255,255,0.03),transparent_50%)]" />
+        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_bottom_right,rgba(255,255,255,0.02),transparent_50%)]" />
       </div>
       <div className="grain"></div>
 

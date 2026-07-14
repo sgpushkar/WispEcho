@@ -6,12 +6,12 @@ const config: Config = {
   theme: {
     extend: {
       colors: {
-        base: "#0a0a0f",
-        surface: "#13131a",
-        panel: "#1a1a24",
+        base: "#08080c",
+        surface: "#111116",
+        panel: "#18181f",
         accent: {
-          DEFAULT: "#8b5cf6",
-          soft: "#a78bfa",
+          DEFAULT: "#a1a1aa",
+          soft: "#d4d4d8",
         },
       },
       backdropBlur: {

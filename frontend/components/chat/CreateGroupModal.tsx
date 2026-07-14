@@ -94,12 +94,12 @@ export function CreateGroupModal({ isOpen, onClose }: { isOpen: boolean; onClose
                     className="flex w-full items-center justify-between rounded-lg p-2 hover:bg-white/5 transition"
                   >
                     <div className="flex items-center gap-3">
-                      <div className="h-8 w-8 overflow-hidden rounded-full bg-gradient-to-br from-accent/60 to-pink-500/60 flex items-center justify-center text-xs font-bold">
+                      <div className="h-8 w-8 overflow-hidden rounded-full bg-white/10 border border-white/10 flex items-center justify-center text-xs font-bold">
                         {friend.avatarUrl ? <img src={friend.avatarUrl} alt="" className="h-full w-full object-cover" /> : friend.displayName[0]}
                       </div>
                       <span className="text-sm">{friend.displayName}</span>
                     </div>
-                    <div className={`flex h-5 w-5 items-center justify-center rounded-md border ${selectedFriends.includes(friend.id) ? 'border-accent bg-accent text-white' : 'border-white/20'}`}>
+                    <div className={`flex h-5 w-5 items-center justify-center rounded-md border ${selectedFriends.includes(friend.id) ? 'border-white/40 bg-white/15 text-white' : 'border-white/20'}`}>
                       {selectedFriends.includes(friend.id) && <Check size={12} />}
                     </div>
                   </button>
@@ -114,7 +114,7 @@ export function CreateGroupModal({ isOpen, onClose }: { isOpen: boolean; onClose
           <button
             onClick={() => createGroup.mutate()}
             disabled={!name || selectedFriends.length === 0 || createGroup.isPending}
-            className="w-full rounded-xl bg-accent px-4 py-2 font-medium text-white hover:bg-accent/80 transition disabled:opacity-50"
+            className="w-full rounded-xl bg-white/10 border border-white/10 px-4 py-2 font-medium text-white hover:bg-white/16 transition disabled:opacity-50"
           >
             {createGroup.isPending ? "Creating..." : "Create Group"}
           </button>
