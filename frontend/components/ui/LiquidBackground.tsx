@@ -108,11 +108,10 @@ export function LiquidBackground({ children }: { children: React.ReactNode }) {
 
   return (
     <>
-      {/* Static monochrome ambient background — no SVG filters, no blobs */}
-      <div className="fixed inset-0 z-0 bg-[#08080c]">
-        {/* Very subtle radial glow for depth, not animated */}
-        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_left,rgba(255,255,255,0.03),transparent_50%)]" />
-        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_bottom_right,rgba(255,255,255,0.02),transparent_50%)]" />
+      <div className="fixed inset-0 z-0 bg-[#0a0a0a]">
+        {/* Soft radial vignette & top left lighting */}
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_20%_0%,rgba(255,255,255,0.06),transparent_60%)]" />
+        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,transparent_30%,rgba(0,0,0,0.6)_100%)]" />
       </div>
       <div className="grain"></div>
 

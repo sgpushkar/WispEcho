@@ -34,9 +34,9 @@ export function MessageBubble({ message, onReply }: { message: Message; onReply?
           <Reply size={16} />
         </button>
       )}
-      <div className="flex flex-col max-w-[70%] relative group">
+      <div className="flex flex-col max-w-[60%] relative group">
         {message.replyTo && (
-          <div className={`rounded-lg border-l-2 border-white/20 bg-white/5 px-3 py-1.5 text-xs text-white/50 mb-1 w-fit max-w-full line-clamp-2 ${isMine ? "self-end" : "self-start"}`}>
+          <div className={`border-l-[2px] border-white/20 pl-3 py-0.5 text-[13px] text-white/50 mb-1 w-fit max-w-full line-clamp-2 ${isMine ? "self-end" : "self-start"}`}>
             <span className="font-medium text-white/70">{message.replyTo.sender?.displayName}</span>: {message.replyTo.content}
           </div>
         )}
@@ -57,13 +57,18 @@ export function MessageBubble({ message, onReply }: { message: Message; onReply?
         {Object.keys(grouped).length > 0 && (
           <div className={`flex gap-1 mt-1 ${isMine ? "justify-end" : "justify-start"}`}>
             {Object.entries(grouped).map(([emoji, count]) => (
-              <button
+              <motion.button
                 key={emoji}
                 onClick={() => react(emoji)}
-                className="glass rounded-full px-2 py-0.5 text-[10px]"
+                initial={{ scale: 0.8, opacity: 0 }}
+                animate={{ scale: 1, opacity: 1 }}
+                whileHover={{ scale: 1.1 }}
+                whileTap={{ scale: 0.9 }}
+                className="glass rounded-full px-2.5 py-1 text-[11px] shadow-md flex items-center gap-1 border border-white/10"
               >
-                {emoji} {count}
-              </button>
+                <span>{emoji}</span>
+                <span className="opacity-70">{count}</span>
+              </motion.button>
             ))}
           </div>
         )}

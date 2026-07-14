@@ -94,6 +94,10 @@ export function Sidebar() {
             const avatar = conv.isGroup ? conv.group?.avatarUrl : conv.otherUser?.avatarUrl;
             const isOnline = conv.otherUser ? onlineUsers.has(conv.otherUser.id) : false;
             const active = conv.id === activeConversationId;
+            
+            const typingSet = useChatStore.getState().typingUsers[conv.id];
+            const isTyping = typingSet && typingSet.size > 0;
+            const hasUnread = false; // Mocked until backend supports unread counts
 
             return (
               <div
@@ -112,11 +116,25 @@ export function Sidebar() {
 
                 <div className="conv-meta">
                   <div className="conv-name">{name}</div>
-                  <div className="conv-preview">{conv.lastMessage?.content || "say hey 👋"}</div>
+                  <div className="conv-preview">
+                    {isTyping ? (
+                      <div className="flex items-center gap-1 h-[18px]">
+                        <span className="text-[11px] text-accent font-medium mr-1">typing</span>
+                        <div className="typing-dot bg-accent" />
+                        <div className="typing-dot bg-accent" />
+                        <div className="typing-dot bg-accent" />
+                      </div>
+                    ) : (
+                      conv.lastMessage?.content || "say hey 👋"
+                    )}
+                  </div>
                 </div>
 
-                <div className="conv-time">
-                  {conv.lastMessage ? formatDistanceToNowStrict(new Date(conv.lastMessage.createdAt), { addSuffix: false }) : ""}
+                <div className="flex flex-col items-end gap-1">
+                  <div className="conv-time">
+                    {conv.lastMessage ? formatDistanceToNowStrict(new Date(conv.lastMessage.createdAt), { addSuffix: false }) : ""}
+                  </div>
+                  {hasUnread && <div className="w-2 h-2 rounded-full bg-white mt-1" />}
                 </div>
               </div>
             );
