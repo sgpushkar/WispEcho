@@ -27,6 +27,7 @@ export function ChatWindow() {
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
   const bottomRef = useRef<HTMLDivElement>(null);
   const typingTimeout = useRef<NodeJS.Timeout | null>(null);
+  const lastTypedEmitted = useRef(0);
 
   const conversation = conversations.find((c) => c.id === activeConversationId);
   const conversationMessages = activeConversationId ? messages[activeConversationId] || [] : [];
@@ -71,7 +72,13 @@ export function ChatWindow() {
   function handleTyping() {
     if (!activeConversationId) return;
     const socket = getSocket(accessToken);
-    socket.emit("typing:start", { conversationId: activeConversationId });
+    
+    const now = Date.now();
+    if (now - lastTypedEmitted.current > 1500) {
+      socket.emit("typing:start", { conversationId: activeConversationId });
+      lastTypedEmitted.current = now;
+    }
+
     if (typingTimeout.current) clearTimeout(typingTimeout.current);
     typingTimeout.current = setTimeout(() => {
       socket.emit("typing:stop", { conversationId: activeConversationId });

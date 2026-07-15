@@ -38,7 +38,7 @@ app.use(morgan("dev"));
 
 const limiter = rateLimit({
   windowMs: Number(process.env.RATE_LIMIT_WINDOW_MS) || 15 * 60 * 1000,
-  max: Number(process.env.RATE_LIMIT_MAX) || 200,
+  max: Number(process.env.RATE_LIMIT_MAX) || 3000,
   standardHeaders: true,
   legacyHeaders: false,
 });
