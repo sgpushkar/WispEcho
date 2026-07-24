@@ -4,9 +4,57 @@
 
 @layer base {
   :root {
+    --bg: #0a0a0a;
     --ink: #ffffff;
     --ink-dim: rgba(255,255,255,0.55);
     --ink-faint: rgba(255,255,255,0.35);
+    --glass-bg: rgba(255,255,255,0.03);
+    --glass-bg-strong: rgba(255,255,255,0.05);
+    --glass-border: rgba(255,255,255,0.05);
+    --glass-border-strong: rgba(255,255,255,0.08);
+    --bubble-theirs: rgba(255,255,255,0.04);
+    --bubble-theirs-border: rgba(255,255,255,0.04);
+    --bubble-mine: rgba(255,255,255,0.09);
+    --bubble-mine-border: rgba(255,255,255,0.09);
+    --hover-bg: rgba(255,255,255,0.03);
+    --hover-border: rgba(255,255,255,0.06);
+    --active-bg: rgba(255,255,255,0.06);
+    --active-border: rgba(255,255,255,0.09);
+    --search-bg: rgba(255,255,255,0.02);
+    --search-border: rgba(255,255,255,0.05);
+    --me-card-bg: rgba(255,255,255,0.02);
+    --me-card-border: rgba(255,255,255,0.05);
+    --composer-bg: rgba(255,255,255,0.03);
+    --composer-border: rgba(255,255,255,0.06);
+    --icon-btn-hover: rgba(255,255,255,0.06);
+    --send-btn-bg: rgba(255,255,255,0.1);
+  }
+
+  .light {
+    --bg: #f3f4f6;
+    --ink: #111827;
+    --ink-dim: rgba(17, 24, 39, 0.65);
+    --ink-faint: rgba(17, 24, 39, 0.45);
+    --glass-bg: rgba(0, 0, 0, 0.02);
+    --glass-bg-strong: rgba(0, 0, 0, 0.04);
+    --glass-border: rgba(0, 0, 0, 0.06);
+    --glass-border-strong: rgba(0, 0, 0, 0.08);
+    --bubble-theirs: rgba(0, 0, 0, 0.03);
+    --bubble-theirs-border: rgba(0, 0, 0, 0.03);
+    --bubble-mine: rgba(0, 0, 0, 0.06);
+    --bubble-mine-border: rgba(0, 0, 0, 0.06);
+    --hover-bg: rgba(0, 0, 0, 0.02);
+    --hover-border: rgba(0, 0, 0, 0.04);
+    --active-bg: rgba(0, 0, 0, 0.04);
+    --active-border: rgba(0, 0, 0, 0.06);
+    --search-bg: rgba(0, 0, 0, 0.02);
+    --search-border: rgba(0, 0, 0, 0.05);
+    --me-card-bg: rgba(0, 0, 0, 0.02);
+    --me-card-border: rgba(0, 0, 0, 0.05);
+    --composer-bg: rgba(0, 0, 0, 0.02);
+    --composer-border: rgba(0, 0, 0, 0.05);
+    --icon-btn-hover: rgba(0, 0, 0, 0.05);
+    --send-btn-bg: rgba(0, 0, 0, 0.06);
   }
 
   * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -20,9 +68,10 @@
 
   html, body {
     height: 100%;
-    background: #0a0a0a;
+    background: var(--bg);
     color: var(--ink);
     overflow: hidden;
+    transition: background-color 0.3s ease, color 0.3s ease;
   }
 }
 
@@ -37,10 +86,10 @@
   .glass {
     position: relative;
     overflow: hidden;
-    background: rgba(255,255,255,0.03);
+    background: var(--glass-bg);
     backdrop-filter: blur(24px);
     -webkit-backdrop-filter: blur(24px);
-    border: 1px solid rgba(255,255,255,0.05);
+    border: 1px solid var(--glass-border);
     box-shadow: 0 20px 60px rgba(0,0,0,0.35);
     transition: all 0.18s cubic-bezier(0.2, 0.8, 0.2, 1);
   }
@@ -48,10 +97,10 @@
   .glass-strong {
     position: relative;
     overflow: hidden;
-    background: rgba(255,255,255,0.05);
+    background: var(--glass-bg-strong);
     backdrop-filter: blur(32px);
     -webkit-backdrop-filter: blur(32px);
-    border: 1px solid rgba(255,255,255,0.08);
+    border: 1px solid var(--glass-border-strong);
     box-shadow: 0 24px 64px rgba(0,0,0,0.5);
     transition: all 0.18s cubic-bezier(0.2, 0.8, 0.2, 1);
   }
@@ -85,13 +134,13 @@
 
   /* Conversation List item states */
   .conv { display: flex; align-items: center; gap: 12px; padding: 10px 12px; border-radius: 20px; cursor: pointer; border: 1px solid transparent; transition: all 0.18s cubic-bezier(0.2, 0.8, 0.2, 1); }
-  .conv:hover { background: rgba(255,255,255,0.03); border-color: rgba(255,255,255,0.06); transform: translateY(-1px); box-shadow: 0 6px 16px rgba(0,0,0,0.12); }
-  .conv.active { background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.09); box-shadow: 0 4px 12px rgba(0,0,0,0.18); }
+  .conv:hover { background: var(--hover-bg); border-color: var(--hover-border); transform: translateY(-1px); box-shadow: 0 6px 16px rgba(0,0,0,0.12); }
+  .conv.active { background: var(--active-bg); border: 1px solid var(--active-border); box-shadow: 0 4px 12px rgba(0,0,0,0.18); }
 
   /* Message Bubbles — premium glass */
   .bubble { padding: 10px 16px; border-radius: 20px; font-size: 14px; line-height: 1.45; word-wrap: break-word; box-shadow: 0 3px 10px rgba(0,0,0,0.06); max-width: 100%; transition: transform 0.18s; }
-  .bubble.theirs { background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.04); border-bottom-left-radius: 6px; }
-  .bubble.mine { background: rgba(255,255,255,0.09); border: 1px solid rgba(255,255,255,0.09); border-bottom-right-radius: 6px; }
+  .bubble.theirs { background: var(--bubble-theirs); border: 1px solid var(--bubble-theirs-border); border-bottom-left-radius: 6px; }
+  .bubble.mine { background: var(--bubble-mine); border: 1px solid var(--bubble-mine-border); border-bottom-right-radius: 6px; }
 
   /* Typing animation */
   .typing-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--ink-faint); animation: bounce 1.2s infinite ease-in-out; }
@@ -105,10 +154,11 @@
   }
 
   .brand { display: flex; align-items: center; gap: 10px; padding: 0 4px; }
-  .brand-mark { width: 28px; height: 28px; border-radius: 10px; background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); }
+  .brand-logo { transition: filter 0.3s ease; filter: invert(1); }
+  .light .brand-logo { filter: invert(0); }
 
-  .search { display: flex; align-items: center; gap: 8px; padding: 10px 14px; border-radius: 16px; background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.05); font-size: 13px; color: var(--ink-faint); transition: all 0.18s cubic-bezier(0.2, 0.8, 0.2, 1); }
-  .search:focus-within { background: rgba(255,255,255,0.04); border-color: rgba(255,255,255,0.15); backdrop-filter: blur(12px); box-shadow: 0 8px 24px rgba(0,0,0,0.2); }
+  .search { display: flex; align-items: center; gap: 8px; padding: 10px 14px; border-radius: 16px; background: var(--search-bg); border: 1px solid var(--search-border); font-size: 13px; color: var(--ink-faint); transition: all 0.18s cubic-bezier(0.2, 0.8, 0.2, 1); }
+  .search:focus-within { background: var(--hover-bg); border-color: var(--hover-border); backdrop-filter: blur(12px); box-shadow: 0 8px 24px rgba(0,0,0,0.2); }
   .search svg { flex-shrink: 0; opacity: 0.6; transition: transform 0.18s; }
   .search:focus-within svg { transform: scale(1.1); opacity: 0.9; }
   .search input { transition: transform 0.18s; }
@@ -125,8 +175,8 @@
   .conv-preview { font-size: 12px; color: var(--ink-faint); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
   .conv-time { font-size: 10.5px; color: var(--ink-faint); flex-shrink: 0; }
 
-  .me-card { display: flex; align-items: center; gap: 12px; padding: 10px 12px; border-radius: 20px; background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.05); transition: all 0.18s; }
-  .me-card:hover { background: rgba(255,255,255,0.04); border-color: rgba(255,255,255,0.08); }
+  .me-card { display: flex; align-items: center; gap: 12px; padding: 10px 12px; border-radius: 20px; background: var(--me-card-bg); border: 1px solid var(--me-card-border); transition: all 0.18s; }
+  .me-card:hover { background: var(--hover-bg); border-color: var(--hover-border); }
   .me-name { font-size: 14px; font-weight: 500; }
   .me-handle { font-size: 12px; color: var(--ink-faint); }
 
@@ -135,7 +185,7 @@
     .chat { border-radius: 24px; }
   }
 
-  .chat-header { display: flex; align-items: center; gap: 12px; padding: 12px 16px; border-bottom: 1px solid rgba(255,255,255,0.04); }
+  .chat-header { display: flex; align-items: center; gap: 12px; padding: 12px 16px; border-bottom: 1px solid var(--chat-border); }
   @media (min-width: 768px) {
     .chat-header { gap: 16px; padding: 18px 24px; }
   }
@@ -161,16 +211,16 @@
     .composer { padding: 0 24px 24px; }
   }
 
-  .composer-glass { display: flex; align-items: flex-end; gap: 12px; padding: 10px 12px 10px 16px; border-radius: 24px; background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.06); transition: all 0.18s cubic-bezier(0.2, 0.8, 0.2, 1); }
-  .composer-glass:focus-within { background: rgba(255,255,255,0.05); border-color: rgba(255,255,255,0.12); transform: translateY(-1px); box-shadow: 0 8px 24px rgba(0,0,0,0.2); }
+  .composer-glass { display: flex; align-items: flex-end; gap: 12px; padding: 10px 12px 10px 16px; border-radius: 24px; background: var(--composer-bg); border: 1px solid var(--composer-border); transition: all 0.18s cubic-bezier(0.2, 0.8, 0.2, 1); }
+  .composer-glass:focus-within { background: var(--glass-bg-strong); border-color: var(--glass-border-strong); transform: translateY(-1px); box-shadow: 0 8px 24px rgba(0,0,0,0.2); }
   .composer-glass textarea { flex: 1; background: transparent; border: none; outline: none; color: var(--ink); font-family: var(--font-inter), sans-serif; font-size: 14px; min-height: 22px; max-height: 120px; resize: none; padding-top: 4px; padding-bottom: 4px; }
   .composer-glass textarea::placeholder { color: var(--ink-faint); transition: opacity 0.18s; }
   .composer-glass:focus-within textarea::placeholder { opacity: 0.5; }
 
   .icon-btn { width: 34px; height: 34px; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: var(--ink-dim); cursor: pointer; transition: all 0.18s; }
-  .icon-btn:hover { background: rgba(255,255,255,0.06); color: var(--ink); transform: scale(1.04); }
+  .icon-btn:hover { background: var(--icon-btn-hover); color: var(--ink); transform: scale(1.04); }
   
-  .send-btn { width: 36px; height: 36px; border-radius: 50%; background: rgba(255,255,255,0.1); display: flex; align-items: center; justify-content: center; flex-shrink: 0; cursor: pointer; border: 1px solid rgba(255,255,255,0.05); transition: all 0.18s; }
-  .send-btn:hover { background: rgba(255,255,255,0.15); border-color: rgba(255,255,255,0.2); transform: scale(1.02); box-shadow: 0 6px 20px rgba(0,0,0,0.15); }
+  .send-btn { width: 36px; height: 36px; border-radius: 50%; background: var(--send-btn-bg); display: flex; align-items: center; justify-content: center; flex-shrink: 0; cursor: pointer; border: 1px solid var(--glass-border); transition: all 0.18s; }
+  .send-btn:hover { background: rgba(255,255,255,0.15); border-color: var(--glass-border-strong); transform: scale(1.02); box-shadow: 0 6px 20px rgba(0,0,0,0.15); }
   .send-btn:active { transform: scale(0.97); }
 }

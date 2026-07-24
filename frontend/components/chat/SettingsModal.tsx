@@ -7,6 +7,7 @@ import { useMutation } from "@tanstack/react-query";
 import { api } from "@/lib/api";
 import { useAuthStore } from "@/store/useAuthStore";
 import { Avatar } from "../ui/Avatar";
+import { useUIStore } from "@/store/useUIStore";
 
 export function SettingsModal({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }) {
   const user = useAuthStore((s) => s.user);
@@ -30,6 +31,9 @@ export function SettingsModal({ isOpen, onClose }: { isOpen: boolean; onClose: (
   const [muteSounds, setMuteSounds] = useState(false);
   const [ambientGlow, setAmbientGlow] = useState(true);
 
+  const { theme: storeTheme, setTheme: setStoreTheme } = useUIStore();
+  const [themeMode, setThemeMode] = useState<"light" | "dark">("dark");
+
   useEffect(() => {
     if (user && isOpen) {
       setUsername(user.username || "");
@@ -44,8 +48,9 @@ export function SettingsModal({ isOpen, onClose }: { isOpen: boolean; onClose: (
       // Load local settings
       setMuteSounds(localStorage.getItem("mute_sounds") === "true");
       setAmbientGlow(localStorage.getItem("ambient_glow") !== "false");
+      setThemeMode(storeTheme);
     }
-  }, [user, isOpen]);
+  }, [user, isOpen, storeTheme]);
 
   const updateProfile = useMutation({
     mutationFn: async () =>
@@ -65,6 +70,7 @@ export function SettingsModal({ isOpen, onClose }: { isOpen: boolean; onClose: (
       }
       localStorage.setItem("mute_sounds", muteSounds ? "true" : "false");
       localStorage.setItem("ambient_glow", ambientGlow ? "true" : "false");
+      setStoreTheme(themeMode);
       // Apply ambient glow class to body immediately if toggled
       if (ambientGlow) {
         document.body.classList.add("ambient-glow-enabled");
@@ -239,6 +245,39 @@ export function SettingsModal({ isOpen, onClose }: { isOpen: boolean; onClose: (
 
           {activeTab === "preferences" && (
             <div className="space-y-5 pt-2">
+              <div className="flex items-center justify-between rounded-2xl border border-white/5 bg-white/[0.02] p-4">
+                <div className="flex flex-col gap-0.5">
+                  <span className="text-sm font-semibold text-white/80 flex items-center gap-2">
+                    <Palette size={16} className="text-white/50" /> Theme Mode
+                  </span>
+                  <span className="text-xs text-white/40">Select application visual style</span>
+                </div>
+                <div className="flex gap-2">
+                  <button
+                    type="button"
+                    onClick={() => setThemeMode("light")}
+                    className={`px-3.5 py-2 text-xs font-semibold rounded-xl border transition ${
+                      themeMode === "light"
+                        ? "bg-white text-black border-white"
+                        : "bg-white/5 text-white border-white/5 hover:bg-white/10"
+                    }`}
+                  >
+                    Light
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setThemeMode("dark")}
+                    className={`px-3.5 py-2 text-xs font-semibold rounded-xl border transition ${
+                      themeMode === "dark"
+                        ? "bg-white text-black border-white"
+                        : "bg-white/5 text-white border-white/5 hover:bg-white/10"
+                    }`}
+                  >
+                    Dark
+                  </button>
+                </div>
+              </div>
+
               <div className="flex items-center justify-between rounded-2xl border border-white/5 bg-white/[0.02] p-4">
                 <div className="flex flex-col gap-0.5">
                   <span className="text-sm font-semibold text-white/80 flex items-center gap-2">

@@ -8,6 +8,7 @@ interface UIState {
   settingsOpen: boolean;
   forwardModalOpen: boolean;
   messageToForward: any | null; // using any for now, will cast to Message
+  theme: "light" | "dark";
 
   setFriendsOpen: (open: boolean) => void;
   setGroupOpen: (open: boolean) => void;
@@ -15,6 +16,7 @@ interface UIState {
   setSettingsOpen: (open: boolean) => void;
   openForwardModal: (message: any) => void;
   closeForwardModal: () => void;
+  setTheme: (theme: "light" | "dark") => void;
 }
 
 export const useUIStore = create<UIState>((set) => ({
@@ -25,6 +27,7 @@ export const useUIStore = create<UIState>((set) => ({
   settingsOpen: false,
   forwardModalOpen: false,
   messageToForward: null,
+  theme: "dark", // default theme
 
   setFriendsOpen: (open) => set({ friendsOpen: open }),
   setGroupOpen: (open) => set({ groupOpen: open }),
@@ -32,4 +35,17 @@ export const useUIStore = create<UIState>((set) => ({
   setSettingsOpen: (open) => set({ settingsOpen: open }),
   openForwardModal: (message) => set({ forwardModalOpen: true, messageToForward: message }),
   closeForwardModal: () => set({ forwardModalOpen: false, messageToForward: null }),
+  setTheme: (theme) => {
+    set({ theme });
+    if (typeof window !== "undefined") {
+      localStorage.setItem("theme", theme);
+      if (theme === "light") {
+        document.documentElement.classList.add("light");
+        document.documentElement.classList.remove("dark");
+      } else {
+        document.documentElement.classList.add("dark");
+        document.documentElement.classList.remove("light");
+      }
+    }
+  },
 }));

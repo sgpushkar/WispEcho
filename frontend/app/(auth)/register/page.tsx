@@ -7,8 +7,10 @@ import Link from "next/link";
 import { api } from "@/lib/api";
 import { useAuthStore } from "@/store/useAuthStore";
 import GoogleSignInButton from "@/components/auth/GoogleSignInButton";
+import { useUIStore } from "@/store/useUIStore";
 
 export default function RegisterPage() {
+  const theme = useUIStore((s) => s.theme);
   const router = useRouter();
   const setAuth = useAuthStore((s) => s.setAuth);
   const [form, setForm] = useState({ email: "", username: "", displayName: "", password: "" });
@@ -47,7 +49,7 @@ export default function RegisterPage() {
         className="relative z-10 w-full max-w-sm rounded-[32px] p-8 glass-strong shadow-[0_24px_80px_rgba(0,0,0,0.6)] border-[1px] border-white/10 bg-white/[0.04]"
       >
         <div className="flex justify-center mb-6">
-          <img src="/logo.png" alt="WispEcho" className="h-16 w-auto rounded-2xl shadow-lg border border-white/10" />
+          <img src="/logo.png" alt="WispEcho" className="h-16 w-auto rounded-2xl shadow-lg border border-white/10 brand-logo" />
         </div>
         <h1 className="mb-1 text-2xl font-semibold tracking-tight text-white text-center">let's get you in</h1>
         <p className="mb-6 text-[13px] text-white/50 text-center">takes like 10 seconds fr</p>

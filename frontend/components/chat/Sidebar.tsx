@@ -21,7 +21,7 @@ export function Sidebar() {
   const logout = useAuthStore((s) => s.logout);
   const { conversations, setConversations, activeConversationId, setActiveConversation, onlineUsers } = useChatStore();
   
-  const { friendsOpen, setFriendsOpen, groupOpen, setGroupOpen, settingsOpen, setSettingsOpen } = useUIStore();
+  const { friendsOpen, setFriendsOpen, groupOpen, setGroupOpen, settingsOpen, setSettingsOpen, theme } = useUIStore();
   const [query, setQuery] = useState("");
 
   const isNewUser = useAuthStore((s) => s.isNewUser);
@@ -82,7 +82,7 @@ export function Sidebar() {
         {/* Header / Brand */}
         <div className="flex items-center justify-between pb-2">
           <div className="flex items-center gap-2">
-            <img src="/logo.png" alt="WispEcho" className="h-8 w-auto rounded-[6px]" />
+            <img src="/logo.png" alt="WispEcho" className="h-8 w-auto rounded-[6px] brand-logo" />
           </div>
           <div className="flex items-center gap-2">
             <button onClick={() => setFriendsOpen(true)} className="icon-btn relative" title="Friends">
