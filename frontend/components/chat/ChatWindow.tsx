@@ -155,7 +155,7 @@ export function ChatWindow() {
             if (conversation.isGroup && conversation.group) {
               setGroupSettingsOpen(true, conversation.group.id);
             } else if (conversation.otherUser) {
-              router.push(`/profile/${conversation.otherUser.username}`);
+              router.push(`/profile?u=${conversation.otherUser.username}`);
             }
           }}
         >
@@ -172,7 +172,7 @@ export function ChatWindow() {
             if (conversation.isGroup && conversation.group) {
               setGroupSettingsOpen(true, conversation.group.id);
             } else if (conversation.otherUser) {
-              router.push(`/profile/${conversation.otherUser.username}`);
+              router.push(`/profile?u=${conversation.otherUser.username}`);
             }
           }}
         >

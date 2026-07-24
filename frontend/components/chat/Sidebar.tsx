@@ -177,7 +177,7 @@ export function Sidebar() {
 
         {/* Current User Card */}
         {user && (
-          <Link href={`/profile/${user.username}`} className="me-card mt-auto hover:opacity-80 transition cursor-pointer block">
+          <Link href={`/profile?u=${user.username}`} className="me-card mt-auto hover:opacity-80 transition cursor-pointer block">
             <div className="flex items-center gap-3">
               <div className="avatar avatar-font">
                 {user.avatarUrl ? (

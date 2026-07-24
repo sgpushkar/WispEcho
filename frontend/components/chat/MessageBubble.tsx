@@ -52,7 +52,7 @@ export function MessageBubble({ message, onReply, onEdit }: { message: Message; 
       if (part.startsWith("@")) {
         const username = part.slice(1);
         return (
-          <Link key={i} href={`/profile/${username}`} className="text-accent hover:underline font-medium">
+          <Link key={i} href={`/profile?u=${username}`} className="text-accent hover:underline font-medium">
             {part}
           </Link>
         );
@@ -82,7 +82,7 @@ export function MessageBubble({ message, onReply, onEdit }: { message: Message; 
           }}
         >
           {!isMine && isGroup && (
-             <Link href={`/profile/${message.sender?.username}`} className="flex items-center gap-2 mb-1 ml-2 group/profile">
+             <Link href={`/profile?u=${message.sender?.username}`} className="flex items-center gap-2 mb-1 ml-2 group/profile">
                <div className="w-5 h-5 rounded-full overflow-hidden bg-white/10 shrink-0 flex items-center justify-center shadow-sm">
                  {message.sender?.avatarUrl ? (
                    <img src={message.sender.avatarUrl} alt="" className="w-full h-full object-cover" />

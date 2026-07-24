@@ -137,7 +137,7 @@ export function FriendsModal({ isOpen, onClose }: { isOpen: boolean; onClose: ()
               ) : (
                 friends.map((friend: User) => (
                   <div key={friend.id} className="flex items-center justify-between rounded-xl bg-white/5 p-3">
-                    <Link href={`/profile/${friend.username}`} onClick={onClose} className="flex items-center gap-3 hover:opacity-80 transition cursor-pointer">
+                    <Link href={`/profile?u=${friend.username}`} onClick={onClose} className="flex items-center gap-3 hover:opacity-80 transition cursor-pointer">
                       <div className="h-10 w-10 overflow-hidden rounded-full bg-white/10 border border-white/10 flex items-center justify-center font-bold">
                         {friend.avatarUrl ? <img src={friend.avatarUrl} alt="" className="h-full w-full object-cover" /> : friend.displayName[0]}
                       </div>
@@ -178,7 +178,7 @@ export function FriendsModal({ isOpen, onClose }: { isOpen: boolean; onClose: ()
                 ) : (
                   searchResults.map((user: User) => (
                     <div key={user.id} className="flex items-center justify-between rounded-xl bg-white/5 p-3">
-                      <Link href={`/profile/${user.username}`} onClick={onClose} className="flex items-center gap-3 hover:opacity-80 transition cursor-pointer">
+                      <Link href={`/profile?u=${user.username}`} onClick={onClose} className="flex items-center gap-3 hover:opacity-80 transition cursor-pointer">
                         <div className="h-10 w-10 overflow-hidden rounded-full bg-white/10 border border-white/10 flex items-center justify-center font-bold">
                           {user.avatarUrl ? <img src={user.avatarUrl} alt="" className="h-full w-full object-cover" /> : user.displayName[0]}
                         </div>
@@ -211,7 +211,7 @@ export function FriendsModal({ isOpen, onClose }: { isOpen: boolean; onClose: ()
                   if (!user) return null;
                   return (
                     <div key={req.id} className="flex items-center justify-between rounded-xl bg-white/5 p-3">
-                      <Link href={`/profile/${user.username}`} onClick={onClose} className="flex items-center gap-3 hover:opacity-80 transition cursor-pointer">
+                      <Link href={`/profile?u=${user.username}`} onClick={onClose} className="flex items-center gap-3 hover:opacity-80 transition cursor-pointer">
                         <div className="h-10 w-10 overflow-hidden rounded-full bg-white/10 border border-white/10 flex items-center justify-center font-bold">
                           {user.avatarUrl ? <img src={user.avatarUrl} alt="" className="h-full w-full object-cover" /> : user.displayName[0]}
                         </div>
