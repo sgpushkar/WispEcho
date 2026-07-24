@@ -14,6 +14,7 @@ import { Edit2 } from "lucide-react";
 import { useUIStore } from "@/store/useUIStore";
 import { useRouter } from "next/navigation";
 import EmojiPicker, { Theme } from "emoji-picker-react";
+import { Avatar } from "../ui/Avatar";
 
 export function ChatWindow() {
   const router = useRouter();
@@ -150,7 +151,7 @@ export function ChatWindow() {
         </button>
         <motion.div 
           whileHover={{ scale: 1.05, rotate: 2 }} 
-          className="avatar cursor-pointer shadow-md"
+          className="relative cursor-pointer shadow-md shrink-0 rounded-[14px] overflow-hidden"
           onClick={() => {
             if (conversation.isGroup && conversation.group) {
               setGroupSettingsOpen(true, conversation.group.id);
@@ -159,11 +160,7 @@ export function ChatWindow() {
             }
           }}
         >
-          {avatar ? (
-            <img src={avatar} className="h-full w-full object-cover rounded-[14px]" alt="" />
-          ) : (
-            name?.[0]?.toUpperCase()
-          )}
+          <Avatar src={avatar} name={name} className="h-10 w-10 border-none" />
           {isOnline && <span className="dot" />}
         </motion.div>
         <div 

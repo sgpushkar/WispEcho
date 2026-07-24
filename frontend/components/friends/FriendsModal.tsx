@@ -7,6 +7,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { api } from "@/lib/api";
 import { useChatStore } from "@/store/useChatStore";
 import Link from "next/link";
+import { Avatar } from "../ui/Avatar";
 
 interface User {
   id: string;
@@ -138,9 +139,7 @@ export function FriendsModal({ isOpen, onClose }: { isOpen: boolean; onClose: ()
                 friends.map((friend: User) => (
                   <div key={friend.id} className="flex items-center justify-between rounded-xl bg-white/5 p-3">
                     <Link href={`/profile?u=${friend.username}`} onClick={onClose} className="flex items-center gap-3 hover:opacity-80 transition cursor-pointer">
-                      <div className="h-10 w-10 overflow-hidden rounded-full bg-white/10 border border-white/10 flex items-center justify-center font-bold">
-                        {friend.avatarUrl ? <img src={friend.avatarUrl} alt="" className="h-full w-full object-cover" /> : friend.displayName[0]}
-                      </div>
+                      <Avatar src={friend.avatarUrl} name={friend.displayName} className="h-10 w-10 rounded-full text-xs border-none" />
                       <div>
                         <p className="font-medium text-sm">{friend.displayName}</p>
                         <p className="text-xs text-white/40">@{friend.username}</p>
@@ -179,9 +178,7 @@ export function FriendsModal({ isOpen, onClose }: { isOpen: boolean; onClose: ()
                   searchResults.map((user: User) => (
                     <div key={user.id} className="flex items-center justify-between rounded-xl bg-white/5 p-3">
                       <Link href={`/profile?u=${user.username}`} onClick={onClose} className="flex items-center gap-3 hover:opacity-80 transition cursor-pointer">
-                        <div className="h-10 w-10 overflow-hidden rounded-full bg-white/10 border border-white/10 flex items-center justify-center font-bold">
-                          {user.avatarUrl ? <img src={user.avatarUrl} alt="" className="h-full w-full object-cover" /> : user.displayName[0]}
-                        </div>
+                        <Avatar src={user.avatarUrl} name={user.displayName} className="h-10 w-10 rounded-full text-xs border-none" />
                         <div>
                           <p className="font-medium text-sm">{user.displayName}</p>
                           <p className="text-xs text-white/40">@{user.username}</p>
@@ -212,9 +209,7 @@ export function FriendsModal({ isOpen, onClose }: { isOpen: boolean; onClose: ()
                   return (
                     <div key={req.id} className="flex items-center justify-between rounded-xl bg-white/5 p-3">
                       <Link href={`/profile?u=${user.username}`} onClick={onClose} className="flex items-center gap-3 hover:opacity-80 transition cursor-pointer">
-                        <div className="h-10 w-10 overflow-hidden rounded-full bg-white/10 border border-white/10 flex items-center justify-center font-bold">
-                          {user.avatarUrl ? <img src={user.avatarUrl} alt="" className="h-full w-full object-cover" /> : user.displayName[0]}
-                        </div>
+                        <Avatar src={user.avatarUrl} name={user.displayName} className="h-10 w-10 rounded-full text-xs border-none" />
                         <div>
                           <p className="font-medium text-sm">{user.displayName}</p>
                           <p className="text-xs text-white/40">@{user.username}</p>

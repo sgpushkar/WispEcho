@@ -11,6 +11,7 @@ import { api } from "@/lib/api";
 import { Reply } from "lucide-react";
 import { ContextMenu, ContextMenuPosition } from "./ContextMenu";
 import Link from "next/link";
+import { Avatar } from "../ui/Avatar";
 
 const QUICK_REACTIONS = ["❤️", "😂", "🔥", "😭", "👍"];
 
@@ -83,13 +84,7 @@ export function MessageBubble({ message, onReply, onEdit }: { message: Message; 
         >
           {!isMine && isGroup && (
              <Link href={`/profile?u=${message.sender?.username}`} className="flex items-center gap-2 mb-1 ml-2 group/profile">
-               <div className="w-5 h-5 rounded-full overflow-hidden bg-white/10 shrink-0 flex items-center justify-center shadow-sm">
-                 {message.sender?.avatarUrl ? (
-                   <img src={message.sender.avatarUrl} alt="" className="w-full h-full object-cover" />
-                 ) : (
-                   <span className="text-[10px] font-medium text-white/60 group-hover/profile:text-white transition">{message.sender?.displayName?.[0]?.toUpperCase()}</span>
-                 )}
-               </div>
+               <Avatar src={message.sender?.avatarUrl} name={message.sender?.displayName} className="w-5 h-5 rounded-full text-[8px] border-none" />
                <span className="text-[12px] font-medium text-white/60 group-hover/profile:text-white group-hover/profile:underline transition">{message.sender?.displayName}</span>
              </Link>
           )}

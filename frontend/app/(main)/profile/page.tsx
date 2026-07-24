@@ -7,6 +7,7 @@ import { api } from "@/lib/api";
 import { motion } from "framer-motion";
 import { ArrowLeft, User as UserIcon, Calendar, Circle } from "lucide-react";
 import { format } from "date-fns";
+import { Avatar } from "@/components/ui/Avatar";
 
 function ProfileContent() {
   const searchParams = useSearchParams();
@@ -89,12 +90,8 @@ function ProfileContent() {
         {/* Profile Info */}
         <div className="relative px-4 sm:px-8">
           <div className="flex justify-between">
-            <div className="-mt-16 sm:-mt-20 relative h-32 w-32 sm:h-40 sm:w-40 rounded-full border-4 border-[#0a0a0a] bg-[#1a1a1a] overflow-hidden flex items-center justify-center">
-              {user.avatarUrl ? (
-                <img src={user.avatarUrl} alt={user.displayName} className="h-full w-full object-cover" />
-              ) : (
-                <UserIcon size={64} className="text-white/50" />
-              )}
+            <div className="-mt-16 sm:-mt-20 relative h-32 w-32 sm:h-40 sm:w-40 rounded-full border-4 border-[#0a0a0a] overflow-hidden">
+              <Avatar src={user.avatarUrl} name={user.displayName} className="h-full w-full border-none text-3xl font-bold" />
             </div>
             <div className="pt-4">
               {/* Could add action buttons here like 'Add Friend' or 'Message' in the future */}

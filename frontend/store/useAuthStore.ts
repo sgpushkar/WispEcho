@@ -11,6 +11,8 @@ export interface User {
   bio?: string | null;
   accentColor?: string | null;
   status?: string | null;
+  pronouns?: string | null;
+  bannerUrl?: string | null;
   isOnline?: boolean;
 }
 

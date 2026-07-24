@@ -14,6 +14,7 @@ import { SettingsModal } from "./SettingsModal";
 import { GroupSettingsModal } from "./GroupSettingsModal";
 import { ForwardModal } from "./ForwardModal";
 import Link from "next/link";
+import { Avatar } from "../ui/Avatar";
 
 export function Sidebar() {
   const user = useAuthStore((s) => s.user);
@@ -133,12 +134,8 @@ export function Sidebar() {
                 onClick={() => setActiveConversation(conv.id)}
                 className={`conv ${active ? "active" : ""}`}
               >
-                <div className="avatar">
-                  {avatar ? (
-                    <img src={avatar} className="h-full w-full object-cover rounded-[14px]" alt="" />
-                  ) : (
-                    name?.[0]?.toUpperCase()
-                  )}
+                <div className="relative shrink-0">
+                  <Avatar src={avatar} name={name} className="h-10 w-10 rounded-[14px]" />
                   {isOnline && <span className="dot" />}
                 </div>
 
@@ -179,12 +176,8 @@ export function Sidebar() {
         {user && (
           <Link href={`/profile?u=${user.username}`} className="me-card mt-auto hover:opacity-80 transition cursor-pointer block">
             <div className="flex items-center gap-3">
-              <div className="avatar avatar-font">
-                {user.avatarUrl ? (
-                  <img src={user.avatarUrl} className="h-full w-full object-cover rounded-[14px]" alt="" />
-                ) : (
-                  user.displayName[0]?.toUpperCase()
-                )}
+              <div className="avatar avatar-font overflow-hidden">
+                <Avatar src={user.avatarUrl} name={user.displayName} className="h-full w-full rounded-[14px] border-none" />
               </div>
               <div>
                 <div className="me-name">{user.displayName}</div>

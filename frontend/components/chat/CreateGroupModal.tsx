@@ -6,6 +6,7 @@ import { X, Users, Check } from "lucide-react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { api } from "@/lib/api";
 import { useChatStore } from "@/store/useChatStore";
+import { Avatar } from "../ui/Avatar";
 
 interface User {
   id: string;
@@ -94,9 +95,7 @@ export function CreateGroupModal({ isOpen, onClose }: { isOpen: boolean; onClose
                     className="flex w-full items-center justify-between rounded-lg p-2 hover:bg-white/5 transition"
                   >
                     <div className="flex items-center gap-3">
-                      <div className="h-8 w-8 overflow-hidden rounded-full bg-white/10 border border-white/10 flex items-center justify-center text-xs font-bold">
-                        {friend.avatarUrl ? <img src={friend.avatarUrl} alt="" className="h-full w-full object-cover" /> : friend.displayName[0]}
-                      </div>
+                      <Avatar src={friend.avatarUrl} name={friend.displayName} className="h-8 w-8 rounded-full text-[10px] border-none" />
                       <span className="text-sm">{friend.displayName}</span>
                     </div>
                     <div className={`flex h-5 w-5 items-center justify-center rounded-md border ${selectedFriends.includes(friend.id) ? 'border-white/40 bg-white/15 text-white' : 'border-white/20'}`}>

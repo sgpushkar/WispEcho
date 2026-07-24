@@ -7,6 +7,8 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { api } from "@/lib/api";
 import { useAuthStore } from "@/store/useAuthStore";
 import { useUIStore } from "@/store/useUIStore";
+import Link from "next/link";
+import { Avatar } from "../ui/Avatar";
 
 export function GroupSettingsModal() {
   const { groupSettingsOpen, setGroupSettingsOpen, activeGroupId } = useUIStore();
@@ -110,13 +112,7 @@ export function GroupSettingsModal() {
           {!isLoading && activeTab === "details" && (
             <div className="space-y-4">
               <div className="flex justify-center mb-6">
-                <div className="relative h-24 w-24 overflow-hidden rounded-[20px] bg-white/10 border-2 border-white/10 flex items-center justify-center text-2xl font-bold text-white/80">
-                  {avatarUrl ? (
-                    <img src={avatarUrl} alt="" className="h-full w-full object-cover" />
-                  ) : (
-                    <Users size={32} />
-                  )}
-                </div>
+                <Avatar src={avatarUrl} name={name} className="h-24 w-24 rounded-[20px] text-2xl font-bold" />
               </div>
 
               <div className="space-y-2">
@@ -177,9 +173,7 @@ export function GroupSettingsModal() {
                         return (
                           <div key={su.id} className="flex items-center justify-between p-2 rounded-lg hover:bg-white/5 transition">
                             <div className="flex items-center gap-3">
-                              <div className="h-8 w-8 rounded-full bg-white/10 overflow-hidden flex items-center justify-center">
-                                {su.avatarUrl ? <img src={su.avatarUrl} alt="" className="h-full w-full object-cover" /> : <Users size={14} />}
-                              </div>
+                              <Avatar src={su.avatarUrl} name={su.displayName} className="h-8 w-8 rounded-full text-[10px] border-none" />
                               <div className="text-sm">
                                 <p className="font-medium text-white">{su.displayName}</p>
                                 <p className="text-xs text-white/40">@{su.username}</p>
@@ -206,19 +200,19 @@ export function GroupSettingsModal() {
                 <div className="space-y-2">
                   {groupData?.members?.map((member: any) => (
                     <div key={member.id} className="flex items-center justify-between p-2 rounded-xl bg-white/5 border border-white/5">
-                      <div className="flex items-center gap-3">
-                        <div className="h-10 w-10 rounded-full bg-white/10 overflow-hidden flex items-center justify-center">
-                          {member.user.avatarUrl ? (
-                            <img src={member.user.avatarUrl} alt="" className="h-full w-full object-cover" />
-                          ) : (
-                            <Users size={16} />
-                          )}
-                        </div>
+                      <Link
+                        href={`/profile?u=${member.user.username}`}
+                        onClick={() => {
+                          setGroupSettingsOpen(false);
+                        }}
+                        className="flex items-center gap-3 hover:opacity-80 transition cursor-pointer"
+                      >
+                        <Avatar src={member.user.avatarUrl} name={member.user.displayName} className="h-10 w-10 rounded-full text-xs border-none" />
                         <div className="text-sm">
                           <p className="font-medium text-white">{member.user.displayName}</p>
                           <p className="text-xs text-white/40">@{member.user.username}</p>
                         </div>
-                      </div>
+                      </Link>
                       <div className="text-[10px] font-medium tracking-wider uppercase px-2 py-1 rounded bg-white/10 text-white/60">
                         {member.role}
                       </div>
