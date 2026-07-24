@@ -19,7 +19,10 @@ export function Providers({ children }: { children: React.ReactNode }) {
       if (isCapacitor) {
         import("@capacitor/app").then(({ App }) => {
           App.addListener("backButton", ({ canGoBack }) => {
-            if (canGoBack) {
+            const currentPath = window.location.pathname;
+            if (currentPath === "/chat" || currentPath === "/") {
+              App.exitApp();
+            } else if (canGoBack) {
               window.history.back();
             } else {
               App.exitApp();
