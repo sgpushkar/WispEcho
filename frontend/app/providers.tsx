@@ -13,6 +13,21 @@ export function Providers({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     const localTheme = (localStorage.getItem("theme") as "light" | "dark") || "dark";
     setTheme(localTheme);
+
+    if (typeof window !== "undefined") {
+      const isCapacitor = (window as any).Capacitor;
+      if (isCapacitor) {
+        import("@capacitor/app").then(({ App }) => {
+          App.addListener("backButton", ({ canGoBack }) => {
+            if (canGoBack) {
+              window.history.back();
+            } else {
+              App.exitApp();
+            }
+          });
+        });
+      }
+    }
   }, [setTheme]);
 
   return <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>;

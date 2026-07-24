@@ -31,29 +31,29 @@
   }
 
   .light {
-    --bg: #f3f4f6;
-    --ink: #111827;
-    --ink-dim: rgba(17, 24, 39, 0.65);
-    --ink-faint: rgba(17, 24, 39, 0.45);
-    --glass-bg: rgba(0, 0, 0, 0.02);
-    --glass-bg-strong: rgba(0, 0, 0, 0.04);
+    --bg: #f4f4f7;
+    --ink: #18181b;
+    --ink-dim: #71717a;
+    --ink-faint: #a1a1aa;
+    --glass-bg: rgba(255, 255, 255, 0.65);
+    --glass-bg-strong: rgba(255, 255, 255, 0.85);
     --glass-border: rgba(0, 0, 0, 0.06);
-    --glass-border-strong: rgba(0, 0, 0, 0.08);
-    --bubble-theirs: rgba(0, 0, 0, 0.03);
-    --bubble-theirs-border: rgba(0, 0, 0, 0.03);
-    --bubble-mine: rgba(0, 0, 0, 0.06);
-    --bubble-mine-border: rgba(0, 0, 0, 0.06);
-    --hover-bg: rgba(0, 0, 0, 0.02);
-    --hover-border: rgba(0, 0, 0, 0.04);
-    --active-bg: rgba(0, 0, 0, 0.04);
-    --active-border: rgba(0, 0, 0, 0.06);
-    --search-bg: rgba(0, 0, 0, 0.02);
-    --search-border: rgba(0, 0, 0, 0.05);
-    --me-card-bg: rgba(0, 0, 0, 0.02);
-    --me-card-border: rgba(0, 0, 0, 0.05);
-    --composer-bg: rgba(0, 0, 0, 0.02);
-    --composer-border: rgba(0, 0, 0, 0.05);
-    --icon-btn-hover: rgba(0, 0, 0, 0.05);
+    --glass-border-strong: rgba(0, 0, 0, 0.1);
+    --bubble-theirs: #e4e4e7;
+    --bubble-theirs-border: #e4e4e7;
+    --bubble-mine: #e8e5ff;
+    --bubble-mine-border: #e8e5ff;
+    --hover-bg: rgba(0, 0, 0, 0.03);
+    --hover-border: rgba(0, 0, 0, 0.06);
+    --active-bg: rgba(0, 0, 0, 0.06);
+    --active-border: rgba(0, 0, 0, 0.1);
+    --search-bg: #e4e4e7;
+    --search-border: #e4e4e7;
+    --me-card-bg: rgba(255, 255, 255, 0.5);
+    --me-card-border: rgba(0, 0, 0, 0.06);
+    --composer-bg: rgba(255, 255, 255, 0.7);
+    --composer-border: rgba(0, 0, 0, 0.08);
+    --icon-btn-hover: rgba(0, 0, 0, 0.06);
     --send-btn-bg: rgba(0, 0, 0, 0.06);
   }
 

@@ -326,20 +326,25 @@ export function SettingsModal({ isOpen, onClose }: { isOpen: boolean; onClose: (
         </div>
 
         {/* Footer */}
-        <div className="border-t border-white/5 p-4 flex gap-3 bg-white/[0.01]">
-          <button
-            onClick={onClose}
-            className="flex-1 rounded-2xl bg-white/5 border border-white/10 px-4 py-3 text-xs font-semibold uppercase tracking-wider text-white/80 hover:bg-white/10 hover:text-white transition"
-          >
-            Cancel
-          </button>
-          <button
-            onClick={() => updateProfile.mutate()}
-            disabled={!username || !displayName || updateProfile.isPending}
-            className="flex-1 rounded-2xl bg-white text-[#0a0a0a] px-4 py-3 text-xs font-semibold uppercase tracking-wider hover:bg-white/90 transition disabled:opacity-50"
-          >
-            {updateProfile.isPending ? "Saving..." : "Save Changes"}
-          </button>
+        <div className="border-t border-white/5 p-4 flex flex-col gap-3 bg-white/[0.01]">
+          <div className="flex gap-3">
+            <button
+              onClick={onClose}
+              className="flex-1 rounded-2xl bg-white/5 border border-white/10 px-4 py-3 text-xs font-semibold uppercase tracking-wider text-white/80 hover:bg-white/10 hover:text-white transition"
+            >
+              Cancel
+            </button>
+            <button
+              onClick={() => updateProfile.mutate()}
+              disabled={!username || !displayName || updateProfile.isPending}
+              className="flex-1 rounded-2xl bg-white text-[#0a0a0a] px-4 py-3 text-xs font-semibold uppercase tracking-wider hover:bg-white/90 transition disabled:opacity-50"
+            >
+              {updateProfile.isPending ? "Saving..." : "Save Changes"}
+            </button>
+          </div>
+          <p className="text-center text-[10px] text-white/35 font-semibold tracking-wider uppercase">
+            WispEcho App v1.0.0
+          </p>
         </div>
       </motion.div>
     </div>

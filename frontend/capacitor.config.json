@@ -2,5 +2,9 @@
   "appId": "com.wispecho.app",
   "appName": "WispEcho",
   "webDir": "out",
-  "bundledWebRuntime": false
+  "bundledWebRuntime": false,
+  "server": {
+    "hostname": "localhost",
+    "androidScheme": "https"
+  }
 }
