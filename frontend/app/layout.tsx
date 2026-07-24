@@ -5,6 +5,7 @@ import { Providers } from "./providers";
 import { LiquidBackground } from "@/components/ui/LiquidBackground";
 import { CommandPalette } from "@/components/ui/CommandPalette";
 import { InstallAppButton } from "@/components/ui/InstallAppButton";
+import { UpdateChecker } from "@/components/ui/UpdateChecker";
 
 const inter = Inter({ subsets: ["latin"], variable: "--font-inter" });
 const space = Space_Grotesk({ subsets: ["latin"], variable: "--font-space" });
@@ -43,6 +44,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             {children}
             <CommandPalette />
             <InstallAppButton />
+            <UpdateChecker />
           </Providers>
         </LiquidBackground>
       </body>

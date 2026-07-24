@@ -11,7 +11,8 @@ export function InstallAppButton() {
     setMounted(true);
   }, []);
 
-  if (!mounted) return null;
+  const isCapacitor = typeof window !== "undefined" && (window as any).Capacitor;
+  if (!mounted || isCapacitor) return null;
 
   return (
     <div className="fixed bottom-6 right-6 z-50">
