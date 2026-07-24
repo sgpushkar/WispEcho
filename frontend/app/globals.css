@@ -90,7 +90,6 @@
     backdrop-filter: blur(24px);
     -webkit-backdrop-filter: blur(24px);
     border: 1px solid var(--glass-border);
-    box-shadow: 0 20px 60px rgba(0,0,0,0.35);
     transition: all 0.18s cubic-bezier(0.2, 0.8, 0.2, 1);
   }
 
@@ -101,7 +100,6 @@
     backdrop-filter: blur(32px);
     -webkit-backdrop-filter: blur(32px);
     border: 1px solid var(--glass-border-strong);
-    box-shadow: 0 24px 64px rgba(0,0,0,0.5);
     transition: all 0.18s cubic-bezier(0.2, 0.8, 0.2, 1);
   }
 
@@ -134,11 +132,11 @@
 
   /* Conversation List item states */
   .conv { display: flex; align-items: center; gap: 12px; padding: 10px 12px; border-radius: 20px; cursor: pointer; border: 1px solid transparent; transition: all 0.18s cubic-bezier(0.2, 0.8, 0.2, 1); }
-  .conv:hover { background: var(--hover-bg); border-color: var(--hover-border); transform: translateY(-1px); box-shadow: 0 6px 16px rgba(0,0,0,0.12); }
-  .conv.active { background: var(--active-bg); border: 1px solid var(--active-border); box-shadow: 0 4px 12px rgba(0,0,0,0.18); }
+  .conv:hover { background: var(--hover-bg); border-color: var(--hover-border); transform: translateY(-1px); }
+  .conv.active { background: var(--active-bg); border: 1px solid var(--active-border); }
 
   /* Message Bubbles — premium glass */
-  .bubble { padding: 10px 16px; border-radius: 20px; font-size: 14px; line-height: 1.45; word-wrap: break-word; box-shadow: 0 3px 10px rgba(0,0,0,0.06); max-width: 100%; transition: transform 0.18s; }
+  .bubble { padding: 10px 16px; border-radius: 20px; font-size: 14px; line-height: 1.45; word-wrap: break-word; max-width: 100%; transition: transform 0.18s; }
   .bubble.theirs { background: var(--bubble-theirs); border: 1px solid var(--bubble-theirs-border); border-bottom-left-radius: 6px; }
   .bubble.mine { background: var(--bubble-mine); border: 1px solid var(--bubble-mine-border); border-bottom-right-radius: 6px; }
 
@@ -221,6 +219,6 @@
   .icon-btn:hover { background: var(--icon-btn-hover); color: var(--ink); transform: scale(1.04); }
   
   .send-btn { width: 36px; height: 36px; border-radius: 50%; background: var(--send-btn-bg); display: flex; align-items: center; justify-content: center; flex-shrink: 0; cursor: pointer; border: 1px solid var(--glass-border); transition: all 0.18s; }
-  .send-btn:hover { background: rgba(255,255,255,0.15); border-color: var(--glass-border-strong); transform: scale(1.02); box-shadow: 0 6px 20px rgba(0,0,0,0.15); }
+  .send-btn:hover { background: rgba(255,255,255,0.15); border-color: var(--glass-border-strong); transform: scale(1.02); }
   .send-btn:active { transform: scale(0.97); }
 }
