@@ -46,9 +46,10 @@ app.use("/api", limiter);
 
 app.get("/health", (req, res) => res.json({ ok: true }));
 app.get("/version.json", (req, res) => {
+  const clientUrl = process.env.CLIENT_URL || "https://wispecho.vercel.app";
   res.json({
     version: "1.1.0",
-    downloadUrl: "https://github.com/sgpushkar/WispEcho/releases/latest"
+    downloadUrl: `${clientUrl}/download`
   });
 });
 

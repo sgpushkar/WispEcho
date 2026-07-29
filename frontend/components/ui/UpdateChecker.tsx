@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import { Download, AlertCircle, X } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 
-const CURRENT_VERSION = "1.0.0"; // Local app version
+const CURRENT_VERSION = "1.1.0"; // Local app version
 
 export function UpdateChecker() {
   const [updateInfo, setUpdateInfo] = useState<{ version: string; downloadUrl: string } | null>(null);
