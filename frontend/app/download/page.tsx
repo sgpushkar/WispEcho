@@ -4,8 +4,26 @@ import { Download, ArrowLeft, Shield, Cpu, Sparkles } from "lucide-react";
 import { motion } from "framer-motion";
 import Link from "next/link";
 
+import { useState, useEffect } from "react";
+
 export default function DownloadPage() {
-  const version = "1.1.0";
+  const [version, setVersion] = useState("1.1.0");
+  const [apkUrl, setApkUrl] = useState("/downloads/wispecho.apk");
+
+  useEffect(() => {
+    fetch(`/version.json?t=${Date.now()}`)
+      .then((res) => {
+        if (res.ok) return res.json();
+      })
+      .then((data) => {
+        if (data) {
+          if (data.version) setVersion(data.version);
+          if (data.apkUrl) setApkUrl(data.apkUrl);
+        }
+      })
+      .catch((err) => console.error("Failed to load version details:", err));
+  }, []);
+
   const releaseNotes = [
     { title: "Preloaded Chats", desc: "Instant switching between chats with zero load times." },
     { title: "Optimized Navigation", desc: "Smart system back button handling for native mobile gestures." },
@@ -66,7 +84,7 @@ export default function DownloadPage() {
 
           {/* Download Button */}
           <motion.a
-            href="/downloads/wispecho.apk"
+            href={apkUrl}
             download
             whileHover={{ scale: 1.02, filter: "brightness(1.1)" }}
             whileTap={{ scale: 0.98 }}
