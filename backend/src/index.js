@@ -45,6 +45,12 @@ const limiter = rateLimit({
 app.use("/api", limiter);
 
 app.get("/health", (req, res) => res.json({ ok: true }));
+app.get("/version.json", (req, res) => {
+  res.json({
+    version: "1.1.0",
+    downloadUrl: "https://github.com/sgpushkar/WispEcho/releases/latest"
+  });
+});
 
 app.use("/api/auth", authRoutes);
 app.use("/api/users", userRoutes);

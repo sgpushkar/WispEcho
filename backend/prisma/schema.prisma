@@ -67,6 +67,8 @@ model RefreshToken {
   user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   expiresAt DateTime
   createdAt DateTime @default(now())
+
+  @@index([userId])
 }
 
 model EmailToken {
@@ -170,6 +172,8 @@ model Message {
   reactions    Reaction[]
   readReceipts ReadReceipt[]
   savedBy      SavedMessage[]
+
+  @@index([conversationId, createdAt])
 }
 
 model Reaction {
@@ -205,6 +209,8 @@ model Notification {
   createdAt DateTime @default(now())
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, isRead])
 }
 
 model SavedMessage {
