@@ -3,16 +3,18 @@
 import { Download } from "lucide-react";
 import { motion } from "framer-motion";
 import { useState, useEffect } from "react";
+import { useChatStore } from "@/store/useChatStore";
 
 export function InstallAppButton() {
   const [mounted, setMounted] = useState(false);
+  const activeConversationId = useChatStore((s) => s.activeConversationId);
 
   useEffect(() => {
     setMounted(true);
   }, []);
 
   const isCapacitor = typeof window !== "undefined" && (window as any).Capacitor;
-  if (!mounted || isCapacitor) return null;
+  if (!mounted || isCapacitor || activeConversationId) return null;
 
   return (
     <div className="fixed bottom-6 right-6 z-50">
