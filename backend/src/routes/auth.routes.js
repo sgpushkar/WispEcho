@@ -13,5 +13,7 @@ router.post("/verify-email", authController.verifyEmail);
 router.post("/forgot-password", authController.forgotPassword);
 router.post("/reset-password", authController.resetPassword);
 router.get("/me", requireAuth, authController.me);
+router.post("/set-password", requireAuth, authController.setPassword);
+router.post("/change-password", requireAuth, authController.changePassword);
 
 export default router;

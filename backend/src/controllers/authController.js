@@ -131,10 +131,7 @@ export async function googleLogin(req, res, next) {
       });
       isNewUser = true;
     } else {
-      if (mode === "register") {
-        return res.status(409).json({ error: "Account already exists. Please log in." });
-      }
-
+      // If existing user: link Google account and log them in regardless of mode
       if (!user.googleId) {
         user = await prisma.user.update({
           where: { id: user.id },
@@ -147,7 +144,10 @@ export async function googleLogin(req, res, next) {
     const refreshToken = await signRefreshToken(user.id);
     res.cookie("refreshToken", refreshToken, COOKIE_OPTIONS);
 
-    res.json({ accessToken, refreshToken, user: sanitizeUser(user), isNewUser });
+    // hasPassword lets frontend know if user can set/change a password
+    const hasPassword = !!user.password;
+
+    res.json({ accessToken, refreshToken, user: sanitizeUser(user), isNewUser, hasPassword });
   } catch (err) {
     next(err);
   }
@@ -258,7 +258,53 @@ export async function me(req, res, next) {
   try {
     const user = await prisma.user.findUnique({ where: { id: req.userId } });
     if (!user) return res.status(404).json({ error: "User not found" });
-    res.json({ user: sanitizeUser(user) });
+    const hasPassword = !!user.password;
+    res.json({ user: sanitizeUser(user), hasPassword });
+  } catch (err) {
+    next(err);
+  }
+}
+
+// Set password for Google-only accounts (no existing password)
+export async function setPassword(req, res, next) {
+  try {
+    const { password } = req.body;
+    if (!password || password.length < 8) {
+      return res.status(400).json({ error: "Password must be at least 8 characters" });
+    }
+    const user = await prisma.user.findUnique({ where: { id: req.userId } });
+    if (!user) return res.status(404).json({ error: "User not found" });
+    if (user.password) {
+      return res.status(400).json({ error: "Password already set. Use change password instead." });
+    }
+    const hashed = await bcrypt.hash(password, 12);
+    await prisma.user.update({ where: { id: req.userId }, data: { password: hashed } });
+    res.json({ success: true });
+  } catch (err) {
+    next(err);
+  }
+}
+
+// Change password for accounts that already have one
+export async function changePassword(req, res, next) {
+  try {
+    const { currentPassword, newPassword } = req.body;
+    if (!newPassword || newPassword.length < 8) {
+      return res.status(400).json({ error: "New password must be at least 8 characters" });
+    }
+    const user = await prisma.user.findUnique({ where: { id: req.userId } });
+    if (!user) return res.status(404).json({ error: "User not found" });
+
+    if (user.password) {
+      // Verify current password
+      if (!currentPassword) return res.status(400).json({ error: "Current password is required" });
+      const valid = await bcrypt.compare(currentPassword, user.password);
+      if (!valid) return res.status(401).json({ error: "Current password is incorrect" });
+    }
+
+    const hashed = await bcrypt.hash(newPassword, 12);
+    await prisma.user.update({ where: { id: req.userId }, data: { password: hashed } });
+    res.json({ success: true });
   } catch (err) {
     next(err);
   }

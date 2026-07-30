@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { X, Settings, User as UserIcon, Palette, Bell } from "lucide-react";
+import { X, Settings, User as UserIcon, Palette, Bell, Lock, Eye, EyeOff } from "lucide-react";
 import { useMutation } from "@tanstack/react-query";
 import { api } from "@/lib/api";
 import { useAuthStore } from "@/store/useAuthStore";
@@ -31,6 +31,15 @@ export function SettingsModal({ isOpen, onClose }: { isOpen: boolean; onClose: (
   const [muteSounds, setMuteSounds] = useState(false);
   const [ambientGlow, setAmbientGlow] = useState(true);
 
+  // Password change state
+  const [hasPassword, setHasPassword] = useState(false);
+  const [currentPassword, setCurrentPassword] = useState("");
+  const [newPassword, setNewPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [showPw, setShowPw] = useState(false);
+  const [pwError, setPwError] = useState<string | null>(null);
+  const [pwSuccess, setPwSuccess] = useState(false);
+
   const { theme: storeTheme, setTheme: setStoreTheme } = useUIStore();
   const [themeMode, setThemeMode] = useState<"light" | "dark">("dark");
 
@@ -49,6 +58,8 @@ export function SettingsModal({ isOpen, onClose }: { isOpen: boolean; onClose: (
       setMuteSounds(localStorage.getItem("mute_sounds") === "true");
       setAmbientGlow(localStorage.getItem("ambient_glow") !== "false");
       setThemeMode(storeTheme);
+      // Fetch hasPassword from /auth/me
+      api.get("/auth/me").then((res) => setHasPassword(res.data.hasPassword)).catch(() => {});
     }
   }, [user, isOpen, storeTheme]);
 
@@ -81,6 +92,33 @@ export function SettingsModal({ isOpen, onClose }: { isOpen: boolean; onClose: (
     },
     onError: (err: any) => alert(err.response?.data?.error || "Error updating profile"),
   });
+
+  const changePassword = useMutation({
+    mutationFn: async () => {
+      const endpoint = hasPassword ? "/auth/change-password" : "/auth/set-password";
+      const body = hasPassword
+        ? { currentPassword, newPassword }
+        : { password: newPassword };
+      return api.post(endpoint, body);
+    },
+    onSuccess: () => {
+      setPwSuccess(true);
+      setPwError(null);
+      setCurrentPassword("");
+      setNewPassword("");
+      setConfirmPassword("");
+      setHasPassword(true);
+      setTimeout(() => setPwSuccess(false), 3000);
+    },
+    onError: (err: any) => setPwError(err.response?.data?.error || "Failed to update password"),
+  });
+
+  function handlePasswordSubmit() {
+    setPwError(null);
+    if (newPassword.length < 8) { setPwError("Minimum 8 characters"); return; }
+    if (newPassword !== confirmPassword) { setPwError("Passwords don't match"); return; }
+    changePassword.mutate();
+  }
 
   if (!isOpen) return null;
 
@@ -187,6 +225,65 @@ export function SettingsModal({ isOpen, onClose }: { isOpen: boolean; onClose: (
                   rows={3}
                   className="w-full rounded-2xl border border-white/5 bg-white/5 px-4 py-3 text-sm outline-none placeholder:text-white/20 text-white resize-none focus:border-white/10 transition"
                 />
+              </div>
+
+              {/* Password section */}
+              <div className="rounded-2xl border border-white/5 bg-white/[0.02] p-4 space-y-3">
+                <div className="flex items-center gap-2 mb-1">
+                  <Lock size={14} className="text-white/40" />
+                  <span className="text-xs font-semibold uppercase tracking-wider text-white/45">
+                    {hasPassword ? "Change Password" : "Set Password"}
+                  </span>
+                </div>
+
+                {hasPassword && (
+                  <div className="relative">
+                    <input
+                      type={showPw ? "text" : "password"}
+                      value={currentPassword}
+                      onChange={(e) => setCurrentPassword(e.target.value)}
+                      placeholder="Current password"
+                      className="w-full rounded-2xl border border-white/5 bg-white/5 px-4 py-3 text-sm outline-none placeholder:text-white/20 text-white focus:border-white/10 transition pr-10"
+                    />
+                  </div>
+                )}
+
+                <div className="relative">
+                  <input
+                    type={showPw ? "text" : "password"}
+                    value={newPassword}
+                    onChange={(e) => setNewPassword(e.target.value)}
+                    placeholder="New password"
+                    className="w-full rounded-2xl border border-white/5 bg-white/5 px-4 py-3 text-sm outline-none placeholder:text-white/20 text-white focus:border-white/10 transition pr-10"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPw((v) => !v)}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-white/30 hover:text-white transition"
+                  >
+                    {showPw ? <EyeOff size={14} /> : <Eye size={14} />}
+                  </button>
+                </div>
+
+                <input
+                  type={showPw ? "text" : "password"}
+                  value={confirmPassword}
+                  onChange={(e) => setConfirmPassword(e.target.value)}
+                  placeholder="Confirm new password"
+                  className="w-full rounded-2xl border border-white/5 bg-white/5 px-4 py-3 text-sm outline-none placeholder:text-white/20 text-white focus:border-white/10 transition"
+                />
+
+                {pwError && <p className="text-xs text-red-400">{pwError}</p>}
+                {pwSuccess && <p className="text-xs text-green-400">Password updated successfully!</p>}
+
+                <button
+                  type="button"
+                  onClick={handlePasswordSubmit}
+                  disabled={changePassword.isPending}
+                  className="w-full rounded-2xl bg-white/10 border border-white/10 py-2.5 text-sm font-semibold text-white hover:bg-white/15 transition disabled:opacity-50"
+                >
+                  {changePassword.isPending ? "Saving..." : hasPassword ? "Update Password" : "Set Password"}
+                </button>
               </div>
             </div>
           )}
