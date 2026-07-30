@@ -6,5 +6,12 @@
   "server": {
     "hostname": "localhost",
     "androidScheme": "https"
+  },
+  "plugins": {
+    "GoogleAuth": {
+      "scopes": ["profile", "email"],
+      "serverClientId": "637710176782-fic04ulgot29307mlf0qlr2elba0sk8j.apps.googleusercontent.com",
+      "forceCodeForRefreshToken": true
+    }
   }
 }

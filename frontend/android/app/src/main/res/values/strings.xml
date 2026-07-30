@@ -4,4 +4,5 @@
     <string name="title_activity_main">WispEcho</string>
     <string name="package_name">com.wispecho.app</string>
     <string name="custom_url_scheme">com.wispecho.app</string>
+    <string name="server_client_id">637710176782-fic04ulgot29307mlf0qlr2elba0sk8j.apps.googleusercontent.com</string>
 </resources>
