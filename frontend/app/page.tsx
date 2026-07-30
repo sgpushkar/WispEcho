@@ -8,7 +8,7 @@ import Link from "next/link";
 import {
   MessageCircle, Smartphone, Globe, Eye, Bell, Image as ImageIcon,
   Zap, Shield, ArrowRight, ChevronDown, Users, Lock,
-  Check, Star, Sparkles, Phone, Video, Smile,
+  Check, Star, Sparkles, Phone, Video, Smile, Plus, Minus, HelpCircle,
 } from "lucide-react";
 
 /* ─── helpers ─── */
@@ -51,6 +51,44 @@ const mockMessages = [
 /* ─── components ─── */
 function Glow({ className }: { className: string }) {
   return <div className={`pointer-events-none absolute rounded-full blur-[120px] opacity-30 ${className}`} />;
+}
+
+function FaqItem({ question, answer, index }: { question: string; answer: string; index: number }) {
+  const [open, setOpen] = useState(false);
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 15 }}
+      whileInView={{ opacity: 1, y: 0 }}
+      viewport={{ once: true }}
+      transition={{ delay: index * 0.05 }}
+      className="rounded-2xl border border-white/8 bg-white/[0.025] overflow-hidden"
+    >
+      <button
+        onClick={() => setOpen(!open)}
+        className="flex w-full items-center justify-between p-5 text-left text-sm font-semibold text-white hover:bg-white/[0.02] transition"
+      >
+        <span>{question}</span>
+        <div className="h-6 w-6 rounded-full bg-white/5 border border-white/10 flex items-center justify-center text-white/60 shrink-0 ml-4">
+          {open ? <Minus size={12} /> : <Plus size={12} />}
+        </div>
+      </button>
+      <AnimatePresence>
+        {open && (
+          <motion.div
+            initial={{ height: 0, opacity: 0 }}
+            animate={{ height: "auto", opacity: 1 }}
+            exit={{ height: 0, opacity: 0 }}
+            transition={{ duration: 0.25 }}
+            className="overflow-hidden"
+          >
+            <p className="px-5 pb-5 text-xs text-white/45 leading-relaxed border-t border-white/5 pt-3">
+              {answer}
+            </p>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </motion.div>
+  );
 }
 
 function FeatureCard({ icon: Icon, title, desc, i }: any) {
@@ -458,6 +496,49 @@ export default function LandingPage() {
               </motion.div>
             ))}
           </motion.div>
+        </div>
+      </section>
+
+      {/* ── FAQ Section ── */}
+      <section className="relative py-24 px-4 overflow-hidden">
+        <Glow className="w-[500px] h-[500px] bg-purple-900/40 top-1/2 left-0 -translate-y-1/2" />
+        <div className="relative z-10 max-w-3xl mx-auto">
+          <motion.div
+            initial="hidden" whileInView="visible" viewport={{ once: true, margin: "-80px" }}
+            variants={stagger}
+            className="text-center mb-16"
+          >
+            <motion.p variants={fadeUp} className="text-xs font-semibold uppercase tracking-widest text-violet-400 mb-3">FAQ</motion.p>
+            <motion.h2 variants={fadeUp} className="text-3xl sm:text-5xl font-black tracking-tight mb-4">Frequently Asked Questions</motion.h2>
+            <motion.p variants={fadeUp} className="text-white/40 text-sm">Got questions? We've got answers.</motion.p>
+          </motion.div>
+
+          <div className="space-y-4">
+            {[
+              {
+                q: "Is WispEcho free to use?",
+                a: "Yes, 100% free! There are no hidden subscriptions, premium paywalls, or ad tracking."
+              },
+              {
+                q: "How do View Once photos work?",
+                a: "When you send a media message with View Once enabled, the recipient can tap to reveal it once. As soon as it's viewed or closed, it's permanently expired and cannot be opened again."
+              },
+              {
+                q: "Can I use WispEcho on both mobile and web?",
+                a: "Absolutely! You can log in on any browser via the web app or install the native Android APK for background push notifications."
+              },
+              {
+                q: "Do I need to sign up with Google?",
+                a: "Google Sign-In is optional for quick 1-tap onboarding. You can also sign up traditionally with any valid email and password."
+              },
+              {
+                q: "How do updates work on the Android app?",
+                a: "The app has an in-app version checker. When a new version (like v1.2.0) is released, you will get an in-app banner to download the latest update directly."
+              }
+            ].map((faq, i) => (
+              <FaqItem key={faq.q} question={faq.q} answer={faq.a} index={i} />
+            ))}
+          </div>
         </div>
       </section>
 
