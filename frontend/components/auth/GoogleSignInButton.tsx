@@ -36,6 +36,13 @@ export default function GoogleSignInButton({ mode }: { mode?: "login" | "registe
   const [showPw, setShowPw] = useState(false);
   const [pwError, setPwError] = useState<string | null>(null);
   const [pwLoading, setPwLoading] = useState(false);
+  const [isNative, setIsNative] = useState(true); // default true to prevent flash
+
+  useEffect(() => {
+    import("@capacitor/core")
+      .then(({ Capacitor }) => setIsNative(Capacitor.isNativePlatform()))
+      .catch(() => setIsNative(false));
+  }, []);
 
   useEffect(() => {
     if (initialized.current) return;
@@ -137,7 +144,13 @@ export default function GoogleSignInButton({ mode }: { mode?: "login" | "registe
 
       {/* Google button container */}
       <div className="flex justify-center">
-        <div ref={buttonRef} className="google-btn-wrapper w-full [&>div]:!w-full" />
+        {!isNative ? (
+          <div ref={buttonRef} className="google-btn-wrapper w-full [&>div]:!w-full" />
+        ) : (
+          <p className="text-xs text-white/40 text-center py-2">
+            Google Sign-in is web-only for now. Please use Email/Password.
+          </p>
+        )}
       </div>
 
       {loading && (

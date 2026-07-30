@@ -79,9 +79,11 @@ export default function LandingPage() {
 
   useEffect(() => {
     import("@capacitor/core").then(({ Capacitor }) => {
-      if (Capacitor.isNativePlatform() && hydrated) {
-        router.replace(accessToken ? "/chat" : "/login");
-        return;
+      if (Capacitor.isNativePlatform()) {
+        if (hydrated) {
+          router.replace(accessToken ? "/chat" : "/login");
+        }
+        return; // Don't show landing page if native, just wait for hydration
       }
       setShowLanding(true);
     }).catch(() => setShowLanding(true));
