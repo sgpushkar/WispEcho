@@ -43,11 +43,8 @@ jobs:
       - name: Set up JDK
         uses: actions/setup-java@v4
         with:
-          distribution: 'temurin'
-          java-version: ${{ env.JAVA_VERSION }}
-
-      - name: Setup Android SDK
-        uses: android-actions/setup-android@v3
+          distribution: 'zulu'
+          java-version: '17'
 
       - name: Make gradlew executable
         working-directory: frontend/android
