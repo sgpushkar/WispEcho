@@ -24,8 +24,8 @@ interface VersionData {
 
 export default function DownloadPage() {
   const [data, setData] = useState<VersionData>({
-    latestVersion: "1.1.0",
-    downloadUrl: "/downloads/wispecho.apk",
+    latestVersion: "1.2.0",
+    downloadUrl: "https://github.com/sgpushkar/WispEcho/releases/download/latest/WispEcho-latest.apk",
     releaseDate: null,
     changelog: [],
   });

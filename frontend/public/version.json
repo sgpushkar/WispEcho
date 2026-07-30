@@ -1,5 +1,6 @@
 {
   "version": "1.2.0",
-  "downloadUrl": "https://wispecho.vercel.app/download",
-  "apkUrl": "/downloads/wispecho.apk"
+  "latestVersion": "1.2.0",
+  "downloadUrl": "https://github.com/sgpushkar/WispEcho/releases/download/latest/WispEcho-latest.apk",
+  "apkUrl": "https://github.com/sgpushkar/WispEcho/releases/download/latest/WispEcho-latest.apk"
 }
