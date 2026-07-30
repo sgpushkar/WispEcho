@@ -131,8 +131,15 @@ export default function GoogleSignInButton({ mode }: { mode?: "login" | "registe
         router.push("/chat");
       }
     } catch (err: any) {
-      console.error(err);
-      setError(err.message || "Google sign-in failed. Try again.");
+      console.error("Google Auth Error:", JSON.stringify(err), err?.message, err?.errorCode, err?.code);
+      const code = err?.errorCode || err?.code || "";
+      if (code === 10 || code === "10") {
+        setError("Google Sign-in setup incomplete. SHA-1 fingerprint not registered in Google Cloud Console.");
+      } else if (err?.message?.toLowerCase().includes("cancel")) {
+        setError(null); // User cancelled — no error shown
+      } else {
+        setError(`Google sign-in failed: ${err?.message || JSON.stringify(err) || "Unknown error"}`);
+      }
     } finally {
       setLoading(false);
     }
