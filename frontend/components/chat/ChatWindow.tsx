@@ -162,14 +162,15 @@ export function ChatWindow() {
   };
 
   const handleImageIconClick = async () => {
-    if (typeof window !== "undefined" && (window as any).Capacitor) {
-      const { Camera, CameraResultType, CameraSource } = await import("@capacitor/camera");
-      try {
+    try {
+      const { Capacitor } = await import("@capacitor/core");
+      if (Capacitor.isNativePlatform()) {
+        const { Camera, CameraResultType, CameraSource } = await import("@capacitor/camera");
         const image = await Camera.getPhoto({
           quality: 90,
           allowEditing: false,
           resultType: CameraResultType.Uri,
-          source: CameraSource.Prompt, // Let user choose Camera or Gallery
+          source: CameraSource.Prompt,
         });
         if (image.webPath) {
           const response = await fetch(image.webPath);
@@ -177,12 +178,12 @@ export function ChatWindow() {
           const file = new File([blob], "image.jpg", { type: "image/jpeg" });
           setSelectedFiles([file]);
         }
-      } catch (e) {
-        console.log("Camera cancelled or failed", e);
+        return;
       }
-    } else {
-      fileInputRef.current?.click();
+    } catch (e) {
+      console.log("Capacitor camera check or selection error", e);
     }
+    fileInputRef.current?.click();
   };
 
   const handleSendImages = async (filesWithCaptions: { file: File; caption: string; isViewOnce?: boolean }[]) => {
