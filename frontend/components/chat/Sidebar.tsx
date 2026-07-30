@@ -95,11 +95,13 @@ export function Sidebar() {
     <>
       <aside className="sidebar glass h-full w-full md:w-[300px]">
         {/* Header / Brand */}
-        <div className="flex items-center justify-between pb-2">
+        <div className="flex items-center justify-between pb-1">
           <div className="flex items-center gap-2">
             <img src="/logo.png" alt="WispEcho" className="h-8 w-auto rounded-[6px] brand-logo" />
+            <span className="brand-name text-base font-bold">WispEcho</span>
           </div>
-          <div className="flex items-center gap-2">
+          {/* Desktop action buttons only */}
+          <div className="hidden md:flex items-center gap-1">
             <button onClick={() => setFriendsOpen(true)} className="icon-btn relative" title="Friends">
               <Users size={16} />
               {incomingRequestsCount > 0 && (
@@ -116,6 +118,23 @@ export function Sidebar() {
             </button>
             <button onClick={logout} className="icon-btn" title="Logout">
               <LogOut size={16} />
+            </button>
+          </div>
+          {/* Mobile: compact new chat + settings icon */}
+          <div className="flex md:hidden items-center gap-1">
+            <button onClick={() => setFriendsOpen(true)} className="icon-btn relative" title="Friends">
+              <Users size={18} />
+              {incomingRequestsCount > 0 && (
+                <span className="absolute -top-0.5 -right-0.5 flex h-4 w-4 items-center justify-center rounded-full bg-red-500 text-[10px] font-bold text-white shadow-sm ring-2 ring-[#0f0f11]">
+                  {incomingRequestsCount > 9 ? "9+" : incomingRequestsCount}
+                </span>
+              )}
+            </button>
+            <button onClick={() => setGroupOpen(true)} className="icon-btn" title="New Group">
+              <Plus size={18} />
+            </button>
+            <button onClick={() => setSettingsOpen(true)} className="icon-btn" title="Settings">
+              <Settings size={18} />
             </button>
           </div>
         </div>
@@ -189,17 +208,21 @@ export function Sidebar() {
 
         {/* Current User Card */}
         {user && (
-          <Link href={`/profile?u=${user.username}`} className="me-card mt-auto hover:opacity-80 transition cursor-pointer block">
-            <div className="flex items-center gap-3">
+          <div className="me-card mt-auto flex items-center justify-between">
+            <Link href={`/profile?u=${user.username}`} className="flex items-center gap-3 flex-1 min-w-0 cursor-pointer">
               <div className="avatar avatar-font overflow-hidden">
                 <Avatar src={user.avatarUrl} name={user.displayName} className="h-full w-full rounded-[14px] border-none" />
               </div>
-              <div>
-                <div className="me-name">{user.displayName}</div>
-                <div className="me-handle">@{user.username}</div>
+              <div className="min-w-0">
+                <div className="me-name truncate">{user.displayName}</div>
+                <div className="me-handle truncate">@{user.username}</div>
               </div>
-            </div>
-          </Link>
+            </Link>
+            {/* Logout only visible on mobile — on desktop it's in the header */}
+            <button onClick={logout} className="icon-btn md:hidden ml-1 shrink-0" title="Logout">
+              <LogOut size={16} />
+            </button>
+          </div>
         )}
       </aside>
 
