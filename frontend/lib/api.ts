@@ -1,8 +1,13 @@
 import axios from "axios";
 import { useAuthStore } from "@/store/useAuthStore";
 
+// Hardcoded fallback ensures the APK always knows the backend URL
+// even if NEXT_PUBLIC_API_URL wasn't injected at build time
+const BASE_URL =
+  process.env.NEXT_PUBLIC_API_URL || "https://wispecho.onrender.com/api";
+
 export const api = axios.create({
-  baseURL: process.env.NEXT_PUBLIC_API_URL,
+  baseURL: BASE_URL,
   withCredentials: true, // send refreshToken cookie
 });
 
@@ -33,7 +38,7 @@ api.interceptors.response.use(
       try {
         const refreshToken = useAuthStore.getState().refreshToken;
         const { data } = await axios.post(
-          `${process.env.NEXT_PUBLIC_API_URL}/auth/refresh`,
+          `${BASE_URL}/auth/refresh`,
           { refreshToken },
           { withCredentials: true }
         );
