@@ -36,15 +36,18 @@ jobs:
         working-directory: frontend
         run: npm run build
 
-      - name: Sync Capacitor Android
-        working-directory: frontend
-        run: npx cap sync android
-
       - name: Set up JDK
         uses: actions/setup-java@v4
         with:
           distribution: 'zulu'
           java-version: '17'
+
+      - name: Set up Android SDK
+        uses: android-actions/setup-android@v3
+
+      - name: Sync Capacitor Android
+        working-directory: frontend
+        run: npx cap sync android
 
       - name: Make gradlew executable
         working-directory: frontend/android
