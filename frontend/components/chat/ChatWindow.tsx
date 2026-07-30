@@ -353,12 +353,14 @@ export function ChatWindow() {
                   content: up.caption || null,
                   mediaUrl: up.previewUrl,
                   createdAt: new Date().toISOString(),
-                  updatedAt: new Date().toISOString(),
                   isEdited: false,
                   isDeleted: false,
-                  deletedByIds: [],
-                  isPinned: false,
-                  replyToId: null,
+                  sender: {
+                    id: useAuthStore.getState().user!.id,
+                    username: useAuthStore.getState().user!.username,
+                    displayName: useAuthStore.getState().user!.displayName,
+                    avatarUrl: useAuthStore.getState().user!.avatarUrl
+                  },
                 }}
                 pendingUpload={up}
               />
