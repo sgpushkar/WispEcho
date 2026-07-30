@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Send, Image as ImageIcon, ArrowLeft, Mic, X } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
@@ -15,20 +15,30 @@ import { useUIStore } from "@/store/useUIStore";
 import { useRouter } from "next/navigation";
 import EmojiPicker, { Theme } from "emoji-picker-react";
 import { Avatar } from "../ui/Avatar";
+import { useImageUpload } from "@/hooks/useImageUpload";
+import { ImagePreviewModal } from "./ImagePreviewModal";
 
 export function ChatWindow() {
   const router = useRouter();
   const { setGroupSettingsOpen } = useUIStore();
   const accessToken = useAuthStore((s) => s.accessToken)!;
-  const { activeConversationId, setActiveConversation, conversations, messages, setMessages, typingUsers, onlineUsers } = useChatStore();
+  const { activeConversationId, setActiveConversation, conversations, messages, setMessages, typingUsers, onlineUsers, addMessage } = useChatStore();
+  
   const [draft, setDraft] = useState("");
   const [replyToMessage, setReplyToMessage] = useState<Message | null>(null);
   const [editingMessage, setEditingMessage] = useState<Message | null>(null);
   const [isSending, setIsSending] = useState(false);
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
+  
   const bottomRef = useRef<HTMLDivElement>(null);
   const typingTimeout = useRef<NodeJS.Timeout | null>(null);
   const lastTypedEmitted = useRef(0);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  // Image Upload State
+  const [isDragging, setIsDragging] = useState(false);
+  const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
+  const { pendingUploads, addPendingUpload, uploadFile, removePendingUpload } = useImageUpload();
 
   const conversation = conversations.find((c) => c.id === activeConversationId);
   const conversationMessages = activeConversationId ? messages[activeConversationId] || [] : [];
@@ -50,12 +60,10 @@ export function ChatWindow() {
   }, [data, activeConversationId]);
 
   useEffect(() => {
-    // Only auto-scroll if we were already at the bottom, 
-    // or if the newest message is from us (handled in sendMessage)
-    if (isAtBottom) {
+    if (isAtBottom || pendingUploads.length > 0) {
       bottomRef.current?.scrollIntoView({ behavior: "smooth" });
     }
-  }, [conversationMessages.length]);
+  }, [conversationMessages.length, pendingUploads.length, isAtBottom]);
 
   useEffect(() => {
     if (!activeConversationId) return;
@@ -86,21 +94,26 @@ export function ChatWindow() {
     }, 1500);
   }
 
-  async function sendMessage() {
-    if (!draft.trim() || !activeConversationId) return;
-    const content = draft;
+  async function sendMessage(content: string = draft, type: "TEXT" | "IMAGE" = "TEXT", mediaUrl?: string) {
+    if ((!content.trim() && type === "TEXT") || !activeConversationId) return;
     
     setIsSending(true);
 
-    if (editingMessage) {
+    if (editingMessage && type === "TEXT") {
       await api.patch(`/messages/${editingMessage.id}`, { content });
       setEditingMessage(null);
       setDraft("");
     } else {
       const replyToId = replyToMessage?.id;
-      setReplyToMessage(null);
-      setDraft("");
-      await api.post("/messages", { conversationId: activeConversationId, content, type: "TEXT", replyToId });
+      if (type === "TEXT") {
+        setReplyToMessage(null);
+        setDraft("");
+      }
+      try {
+        await api.post("/messages", { conversationId: activeConversationId, content, type, mediaUrl, replyToId });
+      } catch (err) {
+        console.error("Failed to send message", err);
+      }
     }
     
     setShowEmojiPicker(false);
@@ -109,6 +122,95 @@ export function ChatWindow() {
       bottomRef.current?.scrollIntoView({ behavior: "smooth" });
     }, 300);
   }
+
+  // --- Image Upload Handlers ---
+
+  const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files.length > 0) {
+      setSelectedFiles(Array.from(e.target.files));
+    }
+    e.target.value = ""; // Reset
+  };
+
+  const handleDragOver = (e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDragging(true);
+  };
+
+  const handleDragLeave = (e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDragging(false);
+  };
+
+  const handleDrop = (e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDragging(false);
+    if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
+      const imageFiles = Array.from(e.dataTransfer.files).filter(f => f.type.startsWith("image/"));
+      if (imageFiles.length > 0) setSelectedFiles(imageFiles);
+    }
+  };
+
+  const handlePaste = (e: React.ClipboardEvent) => {
+    if (e.clipboardData.files && e.clipboardData.files.length > 0) {
+      const imageFiles = Array.from(e.clipboardData.files).filter(f => f.type.startsWith("image/"));
+      if (imageFiles.length > 0) {
+        e.preventDefault();
+        setSelectedFiles(imageFiles);
+      }
+    }
+  };
+
+  const handleImageIconClick = async () => {
+    if (typeof window !== "undefined" && (window as any).Capacitor) {
+      const { Camera, CameraResultType, CameraSource } = await import("@capacitor/camera");
+      try {
+        const image = await Camera.getPhoto({
+          quality: 90,
+          allowEditing: false,
+          resultType: CameraResultType.Uri,
+          source: CameraSource.Prompt, // Let user choose Camera or Gallery
+        });
+        if (image.webPath) {
+          const response = await fetch(image.webPath);
+          const blob = await response.blob();
+          const file = new File([blob], "image.jpg", { type: "image/jpeg" });
+          setSelectedFiles([file]);
+        }
+      } catch (e) {
+        console.log("Camera cancelled or failed", e);
+      }
+    } else {
+      fileInputRef.current?.click();
+    }
+  };
+
+  const handleSendImages = async (filesWithCaptions: { file: File; caption: string }[]) => {
+    setSelectedFiles([]);
+    if (!activeConversationId) return;
+
+    for (const item of filesWithCaptions) {
+      // 1. Check size limit (20MB)
+      if (item.file.size > 20 * 1024 * 1024) {
+        alert(`File ${item.file.name} is too large. Max 20MB allowed.`);
+        continue;
+      }
+      // 2. Add to pending uploads (shows temporary UI bubble)
+      const { tempId } = addPendingUpload(item.file, item.caption);
+      
+      // 3. Start upload
+      uploadFile(item.file, tempId, item.caption, async (secureUrl, tId, cap) => {
+        // On success, send actual message
+        await sendMessage(cap || "", "IMAGE", secureUrl);
+        // Remove pending bubble
+        removePendingUpload(tId);
+      }, (err, tId) => {
+        console.error("Upload failed for", item.file.name, err);
+        // Error state is kept in pendingUploads so user can see it failed
+      });
+    }
+  };
+
 
   if (!conversation) {
     return (
@@ -141,7 +243,36 @@ export function ChatWindow() {
   const isOnline = conversation.otherUser ? onlineUsers.has(conversation.otherUser.id) : false;
 
   return (
-    <main className="chat glass h-full w-full flex flex-col">
+    <main 
+      className={`chat glass h-full w-full flex flex-col relative ${isDragging ? "ring-2 ring-accent bg-accent/5" : ""}`}
+      onDragOver={handleDragOver}
+      onDragLeave={handleDragLeave}
+      onDrop={handleDrop}
+    >
+      {/* Drop Zone Overlay */}
+      <AnimatePresence>
+        {isDragging && (
+          <motion.div 
+            initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+            className="absolute inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm pointer-events-none rounded-2xl"
+          >
+            <div className="glass p-8 rounded-3xl flex flex-col items-center">
+              <ImageIcon size={48} className="text-white/60 mb-4" />
+              <p className="text-lg font-medium text-white">Drop images here</p>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Image Preview Modal */}
+      {selectedFiles.length > 0 && (
+        <ImagePreviewModal
+          files={selectedFiles}
+          onClose={() => setSelectedFiles([])}
+          onSend={handleSendImages}
+        />
+      )}
+
       <div className="chat-header h-[64px] shrink-0">
         <button 
           onClick={() => setActiveConversation(null)}
@@ -209,6 +340,29 @@ export function ChatWindow() {
                 onEdit={setEditingMessage}
               />
             ))}
+            
+            {/* Render Pending Uploads as mock bubbles */}
+            {pendingUploads.map((up) => (
+              <MessageBubble
+                key={up.id}
+                message={{
+                  id: up.id,
+                  conversationId: activeConversationId!,
+                  senderId: useAuthStore.getState().user!.id,
+                  type: "IMAGE",
+                  content: up.caption || null,
+                  mediaUrl: up.previewUrl,
+                  createdAt: new Date().toISOString(),
+                  updatedAt: new Date().toISOString(),
+                  isEdited: false,
+                  isDeleted: false,
+                  deletedByIds: [],
+                  isPinned: false,
+                  replyToId: null,
+                }}
+                pendingUpload={up}
+              />
+            ))}
           </AnimatePresence>
 
           {typingInThisChat.length > 0 && (
@@ -248,12 +402,21 @@ export function ChatWindow() {
           </div>
         )}
         <div className="composer-glass">
-          <motion.div whileHover={{ scale: 1.1, filter: "brightness(1.2)" }} className="icon-btn">
+          <input
+            type="file"
+            multiple
+            accept="image/*"
+            ref={fileInputRef}
+            className="hidden"
+            onChange={handleFileSelect}
+          />
+          <motion.div whileHover={{ scale: 1.1, filter: "brightness(1.2)" }} className="icon-btn" onClick={handleImageIconClick}>
             <ImageIcon size={18} />
           </motion.div>
           <textarea
             value={draft}
             rows={1}
+            onPaste={handlePaste}
             onChange={(e) => {
               setDraft(e.target.value);
               e.target.style.height = "auto";
@@ -304,7 +467,7 @@ export function ChatWindow() {
             whileTap={{ scale: 0.9 }}
             animate={isSending ? { scale: [1, 1.2, 1], filter: ["brightness(1)", "brightness(1.5)", "brightness(1)"] } : {}}
             transition={{ type: "spring", stiffness: 400, damping: 17 }}
-            onClick={sendMessage}
+            onClick={() => sendMessage()}
             className="send-btn"
           >
             <Send size={16} color="#ffffff" />

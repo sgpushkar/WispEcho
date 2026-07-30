@@ -1,35 +1,71 @@
 "use client";
 
-import { Download, ArrowLeft, Shield, Cpu, Sparkles } from "lucide-react";
+import { Download, ArrowLeft, Shield, Cpu, Sparkles, ArrowUpCircle, Calendar } from "lucide-react";
 import { motion } from "framer-motion";
 import Link from "next/link";
-
 import { useState, useEffect } from "react";
 
+interface ChangelogEntry {
+  version: string;
+  date: string;
+  changes: {
+    new: string[];
+    improved: string[];
+    fixed: string[];
+  };
+}
+
+interface VersionData {
+  latestVersion: string;
+  downloadUrl: string;
+  releaseDate: string | null;
+  changelog: ChangelogEntry[];
+}
+
 export default function DownloadPage() {
-  const [version, setVersion] = useState("1.1.0");
-  const [apkUrl, setApkUrl] = useState("/downloads/wispecho.apk");
+  const [data, setData] = useState<VersionData>({
+    latestVersion: "1.1.0",
+    downloadUrl: "/downloads/wispecho.apk",
+    releaseDate: null,
+    changelog: [],
+  });
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetch(`/version.json?t=${Date.now()}`)
+    const baseUrl = process.env.NEXT_PUBLIC_SOCKET_URL || "";
+    const url = baseUrl ? `${baseUrl}/version.json?t=${Date.now()}` : `/version.json?t=${Date.now()}`;
+
+    fetch(url)
       .then((res) => {
         if (res.ok) return res.json();
+        throw new Error("Failed to fetch");
       })
-      .then((data) => {
-        if (data) {
-          if (data.version) setVersion(data.version);
-          if (data.apkUrl) setApkUrl(data.apkUrl);
-        }
+      .then((json) => {
+        setData({
+          latestVersion: json.latestVersion || json.version || "1.1.0",
+          downloadUrl: json.downloadUrl || json.apkUrl || "/downloads/wispecho.apk",
+          releaseDate: json.releaseDate || null,
+          changelog: json.changelog || [],
+        });
       })
-      .catch((err) => console.error("Failed to load version details:", err));
+      .catch((err) => console.error("Failed to load version details:", err))
+      .finally(() => setLoading(false));
   }, []);
 
-  const releaseNotes = [
-    { title: "Preloaded Chats", desc: "Instant switching between chats with zero load times." },
-    { title: "Optimized Navigation", desc: "Smart system back button handling for native mobile gestures." },
-    { title: "Fluid Performance", desc: "Silky smooth glassmorphism with optimized virtual scrolling." },
-    { title: "Custom Themes", desc: "Ultra-premium dark and light mode system aesthetics." }
-  ];
+  const latestChanges = data.changelog[0]?.changes;
+
+  const formatDate = (dateStr: string | null) => {
+    if (!dateStr) return "Latest Release";
+    try {
+      return new Date(dateStr).toLocaleDateString("en-US", {
+        year: "numeric",
+        month: "long",
+        day: "numeric",
+      });
+    } catch {
+      return dateStr;
+    }
+  };
 
   return (
     <div className="flex min-h-[100dvh] flex-col items-center justify-center p-6 text-white selection:bg-white/20 selection:text-white">
@@ -78,13 +114,16 @@ export default function DownloadPage() {
           </div>
 
           <div className="space-y-1">
-            <span className="text-4xl font-black font-space tracking-tight">v{version}</span>
-            <p className="text-[11px] text-white/40">Released July 2026</p>
+            <span className="text-4xl font-black font-space tracking-tight">v{data.latestVersion}</span>
+            <div className="flex items-center justify-center gap-1.5 text-[11px] text-white/40">
+              <Calendar size={10} />
+              <span>{formatDate(data.releaseDate)}</span>
+            </div>
           </div>
 
           {/* Download Button */}
           <motion.a
-            href={apkUrl}
+            href={data.downloadUrl}
             download
             whileHover={{ scale: 1.02, filter: "brightness(1.1)" }}
             whileTap={{ scale: 0.98 }}
@@ -113,7 +152,7 @@ export default function DownloadPage() {
           </div>
         </motion.div>
 
-        {/* Release Notes */}
+        {/* Dynamic Changelog */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -121,16 +160,100 @@ export default function DownloadPage() {
           className="w-full text-left space-y-4"
         >
           <h2 className="text-sm font-semibold text-white/60 uppercase tracking-wider pl-2">
-            What's New in v{version}
+            What's New in v{data.latestVersion}
           </h2>
-          <div className="grid gap-3 sm:grid-cols-2">
-            {releaseNotes.map((note, index) => (
-              <div key={index} className="glass p-5 rounded-2xl border border-white/5 flex flex-col space-y-1 hover:border-white/10 transition-colors">
-                <h3 className="text-sm font-semibold text-white">{note.title}</h3>
-                <p className="text-xs text-white/40 leading-relaxed">{note.desc}</p>
-              </div>
-            ))}
-          </div>
+
+          {latestChanges ? (
+            <div className="space-y-3">
+              {/* New Features */}
+              {latestChanges.new?.length > 0 && (
+                <div className="glass p-5 rounded-2xl border border-white/5 space-y-3">
+                  <div className="flex items-center gap-2">
+                    <Sparkles size={13} className="text-violet-400" />
+                    <span className="text-[10px] font-bold uppercase tracking-widest text-violet-400">New</span>
+                  </div>
+                  <div className="space-y-2">
+                    {latestChanges.new.map((item, i) => (
+                      <p key={i} className="text-xs text-white/60 leading-relaxed pl-5">• {item}</p>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Improved */}
+              {latestChanges.improved?.length > 0 && (
+                <div className="glass p-5 rounded-2xl border border-white/5 space-y-3">
+                  <div className="flex items-center gap-2">
+                    <ArrowUpCircle size={13} className="text-blue-400" />
+                    <span className="text-[10px] font-bold uppercase tracking-widest text-blue-400">Improved</span>
+                  </div>
+                  <div className="space-y-2">
+                    {latestChanges.improved.map((item, i) => (
+                      <p key={i} className="text-xs text-white/60 leading-relaxed pl-5">• {item}</p>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Fixed */}
+              {latestChanges.fixed?.length > 0 && (
+                <div className="glass p-5 rounded-2xl border border-white/5 space-y-3">
+                  <div className="flex items-center gap-2">
+                    <span className="text-green-400 text-[13px]">✓</span>
+                    <span className="text-[10px] font-bold uppercase tracking-widest text-green-400">Fixed</span>
+                  </div>
+                  <div className="space-y-2">
+                    {latestChanges.fixed.map((item, i) => (
+                      <p key={i} className="text-xs text-white/60 leading-relaxed pl-5">• {item}</p>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+          ) : (
+            /* Fallback: static release notes if API fails */
+            <div className="grid gap-3 sm:grid-cols-2">
+              {[
+                { title: "Preloaded Chats", desc: "Instant switching between chats with zero load times." },
+                { title: "Optimized Navigation", desc: "Smart system back button handling for native mobile gestures." },
+                { title: "Fluid Performance", desc: "Silky smooth glassmorphism with optimized virtual scrolling." },
+                { title: "Custom Themes", desc: "Ultra-premium dark and light mode system aesthetics." },
+              ].map((note, index) => (
+                <div key={index} className="glass p-5 rounded-2xl border border-white/5 flex flex-col space-y-1 hover:border-white/10 transition-colors">
+                  <h3 className="text-sm font-semibold text-white">{note.title}</h3>
+                  <p className="text-xs text-white/40 leading-relaxed">{note.desc}</p>
+                </div>
+              ))}
+            </div>
+          )}
+
+          {/* Previous Versions (if more than one changelog entry) */}
+          {data.changelog.length > 1 && (
+            <div className="pt-4 space-y-3">
+              <h2 className="text-sm font-semibold text-white/40 uppercase tracking-wider pl-2">
+                Previous Versions
+              </h2>
+              {data.changelog.slice(1).map((entry, idx) => (
+                <div key={idx} className="glass p-4 rounded-2xl border border-white/5 space-y-2">
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs font-bold text-white/70">v{entry.version}</span>
+                    <span className="text-[10px] text-white/30">{formatDate(entry.date)}</span>
+                  </div>
+                  <div className="space-y-1">
+                    {entry.changes.new?.map((item, i) => (
+                      <p key={`n-${i}`} className="text-[11px] text-white/40 pl-3">+ {item}</p>
+                    ))}
+                    {entry.changes.improved?.map((item, i) => (
+                      <p key={`i-${i}`} className="text-[11px] text-white/40 pl-3">↑ {item}</p>
+                    ))}
+                    {entry.changes.fixed?.map((item, i) => (
+                      <p key={`f-${i}`} className="text-[11px] text-white/40 pl-3">✓ {item}</p>
+                    ))}
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
         </motion.div>
       </div>
     </div>

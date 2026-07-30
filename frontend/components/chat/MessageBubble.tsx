@@ -1,24 +1,37 @@
 "use client";
 
 import { useState } from "react";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import { format } from "date-fns";
 import { Message } from "@/store/useChatStore";
 import { useAuthStore } from "@/store/useAuthStore";
 import { useChatStore } from "@/store/useChatStore";
 import { useUIStore } from "@/store/useUIStore";
 import { api } from "@/lib/api";
-import { Reply } from "lucide-react";
+import { Reply, AlertCircle } from "lucide-react";
 import { ContextMenu, ContextMenuPosition } from "./ContextMenu";
 import Link from "next/link";
 import { Avatar } from "../ui/Avatar";
+import { PendingUpload } from "@/hooks/useImageUpload";
+import { FullscreenImageViewer } from "../ui/FullscreenImageViewer";
 
 const QUICK_REACTIONS = ["❤️", "😂", "🔥", "😭", "👍"];
 
-export function MessageBubble({ message, onReply, onEdit }: { message: Message; onReply?: (m: Message) => void; onEdit?: (m: Message) => void }) {
+export function MessageBubble({
+  message,
+  onReply,
+  onEdit,
+  pendingUpload,
+}: {
+  message: Message;
+  onReply?: (m: Message) => void;
+  onEdit?: (m: Message) => void;
+  pendingUpload?: PendingUpload;
+}) {
   const currentUserId = useAuthStore((s) => s.user?.id);
   const isMine = message.senderId === currentUserId;
   const [contextMenuPos, setContextMenuPos] = useState<ContextMenuPosition | null>(null);
+  const [isFullscreen, setIsFullscreen] = useState(false);
   const { removeMessage, activeConversationId, conversations } = useChatStore();
   const { openForwardModal } = useUIStore();
 
@@ -26,6 +39,7 @@ export function MessageBubble({ message, onReply, onEdit }: { message: Message; 
   const isGroup = currentConversation?.isGroup;
 
   async function react(emoji: string) {
+    if (pendingUpload) return; // Cannot react to pending messages
     await api.post(`/messages/${message.id}/reactions`, { emoji });
   }
 
@@ -70,14 +84,15 @@ export function MessageBubble({ message, onReply, onEdit }: { message: Message; 
         transition={{ type: "spring", stiffness: 300, damping: 24 }}
         className={`row ${isMine ? "mine" : ""} items-center gap-2`}
       >
-        {isMine && (
+        {isMine && !pendingUpload && (
           <button onClick={() => onReply?.(message)} className="text-white/30 hover:text-white transition p-2 rounded-full hover:bg-white/5" title="Reply">
             <Reply size={16} />
           </button>
         )}
         <div 
-          className="flex flex-col max-w-[60%] relative group"
+          className="flex flex-col max-w-[60%] sm:max-w-[70%] relative group"
           onContextMenu={(e) => {
+            if (pendingUpload) return;
             e.preventDefault();
             setContextMenuPos({ x: e.clientX, y: e.clientY });
           }}
@@ -96,18 +111,48 @@ export function MessageBubble({ message, onReply, onEdit }: { message: Message; 
           <div className={`relative flex flex-col group/bubble ${isMine ? "items-end" : "items-start"}`}>
 
           <div className={`bubble ${isMine ? "mine" : "theirs"} ${message.isDeleted ? "italic opacity-60" : ""}`}>
-            {message.isDeleted ? "this message was deleted" : renderContent(message.content)}
             {message.type === "IMAGE" && message.mediaUrl && (
-              <img src={message.mediaUrl} alt="" className="mt-2 max-w-full rounded-xl" />
+              <div 
+                className={`relative overflow-hidden rounded-xl ${message.content ? "mb-2" : ""} cursor-pointer bg-black/20`}
+                onClick={() => {
+                  if (!pendingUpload) setIsFullscreen(true);
+                }}
+              >
+                <img 
+                  src={message.mediaUrl} 
+                  alt={message.content || "Image"} 
+                  className={`max-w-full object-contain ${pendingUpload ? "opacity-60 blur-sm" : ""} transition duration-300`} 
+                  style={{ maxHeight: "300px" }}
+                  loading="lazy"
+                />
+                
+                {/* Upload Progress Overlay */}
+                {pendingUpload && pendingUpload.status === "uploading" && (
+                  <div className="absolute inset-0 flex flex-col items-center justify-center bg-black/40 backdrop-blur-sm gap-3">
+                    <div className="w-16 h-16 rounded-full border-4 border-white/20 border-t-white animate-spin" />
+                    <span className="text-white font-medium text-sm drop-shadow-md">{pendingUpload.progress}%</span>
+                  </div>
+                )}
+                
+                {/* Error Overlay */}
+                {pendingUpload && pendingUpload.status === "error" && (
+                  <div className="absolute inset-0 flex flex-col items-center justify-center bg-red-900/60 backdrop-blur-sm gap-2">
+                    <AlertCircle size={32} className="text-white" />
+                    <span className="text-white font-medium text-sm drop-shadow-md text-center px-4">Upload failed</span>
+                  </div>
+                )}
+              </div>
             )}
+            
+            {message.isDeleted ? "this message was deleted" : renderContent(message.content)}
           </div>
 
           <div className="stamp flex gap-1 items-center justify-end">
-            <span>{format(new Date(message.createdAt), "h:mm a")}</span>
+            <span>{pendingUpload ? "Sending..." : format(new Date(message.createdAt), "h:mm a")}</span>
             {message.isEdited && <span>· edited</span>}
           </div>
 
-          {Object.keys(grouped).length > 0 && (
+          {Object.keys(grouped).length > 0 && !pendingUpload && (
             <div className={`flex gap-1 mt-1 ${isMine ? "justify-end" : "justify-start"}`}>
               {Object.entries(grouped).map(([emoji, count]) => (
                 <motion.button
@@ -127,37 +172,52 @@ export function MessageBubble({ message, onReply, onEdit }: { message: Message; 
           )}
 
           {/* Hover Actions */}
-          <div className={`pointer-events-none absolute bottom-full pb-2 ${isMine ? "right-0" : "left-0"} flex gap-1 rounded-full opacity-0 transition group-hover/bubble:pointer-events-auto group-hover/bubble:opacity-100 z-20`}>
-            <div className="glass flex gap-1 rounded-full px-2 py-1 items-center shadow-xl">
-              {QUICK_REACTIONS.map((emoji) => (
-                <button key={emoji} onClick={() => react(emoji)} className="text-sm hover:scale-125 transition">
-                  {emoji}
-                </button>
-              ))}
+          {!pendingUpload && (
+            <div className={`pointer-events-none absolute bottom-full pb-2 ${isMine ? "right-0" : "left-0"} flex gap-1 rounded-full opacity-0 transition group-hover/bubble:pointer-events-auto group-hover/bubble:opacity-100 z-20`}>
+              <div className="glass flex gap-1 rounded-full px-2 py-1 items-center shadow-xl">
+                {QUICK_REACTIONS.map((emoji) => (
+                  <button key={emoji} onClick={() => react(emoji)} className="text-sm hover:scale-125 transition">
+                    {emoji}
+                  </button>
+                ))}
+              </div>
             </div>
-          </div>
+          )}
           </div>
         </div>
 
         {/* Always Visible Reply Button */}
-        {!isMine && (
+        {!isMine && !pendingUpload && (
           <button onClick={() => onReply?.(message)} className="text-white/30 hover:text-white transition p-2 rounded-full hover:bg-white/5" title="Reply">
             <Reply size={16} />
           </button>
         )}
       </motion.div>
 
-      <ContextMenu 
-        position={contextMenuPos} 
-        message={message} 
-        onClose={() => setContextMenuPos(null)} 
-        onReply={(m) => onReply?.(m)}
-        onReact={(m) => react(QUICK_REACTIONS[0])}
-        onDelete={deleteMessage}
-        onEdit={(m) => onEdit?.(m)}
-        onForward={(m) => openForwardModal(m)}
-        onSave={saveMessage}
-      />
+      {!pendingUpload && (
+        <ContextMenu 
+          position={contextMenuPos} 
+          message={message} 
+          onClose={() => setContextMenuPos(null)} 
+          onReply={(m) => onReply?.(m)}
+          onReact={(m) => react(QUICK_REACTIONS[0])}
+          onDelete={deleteMessage}
+          onEdit={(m) => onEdit?.(m)}
+          onForward={(m) => openForwardModal(m)}
+          onSave={saveMessage}
+        />
+      )}
+
+      {/* Fullscreen Image Viewer Modal */}
+      <AnimatePresence>
+        {isFullscreen && message.type === "IMAGE" && message.mediaUrl && (
+          <FullscreenImageViewer
+            url={message.mediaUrl}
+            caption={message.content || undefined}
+            onClose={() => setIsFullscreen(false)}
+          />
+        )}
+      </AnimatePresence>
     </>
   );
 }
