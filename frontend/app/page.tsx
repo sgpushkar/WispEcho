@@ -198,12 +198,13 @@ export default function LandingPage() {
     import("@capacitor/core").then(({ Capacitor }) => {
       const native = Capacitor.isNativePlatform();
       setIsNative(native);
-      if (hydrated && accessToken) { router.replace("/chat"); return; }
-      if (native && hydrated) { router.replace("/login"); return; }
+      if (native && hydrated) {
+        router.replace(accessToken ? "/chat" : "/login");
+        return;
+      }
       setShowLanding(true);
     }).catch(() => {
       setIsNative(false);
-      if (hydrated && accessToken) { router.replace("/chat"); return; }
       setShowLanding(true);
     });
   }, [hydrated, accessToken, router]);
@@ -238,12 +239,20 @@ export default function LandingPage() {
           <a href="#download" className="hover:text-white transition">Download</a>
         </div>
         <div className="flex items-center gap-2">
-          <Link href="/login" className="text-sm text-white/60 hover:text-white transition px-4 py-2 rounded-xl hover:bg-white/5">
-            Sign In
-          </Link>
-          <Link href="/register" className="text-sm font-semibold bg-white text-black px-5 py-2 rounded-xl hover:bg-white/90 transition shadow-[0_0_20px_rgba(255,255,255,0.08)]">
-            Get Started
-          </Link>
+          {accessToken ? (
+            <Link href="/chat" className="text-sm font-semibold bg-white text-black px-5 py-2 rounded-xl hover:bg-white/90 transition shadow-[0_0_20px_rgba(255,255,255,0.08)]">
+              Open App
+            </Link>
+          ) : (
+            <>
+              <Link href="/login" className="text-sm text-white/60 hover:text-white transition px-4 py-2 rounded-xl hover:bg-white/5">
+                Sign In
+              </Link>
+              <Link href="/register" className="text-sm font-semibold bg-white text-black px-5 py-2 rounded-xl hover:bg-white/90 transition shadow-[0_0_20px_rgba(255,255,255,0.08)]">
+                Get Started
+              </Link>
+            </>
+          )}
         </div>
       </motion.nav>
 
