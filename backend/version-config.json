@@ -2,6 +2,7 @@
   "latestVersion": "1.2.0",
   "minimumVersion": "1.0.0",
   "versionCode": 3,
+  "downloadUrl": "https://github.com/sgpushkar/WispEcho/releases/download/v1.2.0/WispEcho-v1.2.0.apk",
   "releaseDate": "2026-07-30",
   "changelog": [
     {

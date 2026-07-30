@@ -42,8 +42,8 @@ export default function DownloadPage() {
       })
       .then((json) => {
         setData({
-          latestVersion: json.latestVersion || json.version || "1.1.0",
-          downloadUrl: json.downloadUrl || json.apkUrl || "/downloads/wispecho.apk",
+          latestVersion: json.latestVersion || json.version || "1.2.0",
+          downloadUrl: json.downloadUrl || "https://github.com/sgpushkar/WispEcho/releases/download/v1.2.0/WispEcho-v1.2.0.apk",
           releaseDate: json.releaseDate || null,
           changelog: json.changelog || [],
         });
@@ -124,7 +124,8 @@ export default function DownloadPage() {
           {/* Download Button */}
           <motion.a
             href={data.downloadUrl}
-            download
+            target="_blank"
+            rel="noopener noreferrer"
             whileHover={{ scale: 1.02, filter: "brightness(1.1)" }}
             whileTap={{ scale: 0.98 }}
             className="w-full flex items-center justify-center gap-3 rounded-2xl bg-white text-black py-4 font-bold text-sm tracking-wide shadow-lg hover:shadow-white/5 transition duration-300"
