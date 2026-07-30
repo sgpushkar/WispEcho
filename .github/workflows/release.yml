@@ -2,6 +2,8 @@ name: Build & Release APK
 
 on:
   push:
+    branches:
+      - main
     tags:
       - 'v*.*.*'
 
@@ -55,19 +57,25 @@ jobs:
         working-directory: frontend/android
         run: ./gradlew assembleDebug --no-daemon
 
-      - name: Extract version from tag
+      - name: Extract version from tag or commit
         id: version
-        run: echo "VERSION=${GITHUB_REF_NAME#v}" >> $GITHUB_OUTPUT
+        run: |
+          if [[ "${GITHUB_REF}" == refs/tags/* ]]; then
+            echo "VERSION=${GITHUB_REF_NAME#v}" >> $GITHUB_OUTPUT
+          else
+            echo "VERSION=latest" >> $GITHUB_OUTPUT
+          fi
 
       - name: Rename APK
         run: |
           cp frontend/android/app/build/outputs/apk/debug/app-debug.apk \
              WispEcho-v${{ steps.version.outputs.VERSION }}.apk
 
-      - name: Create GitHub Release
+      - name: Create or Update GitHub Release
         uses: softprops/action-gh-release@v2
         with:
-          name: WispEcho v${{ steps.version.outputs.VERSION }}
+          tag_name: ${{ steps.version.outputs.VERSION == 'latest' && 'latest' || GITHUB_REF_NAME }}
+          name: ${{ steps.version.outputs.VERSION == 'latest' && 'WispEcho Latest Build' || format('WispEcho v{0}', steps.version.outputs.VERSION) }}
           draft: false
           prerelease: false
           generate_release_notes: true
