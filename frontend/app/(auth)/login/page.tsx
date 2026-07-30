@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
 import { api } from "@/lib/api";
@@ -8,6 +8,7 @@ import { useAuthStore } from "@/store/useAuthStore";
 import Link from "next/link";
 import GoogleSignInButton from "@/components/auth/GoogleSignInButton";
 import { useUIStore } from "@/store/useUIStore";
+import { Smartphone } from "lucide-react";
 
 export default function LoginPage() {
   const theme = useUIStore((s) => s.theme);
@@ -18,6 +19,13 @@ export default function LoginPage() {
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  const [isNative, setIsNative] = useState(true); // default true to avoid flash
+
+  useEffect(() => {
+    import("@capacitor/core").then(({ Capacitor }) => {
+      setIsNative(Capacitor.isNativePlatform());
+    }).catch(() => setIsNative(false));
+  }, []);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -102,6 +110,23 @@ export default function LoginPage() {
             create an account
           </Link>
         </p>
+
+        {!isNative && (
+          <motion.div
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.3 }}
+            className="mt-5 border-t border-white/5 pt-5"
+          >
+            <Link
+              href="/download"
+              className="flex items-center justify-center gap-2.5 w-full rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-white/70 hover:bg-white/10 hover:text-white hover:border-white/20 transition-all duration-200 group"
+            >
+              <Smartphone size={16} className="text-accent group-hover:scale-110 transition-transform" />
+              <span>Get the Android App</span>
+            </Link>
+          </motion.div>
+        )}
       </motion.form>
     </div>
   );
