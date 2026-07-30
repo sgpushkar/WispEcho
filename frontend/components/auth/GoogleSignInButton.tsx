@@ -104,6 +104,7 @@ export default function GoogleSignInButton({ mode }: { mode?: "login" | "registe
     setError(null);
     setLoading(true);
     try {
+      // @ts-ignore
       const { GoogleAuth } = await import("@codetrix-studio/capacitor-google-auth");
       
       GoogleAuth.initialize({
