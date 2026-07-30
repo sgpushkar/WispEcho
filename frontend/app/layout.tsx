@@ -97,7 +97,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
                 priceCurrency: "USD",
               },
               description: "WispEcho is a next-generation real-time encrypted messaging application featuring view-once media, customizable themes, and cross-platform native Android and Web apps.",
-              softwareVersion: "1.1.0",
+              softwareVersion: "1.2.0",
               downloadUrl: "https://wispecho.com/download",
               publisher: {
                 "@type": "Organization",
