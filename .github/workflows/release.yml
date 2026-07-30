@@ -61,6 +61,15 @@ jobs:
         working-directory: frontend/android
         run: ./gradlew assembleDebug --no-daemon
 
+      - name: Print debug keystore SHA-1 (for Google Sign-In setup)
+        run: |
+          keytool -list -v \
+            -keystore ~/.android/debug.keystore \
+            -alias androiddebugkey \
+            -storepass android \
+            -keypass android \
+            | grep "SHA1:"
+
       - name: Extract version from tag or version-config
         id: version
         shell: bash
