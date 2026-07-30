@@ -74,8 +74,8 @@ jobs:
       - name: Create or Update GitHub Release
         uses: softprops/action-gh-release@v2
         with:
-          tag_name: ${{ steps.version.outputs.VERSION == 'latest' && 'latest' || GITHUB_REF_NAME }}
-          name: ${{ steps.version.outputs.VERSION == 'latest' && 'WispEcho Latest Build' || format('WispEcho v{0}', steps.version.outputs.VERSION) }}
+          tag_name: ${{ steps.version.outputs.VERSION == 'latest' && 'latest' || github.ref_name }}
+          name: ${{ steps.version.outputs.VERSION == 'latest' && 'WispEcho Latest Build' || format('WispEcho {0}', github.ref_name) }}
           draft: false
           prerelease: false
           generate_release_notes: true
