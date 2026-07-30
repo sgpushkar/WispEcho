@@ -8,6 +8,7 @@ import { api } from "@/lib/api";
 import { useAuthStore } from "@/store/useAuthStore";
 import { Avatar } from "../ui/Avatar";
 import { useUIStore } from "@/store/useUIStore";
+import { VersionSettings } from "../ui/VersionSettings";
 
 export function SettingsModal({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }) {
   const user = useAuthStore((s) => s.user);
@@ -417,6 +418,11 @@ export function SettingsModal({ isOpen, onClose }: { isOpen: boolean; onClose: (
                     }`}
                   />
                 </button>
+              </div>
+
+              {/* Version & Update Checks */}
+              <div className="border-t border-white/5 pt-4">
+                <VersionSettings />
               </div>
             </div>
           )}
