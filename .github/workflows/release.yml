@@ -61,7 +61,7 @@ jobs:
         working-directory: frontend/android
         run: ./gradlew assembleDebug --no-daemon
 
-      - name: Extract version from tag or commit
+      - name: Extract version from tag or version-config
         id: version
         shell: bash
         run: |
@@ -69,7 +69,8 @@ jobs:
             TAG="${{ github.ref_name }}"
             echo "VERSION=${TAG#v}" >> $GITHUB_OUTPUT
           else
-            echo "VERSION=latest" >> $GITHUB_OUTPUT
+            VERSION=$(node -e "console.log(require('./backend/version-config.json').latestVersion)")
+            echo "VERSION=${VERSION}" >> $GITHUB_OUTPUT
           fi
 
       - name: Rename APK
@@ -80,8 +81,8 @@ jobs:
       - name: Create or Update GitHub Release
         uses: softprops/action-gh-release@v2
         with:
-          tag_name: ${{ steps.version.outputs.VERSION == 'latest' && 'latest' || github.ref_name }}
-          name: ${{ steps.version.outputs.VERSION == 'latest' && 'WispEcho Latest Build' || format('WispEcho {0}', github.ref_name) }}
+          tag_name: latest
+          name: WispEcho v${{ steps.version.outputs.VERSION }}
           draft: false
           prerelease: false
           generate_release_notes: true
