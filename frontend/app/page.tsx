@@ -218,7 +218,7 @@ export default function LandingPage() {
   }
 
   return (
-    <div className="min-h-screen w-full bg-[#0a0a0a] text-white overflow-x-hidden" style={{ overflowY: "auto" }}>
+    <div className="min-h-screen w-full bg-[#0a0a0a] text-white relative">
 
       {/* ── Nav ── */}
       <motion.nav
