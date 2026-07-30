@@ -16,6 +16,12 @@ export function Providers({ children }: { children: React.ReactNode }) {
     setTheme(localTheme);
 
     if (typeof window !== "undefined") {
+      import("@capacitor/core").then(({ Capacitor }) => {
+        if (Capacitor.isNativePlatform()) {
+          document.body.classList.add("native-app");
+        }
+      });
+
       const isCapacitor = (window as any).Capacitor;
       if (isCapacitor) {
         import("@capacitor/app").then(({ App }) => {

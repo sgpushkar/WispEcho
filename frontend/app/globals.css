@@ -72,6 +72,22 @@
     color: var(--ink);
     transition: background-color 0.3s ease, color 0.3s ease;
   }
+
+  /* Native Mobile app adjustments */
+  body.native-app {
+    user-select: none !important;
+    -webkit-user-select: none !important;
+    -webkit-tap-highlight-color: transparent !important;
+    overscroll-behavior: none !important;
+  }
+
+  body.native-app input,
+  body.native-app textarea,
+  body.native-app [contenteditable="true"],
+  body.native-app .selectable {
+    user-select: text !important;
+    -webkit-user-select: text !important;
+  }
 }
 
 @layer components {
