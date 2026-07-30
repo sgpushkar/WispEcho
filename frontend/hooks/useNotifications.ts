@@ -28,21 +28,30 @@ export function useNotifications() {
     try {
       if (Capacitor.isNativePlatform()) {
         const perm = await LocalNotifications.checkPermissions();
-        if (perm.display === "granted") {
-          await LocalNotifications.schedule({
-            notifications: [
-              {
-                title,
-                body,
-                id: Math.floor(Math.random() * 100000),
-                schedule: { at: new Date(Date.now() + 100) },
-              },
-            ],
-          });
+        if (perm.display !== "granted") {
+          await LocalNotifications.requestPermissions();
         }
+        await LocalNotifications.schedule({
+          notifications: [
+            {
+              title,
+              body,
+              id: Math.floor(Math.random() * 100000),
+              schedule: { at: new Date(Date.now() + 100) },
+              smallIcon: "ic_stat_icon_config_sample",
+              actionTypeId: "",
+              extra: null,
+            },
+          ],
+        });
       } else if (typeof window !== "undefined" && "Notification" in window) {
         if (Notification.permission === "granted") {
-          new Notification(title, { body, icon: "/favicon.ico" });
+          new Notification(title, { body, icon: "/logo.png" });
+        } else if (Notification.permission === "default") {
+          const res = await Notification.requestPermission();
+          if (res === "granted") {
+            new Notification(title, { body, icon: "/logo.png" });
+          }
         }
       }
     } catch (err) {

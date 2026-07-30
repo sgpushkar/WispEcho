@@ -182,12 +182,11 @@ export function useUpdateChecker() {
     }
   }, [state.payload]);
 
-  // Auto-check on mount (only inside Capacitor)
+  // Auto-check on mount and every 10 minutes
   useEffect(() => {
-    if (typeof window === "undefined") return;
-    const isCapacitor = (window as any).Capacitor;
-    if (!isCapacitor) return;
     checkForUpdate();
+    const interval = setInterval(checkForUpdate, 10 * 60 * 1000);
+    return () => clearInterval(interval);
   }, [checkForUpdate]);
 
   return {
