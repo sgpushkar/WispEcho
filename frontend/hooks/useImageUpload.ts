@@ -8,6 +8,7 @@ export interface PendingUpload {
   progress: number;
   status: "uploading" | "error" | "done";
   caption?: string;
+  isViewOnce?: boolean;
   secureUrl?: string; // Filled when done
 }
 
@@ -83,7 +84,7 @@ export function useImageUpload() {
     }
   }, []);
 
-  const addPendingUpload = useCallback((file: File, caption?: string) => {
+  const addPendingUpload = useCallback((file: File, caption?: string, isViewOnce?: boolean) => {
     const tempId = `temp_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
     const previewUrl = URL.createObjectURL(file);
     
@@ -94,6 +95,7 @@ export function useImageUpload() {
       progress: 0,
       status: "uploading",
       caption,
+      isViewOnce,
     };
     
     setPendingUploads((prev) => [...prev, newUpload]);

@@ -15,6 +15,7 @@ router.post("/", messageController.sendMessage);
 router.patch("/:messageId", messageController.editMessage);
 router.delete("/:messageId", messageController.deleteMessage);
 router.post("/:messageId/reactions", messageController.reactToMessage);
+router.post("/:messageId/view", messageController.markViewOnce);
 router.post("/:messageId/save", messageController.toggleSaveMessage);
 
 export default router;

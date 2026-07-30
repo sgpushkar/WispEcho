@@ -32,6 +32,7 @@ export const sendMessageSchema = z.object({
   content: z.string().max(4000).optional(),
   mediaUrl: z.string().url().optional(),
   replyToId: z.string().uuid().optional(),
+  isViewOnce: z.boolean().optional().default(false),
 });
 
 export const createGroupSchema = z.object({

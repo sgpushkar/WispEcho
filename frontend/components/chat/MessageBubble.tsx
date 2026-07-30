@@ -8,7 +8,7 @@ import { useAuthStore } from "@/store/useAuthStore";
 import { useChatStore } from "@/store/useChatStore";
 import { useUIStore } from "@/store/useUIStore";
 import { api } from "@/lib/api";
-import { Reply, AlertCircle } from "lucide-react";
+import { Reply, AlertCircle, Eye, CheckCheck } from "lucide-react";
 import { ContextMenu, ContextMenuPosition } from "./ContextMenu";
 import Link from "next/link";
 import { Avatar } from "../ui/Avatar";
@@ -114,17 +114,48 @@ export function MessageBubble({
             {message.type === "IMAGE" && message.mediaUrl && (
               <div 
                 className={`relative overflow-hidden rounded-xl ${message.content ? "mb-2" : ""} cursor-pointer bg-black/20`}
-                onClick={() => {
-                  if (!pendingUpload) setIsFullscreen(true);
+                onClick={async () => {
+                  if (pendingUpload) return;
+                  const viewed = message.viewedByIds?.includes(currentUserId || "");
+                  if (message.isViewOnce && viewed) return;
+                  
+                  setIsFullscreen(true);
+                  if (message.isViewOnce && currentUserId && !viewed) {
+                    try {
+                      await api.post(`/messages/${message.id}/view`);
+                    } catch (e) {
+                      console.error("Failed to mark view once", e);
+                    }
+                  }
                 }}
               >
-                <img 
-                  src={message.mediaUrl} 
-                  alt={message.content || "Image"} 
-                  className={`max-w-full object-contain ${pendingUpload ? "opacity-60 blur-sm" : ""} transition duration-300`} 
-                  style={{ maxHeight: "300px" }}
-                  loading="lazy"
-                />
+                {message.isViewOnce && message.viewedByIds?.includes(currentUserId || "") ? (
+                  <div className="flex items-center gap-2 p-3 bg-white/5 rounded-xl text-white/50 text-xs select-none">
+                    <CheckCheck size={16} className="text-accent" />
+                    <span>Viewed</span>
+                  </div>
+                ) : message.isViewOnce && !isMine && !message.viewedByIds?.includes(currentUserId || "") ? (
+                  <div className="flex items-center gap-2 p-3 bg-accent/10 border border-accent/20 rounded-xl text-white text-xs select-none hover:bg-accent/20 transition">
+                    <Eye size={16} className="text-accent" />
+                    <span className="font-medium">Photo (View once)</span>
+                  </div>
+                ) : (
+                  <>
+                    <img 
+                      src={message.mediaUrl} 
+                      alt={message.content || "Image"} 
+                      className={`max-w-full object-contain ${pendingUpload ? "opacity-60 blur-sm" : ""} transition duration-300`} 
+                      style={{ maxHeight: "300px" }}
+                      loading="lazy"
+                    />
+                    {message.isViewOnce && (
+                      <div className="absolute top-2 left-2 bg-black/60 backdrop-blur-md px-2 py-1 rounded-full flex items-center gap-1 text-[10px] text-white/90 border border-white/10">
+                        <Eye size={12} className="text-accent" />
+                        <span>View once</span>
+                      </div>
+                    )}
+                  </>
+                )}
                 
                 {/* Upload Progress Overlay */}
                 {pendingUpload && pendingUpload.status === "uploading" && (

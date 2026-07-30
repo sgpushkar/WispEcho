@@ -94,7 +94,7 @@ export function ChatWindow() {
     }, 1500);
   }
 
-  async function sendMessage(content: string = draft, type: "TEXT" | "IMAGE" = "TEXT", mediaUrl?: string) {
+  async function sendMessage(content: string = draft, type: "TEXT" | "IMAGE" = "TEXT", mediaUrl?: string, isViewOnce?: boolean) {
     if ((!content.trim() && type === "TEXT") || !activeConversationId) return;
     
     setIsSending(true);
@@ -110,7 +110,7 @@ export function ChatWindow() {
         setDraft("");
       }
       try {
-        await api.post("/messages", { conversationId: activeConversationId, content, type, mediaUrl, replyToId });
+        await api.post("/messages", { conversationId: activeConversationId, content, type, mediaUrl, replyToId, isViewOnce });
       } catch (err) {
         console.error("Failed to send message", err);
       }
@@ -185,7 +185,7 @@ export function ChatWindow() {
     }
   };
 
-  const handleSendImages = async (filesWithCaptions: { file: File; caption: string }[]) => {
+  const handleSendImages = async (filesWithCaptions: { file: File; caption: string; isViewOnce?: boolean }[]) => {
     setSelectedFiles([]);
     if (!activeConversationId) return;
 
@@ -196,12 +196,12 @@ export function ChatWindow() {
         continue;
       }
       // 2. Add to pending uploads (shows temporary UI bubble)
-      const { tempId } = addPendingUpload(item.file, item.caption);
+      const { tempId } = addPendingUpload(item.file, item.caption, item.isViewOnce);
       
       // 3. Start upload
       uploadFile(item.file, tempId, item.caption, async (secureUrl, tId, cap) => {
         // On success, send actual message
-        await sendMessage(cap || "", "IMAGE", secureUrl);
+        await sendMessage(cap || "", "IMAGE", secureUrl, item.isViewOnce);
         // Remove pending bubble
         removePendingUpload(tId);
       }, (err, tId) => {

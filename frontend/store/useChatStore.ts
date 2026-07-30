@@ -9,6 +9,8 @@ export interface Message {
   mediaUrl: string | null;
   isEdited: boolean;
   isDeleted: boolean;
+  isViewOnce?: boolean;
+  viewedByIds?: string[];
   createdAt: string;
   sender: { id: string; username: string; displayName: string; avatarUrl?: string | null };
   reactions?: { id: string; emoji: string; userId: string }[];
@@ -54,6 +56,7 @@ interface ChatState {
   removeReaction: (payload: { messageId: string; userId: string; emoji: string; conversationId?: string }) => void;
   setTyping: (conversationId: string, userId: string, isTyping: boolean) => void;
   setPresence: (userId: string, isOnline: boolean) => void;
+  markMessageViewed: (conversationId: string, messageId: string, userId: string) => void;
 }
 
 export const useChatStore = create<ChatState>((set, get) => ({
@@ -197,5 +200,20 @@ export const useChatStore = create<ChatState>((set, get) => ({
       const next = new Set(state.onlineUsers);
       isOnline ? next.add(userId) : next.delete(userId);
       return { onlineUsers: next };
+    }),
+
+  markMessageViewed: (conversationId, messageId, userId) =>
+    set((state) => {
+      return {
+        messages: {
+          ...state.messages,
+          [conversationId]: (state.messages[conversationId] || []).map((m) => {
+            if (m.id !== messageId) return m;
+            const viewedByIds = m.viewedByIds || [];
+            if (viewedByIds.includes(userId)) return m;
+            return { ...m, viewedByIds: [...viewedByIds, userId] };
+          }),
+        },
+      };
     }),
 }));

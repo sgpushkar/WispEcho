@@ -1,16 +1,17 @@
 import { useState, useEffect } from "react";
-import { X, Send, Image as ImageIcon } from "lucide-react";
+import { X, Send, Image as ImageIcon, Eye } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 
 interface ImagePreviewModalProps {
   files: File[];
   onClose: () => void;
-  onSend: (fileWithCaptions: { file: File; caption: string }[]) => void;
+  onSend: (fileWithCaptions: { file: File; caption: string; isViewOnce?: boolean }[]) => void;
 }
 
 export function ImagePreviewModal({ files, onClose, onSend }: ImagePreviewModalProps) {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [captions, setCaptions] = useState<string[]>(Array(files.length).fill(""));
+  const [isViewOnceList, setIsViewOnceList] = useState<boolean[]>(Array(files.length).fill(false));
   const [previews, setPreviews] = useState<string[]>([]);
 
   useEffect(() => {
@@ -23,6 +24,7 @@ export function ImagePreviewModal({ files, onClose, onSend }: ImagePreviewModalP
     const result = files.map((file, i) => ({
       file,
       caption: captions[i] || "",
+      isViewOnce: isViewOnceList[i] || false,
     }));
     onSend(result);
   };
@@ -98,6 +100,23 @@ export function ImagePreviewModal({ files, onClose, onSend }: ImagePreviewModalP
               if (e.key === "Enter") handleSend();
             }}
           />
+          <button
+            type="button"
+            title="Toggle View Once"
+            onClick={() => {
+              const updated = [...isViewOnceList];
+              updated[currentIndex] = !updated[currentIndex];
+              setIsViewOnceList(updated);
+            }}
+            className={`p-2 rounded-full transition flex items-center justify-center font-bold text-xs gap-1 border ${
+              isViewOnceList[currentIndex]
+                ? "bg-accent/20 border-accent text-accent"
+                : "bg-white/5 border-white/10 text-white/50 hover:text-white"
+            }`}
+          >
+            <Eye size={18} />
+            <span>1</span>
+          </button>
           <button
             onClick={handleSend}
             className="h-10 w-10 rounded-full bg-white text-black flex items-center justify-center shrink-0 hover:scale-105 transition shadow-lg"

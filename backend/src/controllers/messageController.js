@@ -155,6 +155,7 @@ export async function sendMessage(req, res, next) {
         content: data.content,
         mediaUrl: data.mediaUrl,
         replyToId: data.replyToId,
+        isViewOnce: data.isViewOnce,
       },
       include: {
         sender: { select: { id: true, username: true, displayName: true, avatarUrl: true } },
@@ -357,6 +358,37 @@ export async function searchMessages(req, res, next) {
       take: 50
     });
     res.json({ messages });
+  } catch (err) {
+    next(err);
+  }
+}
+
+export async function markViewOnce(req, res, next) {
+  try {
+    const { messageId } = req.params;
+    const existing = await prisma.message.findUnique({ where: { id: messageId } });
+    
+    if (!existing || !existing.isViewOnce) {
+      return res.status(404).json({ error: "Message not found or not view-once" });
+    }
+
+    if (!existing.viewedByIds.includes(req.userId)) {
+      const message = await prisma.message.update({
+        where: { id: messageId },
+        data: { viewedByIds: { push: req.userId } },
+      });
+      
+      // Notify conversation that this user viewed the message
+      emitToConversation(existing.conversationId, "message:viewed", { 
+        messageId, 
+        userId: req.userId,
+        conversationId: existing.conversationId 
+      });
+      
+      return res.json({ message });
+    }
+    
+    res.json({ message: existing });
   } catch (err) {
     next(err);
   }

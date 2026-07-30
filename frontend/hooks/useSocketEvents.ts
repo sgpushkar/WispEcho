@@ -2,6 +2,7 @@
 
 import { useEffect, useRef } from "react";
 import { useAuthStore } from "@/store/useAuthStore";
+import { useNotifications } from "@/hooks/useNotifications";
 import { useChatStore } from "@/store/useChatStore";
 import { getSocket, disconnectSocket } from "@/lib/socket";
 
@@ -29,8 +30,10 @@ function playNotificationSound() {
 
 export function useSocketEvents() {
   const accessToken = useAuthStore((s) => s.accessToken);
-  const currentUserId = useAuthStore((s) => s.user?.id);
+  const user = useAuthStore((s) => s.user);
+  const currentUserId = user?.id;
   const { addMessage, updateMessage, removeMessage, setTyping, setPresence, addReaction, removeReaction, activeConversationId } = useChatStore();
+  const { sendNotification } = useNotifications();
   const activeConvRef = useRef(activeConversationId);
 
   useEffect(() => {
@@ -52,20 +55,20 @@ export function useSocketEvents() {
     socket.on("message:new", (msg) => {
       addMessage(msg);
       
-      // Check if it's not from us and not currently focused/active
-      if (msg.senderId !== currentUserId) {
-        if (activeConvRef.current !== msg.conversationId || document.hidden) {
+      if (user && msg.senderId !== user.id) {
+        if (typeof document !== "undefined" && (activeConvRef.current !== msg.conversationId || document.hidden)) {
           playNotificationSound();
-          
-          if ("Notification" in window && Notification.permission === "granted") {
-            new Notification(`New message from ${msg.sender.displayName}`, {
-              body: msg.content || "Sent an attachment",
-              icon: msg.sender.avatarUrl || "/logo.png"
-            });
-          }
+          const senderName = msg.sender?.displayName || "Someone";
+          const text = msg.type === "IMAGE" ? "📷 Sent an image" : msg.content || "New message";
+          sendNotification(`New message from ${senderName}`, text);
         }
       }
     });
+
+    socket.on("message:viewed", (data) => {
+      useChatStore.getState().markMessageViewed(data.conversationId, data.messageId, data.userId);
+    });
+
     socket.on("message:edited", (msg) => updateMessage(msg));
     socket.on("message:deleted", ({ id, conversationId }) => removeMessage(conversationId, id));
     socket.on("reaction:added", (reaction) => addReaction(reaction));
@@ -93,6 +96,7 @@ export function useSocketEvents() {
 
     return () => {
       socket.off("message:new");
+      socket.off("message:viewed");
       socket.off("message:edited");
       socket.off("message:deleted");
       socket.off("reaction:added");
