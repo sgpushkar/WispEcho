@@ -28,10 +28,9 @@ export function getVersion(req, res) {
     const config = loadVersionConfig();
     const clientUrl = process.env.CLIENT_URL || "https://wispecho.vercel.app";
 
-    // Build the downloadUrl from config or fall back to a default
-    const downloadUrl =
-      config.downloadUrl ||
-      `${clientUrl}/download`;
+    // Build the downloadUrl pointing directly to backend static APK download
+    const apiUrl = process.env.NEXT_PUBLIC_SOCKET_URL || "https://wispecho.onrender.com";
+    const downloadUrl = config.downloadUrl || `${apiUrl}/downloads/wispecho.apk`;
 
     res.json({
       latestVersion: config.latestVersion,

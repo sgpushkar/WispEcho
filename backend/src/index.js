@@ -7,6 +7,9 @@ import cookieParser from "cookie-parser";
 import morgan from "morgan";
 import rateLimit from "express-rate-limit";
 
+import { fileURLToPath } from "url";
+import { dirname, join } from "path";
+
 import authRoutes from "./routes/auth.routes.js";
 import userRoutes from "./routes/user.routes.js";
 import friendRoutes from "./routes/friend.routes.js";
@@ -17,6 +20,9 @@ import uploadRoutes from "./routes/upload.routes.js";
 import { getVersion } from "./controllers/versionController.js";
 import { notFound, errorHandler } from "./middleware/errorHandler.js";
 import { initSockets } from "./sockets/index.js";
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
 
 const app = express();
 const server = http.createServer(app);
@@ -50,6 +56,9 @@ app.use("/api", limiter);
 app.get("/health", (req, res) => res.json({ ok: true }));
 // Version API — backward-compatible path + canonical /api/version
 app.get("/version.json", getVersion);
+
+// Direct APK download route (serves directly from backend public/downloads)
+app.use("/downloads", express.static(join(__dirname, "../public/downloads")));
 
 app.use("/api/auth", authRoutes);
 app.use("/api/users", userRoutes);

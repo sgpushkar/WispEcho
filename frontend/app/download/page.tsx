@@ -43,7 +43,7 @@ export default function DownloadPage() {
       .then((json) => {
         setData({
           latestVersion: json.latestVersion || json.version || "1.2.0",
-          downloadUrl: json.downloadUrl || "https://github.com/sgpushkar/WispEcho/releases/download/v1.2.0/WispEcho-v1.2.0.apk",
+          downloadUrl: json.downloadUrl || "https://wispecho.onrender.com/downloads/wispecho.apk",
           releaseDate: json.releaseDate || null,
           changelog: json.changelog || [],
         });
