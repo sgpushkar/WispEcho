@@ -31,30 +31,30 @@
   }
 
   .light {
-    --bg: #f8f9fa;
-    --ink: #111111;
-    --ink-dim: #555555;
-    --ink-faint: #888888;
-    --glass-bg: rgba(255, 255, 255, 0.7);
+    --bg: #ffffff;
+    --ink: #000000;
+    --ink-dim: #333333;
+    --ink-faint: #666666;
+    --glass-bg: rgba(245, 245, 247, 0.85);
     --glass-bg-strong: rgba(255, 255, 255, 0.95);
     --glass-border: rgba(0, 0, 0, 0.08);
     --glass-border-strong: rgba(0, 0, 0, 0.15);
-    --bubble-theirs: #e4e4e7;
-    --bubble-theirs-border: #e4e4e7;
-    --bubble-mine: #e8e5ff;
-    --bubble-mine-border: #e8e5ff;
-    --hover-bg: rgba(0, 0, 0, 0.03);
-    --hover-border: rgba(0, 0, 0, 0.06);
-    --active-bg: rgba(0, 0, 0, 0.06);
-    --active-border: rgba(0, 0, 0, 0.1);
-    --search-bg: #e4e4e7;
+    --bubble-theirs: #f1f1f3;
+    --bubble-theirs-border: #e5e5ea;
+    --bubble-mine: #007aff;
+    --bubble-mine-border: #007aff;
+    --hover-bg: rgba(0, 0, 0, 0.05);
+    --hover-border: rgba(0, 0, 0, 0.1);
+    --active-bg: rgba(0, 0, 0, 0.08);
+    --active-border: rgba(0, 0, 0, 0.15);
+    --search-bg: #f1f1f2;
     --search-border: #e4e4e7;
-    --me-card-bg: rgba(255, 255, 255, 0.5);
-    --me-card-border: rgba(0, 0, 0, 0.06);
-    --composer-bg: rgba(255, 255, 255, 0.7);
-    --composer-border: rgba(0, 0, 0, 0.08);
-    --icon-btn-hover: rgba(0, 0, 0, 0.06);
-    --send-btn-bg: rgba(0, 0, 0, 0.06);
+    --me-card-bg: rgba(245, 245, 247, 0.9);
+    --me-card-border: rgba(0, 0, 0, 0.1);
+    --composer-bg: rgba(255, 255, 255, 0.9);
+    --composer-border: rgba(0, 0, 0, 0.1);
+    --icon-btn-hover: rgba(0, 0, 0, 0.08);
+    --send-btn-bg: rgba(0, 0, 0, 0.08);
   }
 
   * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -173,8 +173,8 @@
   }
 
   .brand { display: flex; align-items: center; gap: 10px; padding: 0 4px; }
-  .brand-logo { transition: filter 0.3s ease; filter: invert(1) brightness(1.2); }
-  .light .brand-logo { filter: invert(0) brightness(0.9); }
+  .brand-logo { transition: filter 0.3s ease; filter: invert(0) brightness(1.1); }
+  .light .brand-logo { filter: invert(1) brightness(0.9); }
 
   .search { display: flex; align-items: center; gap: 8px; padding: 10px 14px; border-radius: 16px; background: var(--search-bg); border: 1px solid var(--search-border); font-size: 13px; color: var(--ink-faint); transition: all 0.18s cubic-bezier(0.2, 0.8, 0.2, 1); }
   .search:focus-within { background: var(--hover-bg); border-color: var(--hover-border); backdrop-filter: blur(12px); box-shadow: 0 8px 24px rgba(0,0,0,0.2); }

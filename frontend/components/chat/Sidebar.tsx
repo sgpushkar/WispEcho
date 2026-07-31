@@ -147,7 +147,7 @@ export function Sidebar() {
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             placeholder="search chats"
-            className="w-full bg-transparent outline-none placeholder-white/30 text-[13px]"
+            className="w-full bg-transparent outline-none text-inherit placeholder-[var(--ink-faint)] text-[13px]"
           />
         </div>
 
