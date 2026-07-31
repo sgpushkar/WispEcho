@@ -11,7 +11,23 @@ export function useVoiceRecorder() {
   const startRecording = useCallback(async () => {
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-      const mediaRecorder = new MediaRecorder(stream);
+
+      // Pick the best supported MIME type (Android prefers mp4, desktop supports webm)
+      const mimeType = [
+        "audio/webm;codecs=opus",
+        "audio/webm",
+        "audio/mp4",
+        "audio/ogg;codecs=opus",
+        "audio/ogg",
+      ].find((t) => MediaRecorder.isTypeSupported(t)) || "";
+
+      const mediaRecorder = mimeType
+        ? new MediaRecorder(stream, { mimeType })
+        : new MediaRecorder(stream);
+
+      // Store chosen mimeType on the ref so stopRecording can use it
+      (mediaRecorder as any)._mimeType = mimeType || mediaRecorder.mimeType;
+
       mediaRecorderRef.current = mediaRecorder;
       chunksRef.current = [];
 
@@ -61,7 +77,8 @@ export function useVoiceRecorder() {
       }
 
       mediaRecorderRef.current.onstop = () => {
-        const audioBlob = new Blob(chunksRef.current, { type: "audio/webm" });
+        const actualMime = (mediaRecorderRef.current as any)?._mimeType || "audio/webm";
+        const audioBlob = new Blob(chunksRef.current, { type: actualMime });
         // Stop all tracks to release microphone
         mediaRecorderRef.current?.stream.getTracks().forEach((track) => track.stop());
         

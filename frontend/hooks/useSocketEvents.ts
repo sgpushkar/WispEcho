@@ -61,7 +61,11 @@ export function useSocketEvents() {
         if (typeof document !== "undefined" && (activeConvRef.current !== msg.conversationId || document.hidden)) {
           playNotificationSound();
           const senderName = msg.sender?.displayName || "Someone";
-          const text = msg.type === "IMAGE" ? "📷 Sent an image" : msg.content || "New message";
+          const text =
+            msg.type === "IMAGE" ? "📷 Sent a photo" :
+            msg.type === "VOICE" ? "🎤 Sent a voice note" :
+            msg.type === "FILE"  ? "📎 Sent a file" :
+            msg.content || "New message";
           sendNotification(`New message from ${senderName}`, text);
         }
       }

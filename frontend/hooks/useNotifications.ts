@@ -37,8 +37,8 @@ export function useNotifications() {
               title,
               body,
               id: Math.floor(Math.random() * 100000),
-              schedule: { at: new Date(Date.now() + 100) },
-              smallIcon: "ic_stat_icon_config_sample",
+              // No `schedule` = fires immediately
+              smallIcon: "ic_launcher_foreground",
               actionTypeId: "",
               extra: null,
             },

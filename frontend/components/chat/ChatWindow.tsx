@@ -127,17 +127,21 @@ export function ChatWindow() {
   }
 
   const uploadAudio = async (blob: Blob): Promise<string> => {
-    const sigRes = await api.get("/upload/signature");
-    const { signature, timestamp, cloudName, apiKey, folder } = sigRes.data;
+    // Request a signature specifically for audio uploads
+    const sigRes = await api.get("/upload/signature?type=audio");
+    const { signature, timestamp, cloudName, apiKey, folder, resourceType } = sigRes.data;
 
     const formData = new FormData();
-    formData.append("file", blob, "voice.webm");
+    // Derive file extension from the actual MIME type so Cloudinary can process it correctly
+    const ext = blob.type.includes("mp4") ? "mp4" : blob.type.includes("ogg") ? "ogg" : "webm";
+    formData.append("file", blob, `voice.${ext}`);
     formData.append("api_key", apiKey);
     formData.append("timestamp", timestamp.toString());
     formData.append("signature", signature);
     formData.append("folder", folder);
 
-    const res = await fetch(`https://api.cloudinary.com/v1_1/${cloudName}/video/upload`, {
+    // Cloudinary uses /video/upload for both video AND audio files
+    const res = await fetch(`https://api.cloudinary.com/v1_1/${cloudName}/${resourceType}/upload`, {
       method: "POST",
       body: formData,
     });

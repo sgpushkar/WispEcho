@@ -104,10 +104,24 @@ export const useChatStore = create<ChatState>((set, get) => ({
   addMessage: (msg) =>
     set((state) => {
       const existing = state.messages[msg.conversationId] || [];
+      // If the exact real ID already exists, skip
       if (existing.some((m) => m.id === msg.id)) return state;
+      
+      // If there's a pending optimistic message with this same real ID as tempId, replace it
+      // This handles the race where socket fires before API response
+      const hasPendingOptimistic = existing.some((m) => m.tempId === msg.id);
+      let updatedList: Message[];
+      if (hasPendingOptimistic) {
+        updatedList = existing.map((m) =>
+          m.tempId === msg.id ? { ...msg, status: "sent" as MessageStatus } : m
+        );
+      } else {
+        updatedList = [...existing, msg];
+      }
+
       const conv = state.conversations.find((c) => c.id === msg.conversationId);
       return {
-        messages: { ...state.messages, [msg.conversationId]: [...existing, msg] },
+        messages: { ...state.messages, [msg.conversationId]: updatedList },
         conversations: conv
           ? state.conversations
               .map((c) => (c.id === msg.conversationId ? { ...c, lastMessage: msg, updatedAt: msg.createdAt } : c))
@@ -233,8 +247,19 @@ export const useChatStore = create<ChatState>((set, get) => ({
   replaceOptimisticMessage: (conversationId, tempId, serverMessage) =>
     set((state) => {
       const messages = state.messages[conversationId] || [];
-      const updatedMessages = messages.map(m => m.id === tempId || m.tempId === tempId ? { ...serverMessage, status: "sent" as MessageStatus } : m);
-      
+
+      // If the real message was already added by the socket event, just remove the optimistic dupe
+      const realAlreadyExists = messages.some(
+        (m) => m.id === serverMessage.id && m.tempId !== tempId
+      );
+      const updatedMessages = realAlreadyExists
+        ? messages.filter((m) => m.id !== tempId && m.tempId !== tempId) // remove orphaned optimistic
+        : messages.map((m) =>
+            m.id === tempId || m.tempId === tempId
+              ? { ...serverMessage, status: "sent" as MessageStatus }
+              : m
+          );
+
       return {
         messages: { ...state.messages, [conversationId]: updatedMessages },
         conversations: state.conversations
