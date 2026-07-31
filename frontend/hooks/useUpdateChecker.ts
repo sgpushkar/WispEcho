@@ -155,7 +155,7 @@ export function useUpdateChecker() {
         const { uri } = await Filesystem.writeFile({
           path: fileName,
           data: base64,
-          directory: Directory.Downloads,
+          directory: Directory.Cache,
           recursive: true,
         });
 
