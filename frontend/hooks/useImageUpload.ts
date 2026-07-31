@@ -1,4 +1,4 @@
-import { useState, useCallback } from "react";
+import React, { useState, useCallback } from "react";
 import { api } from "@/lib/api";
 
 export interface PendingUpload {
@@ -14,6 +14,8 @@ export interface PendingUpload {
 
 export function useImageUpload() {
   const [pendingUploads, setPendingUploads] = useState<PendingUpload[]>([]);
+  const activeXhrRefs = React.useRef<{ [id: string]: XMLHttpRequest }>({});
+  const callbacksRef = React.useRef<{ [id: string]: { onComplete?: Function, onError?: Function } }>({});
 
   const uploadFile = useCallback(async (
     file: File,
@@ -23,6 +25,14 @@ export function useImageUpload() {
     onError?: (err: Error, tempId: string) => void
   ) => {
     try {
+      // Set status back to uploading if retrying
+      setPendingUploads((prev) =>
+        prev.map((up) => (up.id === tempId ? { ...up, status: "uploading", progress: 0 } : up))
+      );
+
+      // Store callbacks for retry
+      callbacksRef.current[tempId] = { onComplete, onError };
+
       // 1. Get Signature from backend
       const sigRes = await api.get("/upload/signature");
       const { signature, timestamp, cloudName, apiKey, folder } = sigRes.data;
@@ -72,15 +82,33 @@ export function useImageUpload() {
         setPendingUploads((prev) =>
           prev.map((up) => (up.id === tempId ? { ...up, status: "error" } : up))
         );
+        delete activeXhrRefs.current[tempId];
         if (onError) onError(new Error("Network error during upload"), tempId);
       };
 
+      xhr.onabort = () => {
+        setPendingUploads((prev) =>
+          prev.map((up) => (up.id === tempId ? { ...up, status: "error" } : up))
+        );
+        delete activeXhrRefs.current[tempId];
+      };
+
+      activeXhrRefs.current[tempId] = xhr;
       xhr.send(formData);
     } catch (err: any) {
       setPendingUploads((prev) =>
         prev.map((up) => (up.id === tempId ? { ...up, status: "error" } : up))
       );
+      delete activeXhrRefs.current[tempId];
       if (onError) onError(err, tempId);
+    }
+  }, []);
+
+  const cancelUpload = useCallback((tempId: string) => {
+    const xhr = activeXhrRefs.current[tempId];
+    if (xhr) {
+      xhr.abort();
+      delete activeXhrRefs.current[tempId];
     }
   }, []);
 
@@ -108,12 +136,24 @@ export function useImageUpload() {
       if (upload) URL.revokeObjectURL(upload.previewUrl);
       return prev.filter((u) => u.id !== tempId);
     });
+    delete callbacksRef.current[tempId];
+    delete activeXhrRefs.current[tempId];
   }, []);
+
+  const retryUpload = useCallback((tempId: string) => {
+    const upload = pendingUploads.find(u => u.id === tempId);
+    if (upload) {
+      const cbs = callbacksRef.current[tempId];
+      uploadFile(upload.file, tempId, upload.caption, cbs?.onComplete as any, cbs?.onError as any);
+    }
+  }, [pendingUploads, uploadFile]);
 
   return {
     pendingUploads,
     addPendingUpload,
     uploadFile,
     removePendingUpload,
+    cancelUpload,
+    retryUpload,
   };
 }

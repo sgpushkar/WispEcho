@@ -9,6 +9,8 @@ import { useAuthStore } from "@/store/useAuthStore";
 import { useUIStore } from "@/store/useUIStore";
 import Link from "next/link";
 import { Avatar } from "../ui/Avatar";
+import { SharedMediaModal } from "./SharedMediaModal";
+import { Image as ImageIcon } from "lucide-react";
 
 export function GroupSettingsModal() {
   const { groupSettingsOpen, setGroupSettingsOpen, activeGroupId } = useUIStore();
@@ -20,6 +22,7 @@ export function GroupSettingsModal() {
   const [description, setDescription] = useState("");
   const [avatarUrl, setAvatarUrl] = useState("");
   const [searchQuery, setSearchQuery] = useState("");
+  const [showSharedMedia, setShowSharedMedia] = useState(false);
 
   const { data: groupData, isLoading } = useQuery({
     queryKey: ["group", activeGroupId],
@@ -148,6 +151,19 @@ export function GroupSettingsModal() {
                   className="w-full rounded-xl border border-white/10 bg-white/5 px-3 py-2 text-sm outline-none placeholder:text-white/30 text-white disabled:opacity-50"
                 />
               </div>
+
+              <div className="pt-2 border-t border-white/5">
+                <button
+                  onClick={() => setShowSharedMedia(true)}
+                  className="w-full flex items-center justify-between rounded-xl bg-white/5 border border-white/10 px-4 py-3 text-sm font-medium text-white hover:bg-white/10 transition"
+                >
+                  <span className="flex items-center gap-2">
+                    <ImageIcon size={16} className="text-white/60" />
+                    Shared Media
+                  </span>
+                  <span className="text-white/40">&rarr;</span>
+                </button>
+              </div>
             </div>
           )}
 
@@ -237,6 +253,13 @@ export function GroupSettingsModal() {
           </div>
         )}
       </motion.div>
+
+      {showSharedMedia && groupData?.conversationId && (
+        <SharedMediaModal 
+          conversationId={groupData.conversationId} 
+          onClose={() => setShowSharedMedia(false)} 
+        />
+      )}
     </div>
   );
 }

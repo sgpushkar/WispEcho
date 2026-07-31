@@ -29,6 +29,12 @@ enum MessageType {
   GIF
 }
 
+enum MessageStatus {
+  SENT
+  DELIVERED
+  READ
+}
+
 model User {
   id              String   @id @default(uuid())
   email           String   @unique
@@ -65,6 +71,8 @@ model RefreshToken {
   token     String   @unique
   userId    String
   user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userAgent String?
+  ip        String?
   expiresAt DateTime
   createdAt DateTime @default(now())
 
@@ -158,6 +166,7 @@ model Message {
   content        String?
   mediaUrl       String?
   replyToId      String?
+  status         MessageStatus @default(SENT)
   isEdited       Boolean     @default(false)
   isDeleted      Boolean     @default(false)
   deletedByIds   String[]    @default([])

@@ -15,5 +15,7 @@ router.post("/reset-password", authController.resetPassword);
 router.get("/me", requireAuth, authController.me);
 router.post("/set-password", requireAuth, authController.setPassword);
 router.post("/change-password", requireAuth, authController.changePassword);
+router.get("/sessions", requireAuth, authController.getSessions);
+router.delete("/sessions/:sessionId", requireAuth, authController.deleteSession);
 
 export default router;

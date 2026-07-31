@@ -1,47 +1,71 @@
 "use client";
 
-import { useState } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import { useState, useRef, memo } from "react";
+import { motion, AnimatePresence, useAnimation } from "framer-motion";
 import { format } from "date-fns";
 import { Message } from "@/store/useChatStore";
 import { useAuthStore } from "@/store/useAuthStore";
 import { useChatStore } from "@/store/useChatStore";
 import { useUIStore } from "@/store/useUIStore";
 import { api } from "@/lib/api";
-import { Reply, AlertCircle, Eye, CheckCheck } from "lucide-react";
+import { Reply, AlertCircle, Eye, CheckCheck, Clock, Check, X } from "lucide-react";
 import { ContextMenu, ContextMenuPosition } from "./ContextMenu";
 import Link from "next/link";
 import { Avatar } from "../ui/Avatar";
 import { PendingUpload } from "@/hooks/useImageUpload";
 import { FullscreenImageViewer } from "../ui/FullscreenImageViewer";
+import { useMessageRetry } from "@/hooks/useMessageRetry";
+import { ProgressiveImage } from "../ui/ProgressiveImage";
+import { LinkPreviewCard } from "./LinkPreviewCard";
+import { VoicePlayer } from "./VoicePlayer";
 
 const QUICK_REACTIONS = ["❤️", "😂", "🔥", "😭", "👍"];
 
-export function MessageBubble({
-  message,
-  onReply,
-  onEdit,
-  pendingUpload,
-}: {
+interface MessageBubbleProps {
   message: Message;
-  onReply?: (m: Message) => void;
-  onEdit?: (m: Message) => void;
+  isGroup?: boolean;
+  onReply?: (msg: Message) => void;
+  onEdit?: (msg: Message) => void;
   pendingUpload?: PendingUpload;
-}) {
+  onCancelUpload?: (tempId: string) => void;
+  onRetryUpload?: (tempId: string) => void;
+}
+
+export const MessageBubble = memo(function MessageBubble({ message, isGroup, onReply, onEdit, pendingUpload, onCancelUpload, onRetryUpload }: MessageBubbleProps) {
   const currentUserId = useAuthStore((s) => s.user?.id);
   const isMine = message.senderId === currentUserId;
   const [contextMenuPos, setContextMenuPos] = useState<ContextMenuPosition | null>(null);
   const [isFullscreen, setIsFullscreen] = useState(false);
   const { removeMessage, activeConversationId, conversations } = useChatStore();
   const { openForwardModal } = useUIStore();
+  const { retryMessage, deleteFailedMessage } = useMessageRetry();
 
   const currentConversation = conversations.find(c => c.id === activeConversationId);
-  const isGroup = currentConversation?.isGroup;
+  
+  const controls = useAnimation();
+  const [isDragging, setIsDragging] = useState(false);
+  const lastTapRef = useRef<number>(0);
+
+  async function handleDragEnd(event: any, info: any) {
+    setIsDragging(false);
+    if (info.offset.x > 50 && !pendingUpload) {
+      if (typeof navigator !== "undefined" && navigator.vibrate) navigator.vibrate(10);
+      onReply?.(message);
+    }
+    controls.start({ x: 0, transition: { type: "spring", stiffness: 400, damping: 25 } });
+  }
 
   async function react(emoji: string) {
     if (pendingUpload) return; // Cannot react to pending messages
-    await api.post(`/messages/${message.id}/reactions`, { emoji });
+    try {
+      await api.post(`/messages/${message.id}/reactions`, { emoji });
+    } catch (err) {
+      console.error(err);
+    }
   }
+
+  // Extract first URL for link preview
+  const firstUrl = message.type === "TEXT" && message.content ? message.content.match(/(https?:\/\/[^\s]+)/)?.[0] : null;
 
   async function deleteMessage(m: Message, forEveryone: boolean) {
     if (!activeConversationId) return;
@@ -82,15 +106,41 @@ export function MessageBubble({
         initial={{ opacity: 0, y: 12, scale: 0.98 }}
         animate={{ opacity: 1, y: 0, scale: 1 }}
         transition={{ type: "spring", stiffness: 300, damping: 24 }}
-        className={`row ${isMine ? "mine" : ""} items-center gap-2`}
+        className={`row ${isMine ? "mine" : ""} items-center gap-2 relative`}
       >
+        {!isMine && !pendingUpload && (
+          <motion.div 
+            className="absolute left-0 text-white/50" 
+            initial={{ opacity: 0, scale: 0 }} 
+            animate={{ opacity: isDragging ? 1 : 0, scale: isDragging ? 1 : 0 }}
+          >
+            <Reply size={16} />
+          </motion.div>
+        )}
+        
         {isMine && !pendingUpload && (
           <button onClick={() => onReply?.(message)} className="text-white/30 hover:text-white transition p-2 rounded-full hover:bg-white/5" title="Reply">
             <Reply size={16} />
           </button>
         )}
-        <div 
-          className="flex flex-col max-w-[60%] sm:max-w-[70%] relative group"
+        <motion.div 
+          drag={!pendingUpload && !isMine ? "x" : false}
+          dragConstraints={{ left: 0, right: 0 }}
+          dragElastic={{ left: 0, right: 0.2 }}
+          onDragStart={() => setIsDragging(true)}
+          onDragEnd={handleDragEnd}
+          onClick={(e) => {
+            const now = Date.now();
+            if (now - lastTapRef.current < 300) {
+              if (typeof navigator !== "undefined" && navigator.vibrate) navigator.vibrate([10, 50, 10]);
+              react("❤️");
+              lastTapRef.current = 0;
+            } else {
+              lastTapRef.current = now;
+            }
+          }}
+          animate={controls}
+          className={`flex flex-col max-w-[60%] sm:max-w-[70%] relative group ${!isMine && !pendingUpload ? "touch-pan-y" : ""}`}
           onContextMenu={(e) => {
             if (pendingUpload) return;
             e.preventDefault();
@@ -141,12 +191,11 @@ export function MessageBubble({
                   </div>
                 ) : (
                   <>
-                    <img 
+                    <ProgressiveImage 
                       src={message.mediaUrl} 
                       alt={message.content || "Image"} 
-                      className={`max-w-full object-contain ${pendingUpload ? "opacity-60 blur-sm" : ""} transition duration-300`} 
+                      className={`max-w-full ${pendingUpload ? "opacity-60 blur-sm" : ""} transition duration-300`} 
                       style={{ maxHeight: "300px" }}
-                      loading="lazy"
                     />
                     {message.isViewOnce && (
                       <div className="absolute top-2 left-2 bg-black/60 backdrop-blur-md px-2 py-1 rounded-full flex items-center gap-1 text-[10px] text-white/90 border border-white/10">
@@ -170,18 +219,62 @@ export function MessageBubble({
                   <div className="absolute inset-0 flex flex-col items-center justify-center bg-red-900/60 backdrop-blur-sm gap-2">
                     <AlertCircle size={32} className="text-white" />
                     <span className="text-white font-medium text-sm drop-shadow-md text-center px-4">Upload failed</span>
+                    <div className="flex gap-2 mt-2">
+                      <button 
+                        onClick={(e) => { e.stopPropagation(); onCancelUpload?.(pendingUpload.id); }} 
+                        className="bg-white/10 px-3 py-1 rounded-full text-xs hover:bg-white/20 transition"
+                      >
+                        Cancel
+                      </button>
+                      <button 
+                        onClick={(e) => { e.stopPropagation(); onRetryUpload?.(pendingUpload.id); }} 
+                        className="bg-accent text-white px-3 py-1 rounded-full text-xs hover:bg-accent/90 transition"
+                      >
+                        Retry
+                      </button>
+                    </div>
                   </div>
                 )}
               </div>
             )}
             
-            {message.isDeleted ? "this message was deleted" : renderContent(message.content)}
+            {message.type === "VOICE" && message.mediaUrl ? (
+              <VoicePlayer url={message.mediaUrl} isMine={isMine} />
+            ) : message.isDeleted ? (
+              "this message was deleted"
+            ) : (
+              renderContent(message.content)
+            )}
+            
+            {firstUrl && !message.isDeleted && (
+              <LinkPreviewCard url={firstUrl} />
+            )}
           </div>
 
           <div className="stamp flex gap-1 items-center justify-end">
             <span>{pendingUpload ? "Sending..." : format(new Date(message.createdAt), "h:mm a")}</span>
             {message.isEdited && <span>· edited</span>}
+            {isMine && !pendingUpload && (
+              <span className="ml-1 flex items-center">
+                {message.status === "sending" && <Clock size={10} className="text-white/50" />}
+                {message.status === "sent" && <Check size={12} className="text-white/50" />}
+                {message.status === "delivered" && <CheckCheck size={12} className="text-white/50" />}
+                {message.status === "read" && <CheckCheck size={12} className="text-accent" />}
+                {message.status === "failed" && <AlertCircle size={12} className="text-red-500" />}
+              </span>
+            )}
           </div>
+          
+          {message.status === "failed" && isMine && (
+             <motion.div 
+               initial={{ opacity: 0, height: 0 }} 
+               animate={{ opacity: 1, height: "auto" }} 
+               className="flex gap-2 justify-end mt-1"
+             >
+               <button onClick={() => deleteFailedMessage(message.conversationId, message.id)} className="text-[10px] bg-red-500/10 text-red-400 px-2 py-0.5 rounded-full hover:bg-red-500/20 transition">Delete</button>
+               <button onClick={() => retryMessage(message.conversationId, message.id)} className="text-[10px] bg-accent/10 text-accent px-2 py-0.5 rounded-full hover:bg-accent/20 transition">Retry</button>
+             </motion.div>
+          )}
 
           {Object.keys(grouped).length > 0 && !pendingUpload && (
             <div className={`flex gap-1 mt-1 ${isMine ? "justify-end" : "justify-start"}`}>
@@ -215,7 +308,7 @@ export function MessageBubble({
             </div>
           )}
           </div>
-        </div>
+        </motion.div>
 
         {/* Always Visible Reply Button */}
         {!isMine && !pendingUpload && (
@@ -251,4 +344,17 @@ export function MessageBubble({
       </AnimatePresence>
     </>
   );
-}
+}, (prev, next) => {
+  return (
+    prev.message.id === next.message.id &&
+    prev.message.status === next.message.status &&
+    prev.message.content === next.message.content &&
+    prev.message.isDeleted === next.message.isDeleted &&
+    prev.message.isEdited === next.message.isEdited &&
+    prev.message.isPinned === next.message.isPinned &&
+    prev.message.viewedByIds?.length === next.message.viewedByIds?.length &&
+    prev.message.reactions?.length === next.message.reactions?.length &&
+    prev.pendingUpload?.status === next.pendingUpload?.status &&
+    prev.pendingUpload?.progress === next.pendingUpload?.progress
+  );
+});

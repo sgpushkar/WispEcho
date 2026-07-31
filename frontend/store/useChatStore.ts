@@ -1,7 +1,11 @@
 import { create } from "zustand";
 
+export type MessageStatus = "sending" | "sent" | "delivered" | "read" | "failed";
+
 export interface Message {
   id: string;
+  tempId?: string;
+  status?: MessageStatus;
   conversationId: string;
   senderId: string;
   type: "TEXT" | "IMAGE" | "VIDEO" | "FILE" | "VOICE" | "GIF";
@@ -15,12 +19,14 @@ export interface Message {
   sender: { id: string; username: string; displayName: string; avatarUrl?: string | null };
   reactions?: { id: string; emoji: string; userId: string }[];
   replyTo?: Message | null;
+  isPinned?: boolean;
 }
 
 export interface Conversation {
   id: string;
   isGroup: boolean;
-  group?: { id: string; name: string; avatarUrl?: string | null } | null;
+  group?: { id: string; name: string; avatarUrl?: string | null; conversationId?: string } | null;
+  participants?: { user: { id: string; username: string; displayName: string; avatarUrl?: string | null } }[];
   otherUser?: {
     id: string;
     username: string;
@@ -42,6 +48,7 @@ interface ChatState {
   messages: Record<string, Message[]>;
   typingUsers: Record<string, Set<string>>; // conversationId -> userIds typing
   onlineUsers: Set<string>;
+  isOffline: boolean;
 
   setConversations: (c: Conversation[]) => void;
   upsertConversation: (c: Conversation) => void;
@@ -56,7 +63,10 @@ interface ChatState {
   removeReaction: (payload: { messageId: string; userId: string; emoji: string; conversationId?: string }) => void;
   setTyping: (conversationId: string, userId: string, isTyping: boolean) => void;
   setPresence: (userId: string, isOnline: boolean) => void;
+  setOffline: (isOffline: boolean) => void;
   markMessageViewed: (conversationId: string, messageId: string, userId: string) => void;
+  replaceOptimisticMessage: (conversationId: string, tempId: string, serverMessage: Message) => void;
+  setMessageStatus: (conversationId: string, messageIdOrTempId: string, status: MessageStatus) => void;
 }
 
 export const useChatStore = create<ChatState>((set, get) => ({
@@ -65,6 +75,7 @@ export const useChatStore = create<ChatState>((set, get) => ({
   messages: {},
   typingUsers: {},
   onlineUsers: new Set(),
+  isOffline: false,
 
   setConversations: (conversations) => set({ conversations }),
 
@@ -202,6 +213,8 @@ export const useChatStore = create<ChatState>((set, get) => ({
       return { onlineUsers: next };
     }),
 
+  setOffline: (isOffline) => set({ isOffline }),
+
   markMessageViewed: (conversationId, messageId, userId) =>
     set((state) => {
       return {
@@ -211,9 +224,33 @@ export const useChatStore = create<ChatState>((set, get) => ({
             if (m.id !== messageId) return m;
             const viewedByIds = m.viewedByIds || [];
             if (viewedByIds.includes(userId)) return m;
-            return { ...m, viewedByIds: [...viewedByIds, userId] };
+            return { ...m, viewedByIds: [...viewedByIds, userId], status: "read" };
           }),
         },
+      };
+    }),
+    
+  replaceOptimisticMessage: (conversationId, tempId, serverMessage) =>
+    set((state) => {
+      const messages = state.messages[conversationId] || [];
+      const updatedMessages = messages.map(m => m.id === tempId || m.tempId === tempId ? { ...serverMessage, status: "sent" as MessageStatus } : m);
+      
+      return {
+        messages: { ...state.messages, [conversationId]: updatedMessages },
+        conversations: state.conversations
+          .map((c) => (c.id === conversationId ? { ...c, lastMessage: serverMessage, updatedAt: serverMessage.createdAt } : c))
+          .sort((a, b) => +new Date(b.updatedAt) - +new Date(a.updatedAt)),
+      };
+    }),
+
+  setMessageStatus: (conversationId, id, status) =>
+    set((state) => {
+      const messages = state.messages[conversationId] || [];
+      return {
+        messages: {
+          ...state.messages,
+          [conversationId]: messages.map(m => m.id === id || m.tempId === id ? { ...m, status } : m),
+        }
       };
     }),
 }));

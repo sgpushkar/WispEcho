@@ -9,12 +9,13 @@ import { useAuthStore } from "@/store/useAuthStore";
 import { Avatar } from "../ui/Avatar";
 import { useUIStore } from "@/store/useUIStore";
 import { VersionSettings } from "../ui/VersionSettings";
+import { SessionManager } from "./SessionManager";
 
 export function SettingsModal({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }) {
   const user = useAuthStore((s) => s.user);
   const setUser = useAuthStore((s) => s.setUser);
 
-  const [activeTab, setActiveTab] = useState<"profile" | "customization" | "preferences">("profile");
+  const [activeTab, setActiveTab] = useState<"profile" | "customization" | "preferences" | "devices">("profile");
 
   // Profile fields
   const [username, setUsername] = useState("");
@@ -175,6 +176,14 @@ export function SettingsModal({ isOpen, onClose }: { isOpen: boolean; onClose: (
             }`}
           >
             Preferences
+          </button>
+          <button
+            onClick={() => setActiveTab("devices")}
+            className={`flex-1 py-3 text-xs font-semibold uppercase tracking-wider transition ${
+              activeTab === "devices" ? "border-b-2 border-white text-white" : "text-white/40 hover:text-white/60"
+            }`}
+          >
+            Devices
           </button>
         </div>
 
@@ -425,6 +434,10 @@ export function SettingsModal({ isOpen, onClose }: { isOpen: boolean; onClose: (
                 <VersionSettings />
               </div>
             </div>
+          )}
+
+          {activeTab === "devices" && (
+            <SessionManager />
           )}
         </div>
 

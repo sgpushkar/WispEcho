@@ -17,6 +17,11 @@ import EmojiPicker, { Theme } from "emoji-picker-react";
 import { Avatar } from "../ui/Avatar";
 import { useImageUpload } from "@/hooks/useImageUpload";
 import { ImagePreviewModal } from "./ImagePreviewModal";
+import { useOfflineQueue } from "@/hooks/useOfflineQueue";
+import { MentionSuggestions } from "./MentionSuggestions";
+import { SharedMediaModal } from "./SharedMediaModal";
+import { useVoiceRecorder } from "@/hooks/useVoiceRecorder";
+import { VoiceRecorder } from "./VoiceRecorder";
 
 export function ChatWindow() {
   const router = useRouter();
@@ -29,6 +34,19 @@ export function ChatWindow() {
   const [editingMessage, setEditingMessage] = useState<Message | null>(null);
   const [isSending, setIsSending] = useState(false);
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
+  const [mentionQuery, setMentionQuery] = useState<string | null>(null);
+  const [showSharedMedia, setShowSharedMedia] = useState(false);
+
+  const {
+    isRecording,
+    recordingTime,
+    isPaused,
+    startRecording,
+    pauseRecording,
+    resumeRecording,
+    stopRecording,
+    cancelRecording,
+  } = useVoiceRecorder();
   
   const bottomRef = useRef<HTMLDivElement>(null);
   const typingTimeout = useRef<NodeJS.Timeout | null>(null);
@@ -38,7 +56,9 @@ export function ChatWindow() {
   // Image Upload State
   const [isDragging, setIsDragging] = useState(false);
   const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
-  const { pendingUploads, addPendingUpload, uploadFile, removePendingUpload } = useImageUpload();
+  const { pendingUploads, addPendingUpload, uploadFile, removePendingUpload, cancelUpload, retryUpload } = useImageUpload();
+  const { enqueue } = useOfflineQueue();
+  const isOffline = useChatStore((s) => s.isOffline);
 
   const conversation = conversations.find((c) => c.id === activeConversationId);
   const conversationMessages = activeConversationId ? messages[activeConversationId] || [] : [];
@@ -78,6 +98,18 @@ export function ChatWindow() {
     }
   }, [editingMessage]);
 
+  useEffect(() => {
+    function handleEsc(e: KeyboardEvent) {
+      if (e.key === "Escape") {
+        setReplyToMessage(null);
+        setEditingMessage(null);
+        setDraft("");
+      }
+    }
+    window.addEventListener("keydown", handleEsc);
+    return () => window.removeEventListener("keydown", handleEsc);
+  }, []);
+
   function handleTyping() {
     if (!activeConversationId) return;
     const socket = getSocket(accessToken);
@@ -94,7 +126,50 @@ export function ChatWindow() {
     }, 1500);
   }
 
-  async function sendMessage(content: string = draft, type: "TEXT" | "IMAGE" = "TEXT", mediaUrl?: string, isViewOnce?: boolean) {
+  const uploadAudio = async (blob: Blob): Promise<string> => {
+    const sigRes = await api.get("/upload/signature");
+    const { signature, timestamp, cloudName, apiKey, folder } = sigRes.data;
+
+    const formData = new FormData();
+    formData.append("file", blob, "voice.webm");
+    formData.append("api_key", apiKey);
+    formData.append("timestamp", timestamp.toString());
+    formData.append("signature", signature);
+    formData.append("folder", folder);
+
+    const res = await fetch(`https://api.cloudinary.com/v1_1/${cloudName}/video/upload`, {
+      method: "POST",
+      body: formData,
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error?.message || "Cloudinary upload failed");
+    return data.secure_url;
+  };
+
+  const handleSendVoiceNote = async () => {
+    const audioBlob = await stopRecording();
+    if (!audioBlob) return;
+    try {
+      setIsSending(true);
+      const secureUrl = await uploadAudio(audioBlob);
+      // Send the VOICE note message
+      const socket = getSocket(accessToken);
+      if (socket && activeConversationId) {
+        socket.emit("message:send", {
+          conversationId: activeConversationId,
+          type: "VOICE",
+          mediaUrl: secureUrl,
+        });
+      }
+    } catch (err) {
+      console.error(err);
+      alert("Failed to upload voice note.");
+    } finally {
+      setIsSending(false);
+    }
+  };
+
+  async function sendMessage(content: string = draft, type: "TEXT" | "IMAGE" | "VOICE" = "TEXT", mediaUrl?: string, isViewOnce?: boolean) {
     if ((!content.trim() && type === "TEXT") || !activeConversationId) return;
     
     setIsSending(true);
@@ -103,24 +178,65 @@ export function ChatWindow() {
       await api.patch(`/messages/${editingMessage.id}`, { content });
       setEditingMessage(null);
       setDraft("");
+      setShowEmojiPicker(false);
+      setTimeout(() => {
+        setIsSending(false);
+        bottomRef.current?.scrollIntoView({ behavior: "smooth" });
+      }, 300);
     } else {
       const replyToId = replyToMessage?.id;
+      const currentReplyTo = replyToMessage;
       if (type === "TEXT") {
         setReplyToMessage(null);
         setDraft("");
       }
+      
+      const tempId = crypto.randomUUID();
+      const user = useAuthStore.getState().user!;
+      
+      const optimisticMsg: Message = {
+        id: tempId,
+        tempId: tempId,
+        conversationId: activeConversationId,
+        senderId: user.id,
+        type,
+        content: content || null,
+        mediaUrl: mediaUrl || null,
+        isEdited: false,
+        isDeleted: false,
+        isViewOnce,
+        createdAt: new Date().toISOString(),
+        status: "sending",
+        sender: {
+          id: user.id,
+          username: user.username,
+          displayName: user.displayName,
+          avatarUrl: user.avatarUrl
+        },
+        replyTo: currentReplyTo,
+      };
+      
+      addMessage(optimisticMsg);
+      
+      setShowEmojiPicker(false);
+      setTimeout(() => {
+        setIsSending(false);
+        bottomRef.current?.scrollIntoView({ behavior: "smooth" });
+      }, 50);
+
+      if (isOffline) {
+        await enqueue(tempId, activeConversationId, content || null, type, mediaUrl || null, replyToId || null, isViewOnce);
+        return;
+      }
+
       try {
-        await api.post("/messages", { conversationId: activeConversationId, content, type, mediaUrl, replyToId, isViewOnce });
+        const res = await api.post("/messages", { conversationId: activeConversationId, content, type, mediaUrl, replyToId, isViewOnce });
+        useChatStore.getState().replaceOptimisticMessage(activeConversationId, tempId, res.data.message);
       } catch (err) {
         console.error("Failed to send message", err);
+        useChatStore.getState().setMessageStatus(activeConversationId, tempId, "failed");
       }
     }
-    
-    setShowEmojiPicker(false);
-    setTimeout(() => {
-      setIsSending(false);
-      bottomRef.current?.scrollIntoView({ behavior: "smooth" });
-    }, 300);
   }
 
   // --- Image Upload Handlers ---
@@ -252,6 +368,14 @@ export function ChatWindow() {
     >
       {/* Drop Zone Overlay */}
       <AnimatePresence>
+        {showSharedMedia && activeConversationId && (
+          <SharedMediaModal 
+            conversationId={activeConversationId} 
+            onClose={() => setShowSharedMedia(false)} 
+          />
+        )}
+      </AnimatePresence>
+      <AnimatePresence>
         {isDragging && (
           <motion.div 
             initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
@@ -328,6 +452,16 @@ export function ChatWindow() {
             ) : isOnline ? "online" : "offline"}
           </div>
         </div>
+        
+        <div className="ml-auto flex items-center gap-2">
+          <button 
+            onClick={() => setShowSharedMedia(true)}
+            className="p-2 rounded-full hover:bg-white/10 text-white/50 hover:text-white transition"
+            title="Shared Media"
+          >
+            <ImageIcon size={20} />
+          </button>
+        </div>
       </div>
 
       <div className="messages" ref={containerRef}>
@@ -364,6 +498,8 @@ export function ChatWindow() {
                   },
                 }}
                 pendingUpload={up}
+                onCancelUpload={cancelUpload}
+                onRetryUpload={retryUpload}
               />
             ))}
           </AnimatePresence>
@@ -421,12 +557,34 @@ export function ChatWindow() {
             rows={1}
             onPaste={handlePaste}
             onChange={(e) => {
-              setDraft(e.target.value);
+              const val = e.target.value;
+              setDraft(val);
               e.target.style.height = "auto";
               e.target.style.height = `${e.target.scrollHeight}px`;
               handleTyping();
+
+              // Mention logic
+              const lastAtPos = val.lastIndexOf("@");
+              if (lastAtPos !== -1 && conversation?.isGroup) {
+                const query = val.slice(lastAtPos + 1);
+                if (!query.includes(" ")) {
+                  setMentionQuery(query);
+                } else {
+                  setMentionQuery(null);
+                }
+              } else {
+                setMentionQuery(null);
+              }
             }}
             onKeyDown={(e) => {
+              if (mentionQuery !== null && (e.key === "ArrowUp" || e.key === "ArrowDown" || e.key === "Enter")) {
+                // Let the suggestion box handle it if we want, but for now just prevent default if enter
+                if (e.key === "Enter") {
+                   e.preventDefault();
+                   // Wait for user to select from suggestions
+                   return;
+                }
+              }
               if (e.key === "Enter" && !e.shiftKey) {
                 e.preventDefault();
                 sendMessage();
@@ -437,6 +595,19 @@ export function ChatWindow() {
             className="flex-1 bg-transparent border-none outline-none text-white font-inter text-[14px] min-h-[22px] max-h-[120px] resize-none py-1 placeholder:text-white/30 transition-opacity focus:placeholder:opacity-50"
           />
           <div className="relative">
+            {conversation?.isGroup && (
+              <MentionSuggestions
+                query={mentionQuery || ""}
+                isOpen={mentionQuery !== null}
+                users={conversation.participants?.map(p => p.user) || []}
+                onSelect={(username) => {
+                  const lastAtPos = draft.lastIndexOf("@");
+                  const newDraft = draft.slice(0, lastAtPos) + `@${username} ` + draft.slice(lastAtPos + (mentionQuery?.length || 0) + 1);
+                  setDraft(newDraft);
+                  setMentionQuery(null);
+                }}
+              />
+            )}
             <motion.div 
               whileHover={{ scale: 1.1, filter: "brightness(1.2)" }} 
               className="icon-btn hidden sm:flex cursor-pointer"
@@ -462,7 +633,11 @@ export function ChatWindow() {
               )}
             </AnimatePresence>
           </div>
-          <motion.div whileHover={{ scale: 1.1, filter: "brightness(1.2)" }} className="icon-btn hidden sm:flex">
+           <motion.div 
+            whileHover={{ scale: 1.1, filter: "brightness(1.2)" }} 
+            className="icon-btn flex cursor-pointer"
+            onClick={startRecording}
+          >
             <Mic size={18} />
           </motion.div>
           <motion.button
@@ -477,6 +652,16 @@ export function ChatWindow() {
           </motion.button>
         </div>
       </div>
+
+      <VoiceRecorder
+        isRecording={isRecording}
+        recordingTime={recordingTime}
+        isPaused={isPaused}
+        onPause={pauseRecording}
+        onResume={resumeRecording}
+        onCancel={cancelRecording}
+        onSend={handleSendVoiceNote}
+      />
     </main>
   );
 }

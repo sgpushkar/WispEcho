@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { Search, LogOut, Users, Plus, Settings, Pin, PinOff } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
+import { motion } from "framer-motion";
 import { api } from "@/lib/api";
 import { useAuthStore } from "@/store/useAuthStore";
 import { useChatStore, Conversation } from "@/store/useChatStore";
@@ -163,7 +164,9 @@ export function Sidebar() {
             const hasUnread = false; // Mocked until backend supports unread counts
 
             return (
-              <div
+              <motion.div
+                layout
+                transition={{ type: "spring", stiffness: 350, damping: 30 }}
                 key={conv.id}
                 onClick={() => setActiveConversation(conv.id)}
                 className={`conv ${active ? "active" : ""}`}
@@ -201,7 +204,7 @@ export function Sidebar() {
                   </button>
                   {hasUnread && <div className="w-2 h-2 rounded-full bg-white mt-1" />}
                 </div>
-              </div>
+              </motion.div>
             );
           })}
         </div>

@@ -7,6 +7,8 @@ import { useSocketEvents } from "@/hooks/useSocketEvents";
 import { Sidebar } from "@/components/chat/Sidebar";
 import { ChatWindow } from "@/components/chat/ChatWindow";
 import { useChatStore } from "@/store/useChatStore";
+import { useOfflineQueue } from "@/hooks/useOfflineQueue";
+import { useKeyboardShortcuts } from "@/hooks/useKeyboardShortcuts";
 
 export default function ChatPage() {
   const router = useRouter();
@@ -14,6 +16,8 @@ export default function ChatPage() {
   const activeConversationId = useChatStore((s) => s.activeConversationId);
   const hydrated = useHasHydrated();
   useSocketEvents();
+  useOfflineQueue();
+  useKeyboardShortcuts();
 
   useEffect(() => {
     if (hydrated && !accessToken) router.replace("/login");

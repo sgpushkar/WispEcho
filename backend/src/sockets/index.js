@@ -33,7 +33,41 @@ export function initSockets(io) {
       where: { userId },
       select: { conversationId: true },
     });
-    participants.forEach((p) => socket.join(`conversation:${p.conversationId}`));
+    
+    const conversationIds = participants.map((p) => p.conversationId);
+    conversationIds.forEach((id) => socket.join(`conversation:${id}`));
+
+    // Mark pending messages as delivered
+    if (conversationIds.length > 0) {
+      const deliveredMessages = await prisma.message.findMany({
+        where: {
+          conversationId: { in: conversationIds },
+          senderId: { not: userId },
+          status: "SENT",
+        },
+        select: { id: true, conversationId: true }
+      });
+
+      if (deliveredMessages.length > 0) {
+        await prisma.message.updateMany({
+          where: { id: { in: deliveredMessages.map(m => m.id) } },
+          data: { status: "DELIVERED" }
+        });
+
+        // Group by conversation to emit events efficiently
+        const byConv = deliveredMessages.reduce((acc, msg) => {
+          if (!acc[msg.conversationId]) acc[msg.conversationId] = [];
+          acc[msg.conversationId].push(msg.id);
+          return acc;
+        }, {});
+
+        for (const [convId, msgIds] of Object.entries(byConv)) {
+          msgIds.forEach(id => {
+            emitToConversation(convId, "message:delivered", { conversationId: convId, messageId: id, userId });
+          });
+        }
+      }
+    }
 
     socket.on("conversation:join", (conversationId) => {
       socket.join(`conversation:${conversationId}`);

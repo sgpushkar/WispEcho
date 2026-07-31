@@ -57,7 +57,7 @@ export async function register(req, res, next) {
     });
 
     const accessToken = signAccessToken(user.id);
-    const refreshToken = await signRefreshToken(user.id);
+    const refreshToken = await signRefreshToken(user.id, req.headers["user-agent"], req.ip);
     res.cookie("refreshToken", refreshToken, COOKIE_OPTIONS);
 
     res.status(201).json({
@@ -88,7 +88,7 @@ export async function login(req, res, next) {
     });
 
     const accessToken = signAccessToken(user.id);
-    const refreshToken = await signRefreshToken(user.id);
+    const refreshToken = await signRefreshToken(user.id, req.headers["user-agent"], req.ip);
     res.cookie("refreshToken", refreshToken, COOKIE_OPTIONS);
 
     res.json({ accessToken, refreshToken, user: sanitizeUser(user) });
@@ -141,7 +141,7 @@ export async function googleLogin(req, res, next) {
     }
 
     const accessToken = signAccessToken(user.id);
-    const refreshToken = await signRefreshToken(user.id);
+    const refreshToken = await signRefreshToken(user.id, req.headers["user-agent"], req.ip);
     res.cookie("refreshToken", refreshToken, COOKIE_OPTIONS);
 
     // hasPassword lets frontend know if user can set/change a password
@@ -158,7 +158,7 @@ export async function refresh(req, res, next) {
     const token = req.cookies?.refreshToken || req.body?.refreshToken;
     if (!token) return res.status(401).json({ error: "No refresh token" });
 
-    const result = await rotateRefreshToken(token);
+    const result = await rotateRefreshToken(token, req.headers["user-agent"], req.ip);
     if (!result) return res.status(401).json({ error: "Invalid refresh token" });
 
     res.cookie("refreshToken", result.newToken, COOKIE_OPTIONS);
@@ -313,4 +313,38 @@ export async function changePassword(req, res, next) {
 function sanitizeUser(user) {
   const { password, googleId, email, ...safe } = user;
   return safe;
+}
+
+export async function getSessions(req, res, next) {
+  try {
+    const sessions = await prisma.refreshToken.findMany({
+      where: { userId: req.userId },
+      select: {
+        id: true,
+        userAgent: true,
+        ip: true,
+        createdAt: true,
+      },
+      orderBy: { createdAt: "desc" }
+    });
+    res.json({ sessions });
+  } catch (err) {
+    next(err);
+  }
+}
+
+export async function deleteSession(req, res, next) {
+  try {
+    const { sessionId } = req.params;
+    const session = await prisma.refreshToken.findUnique({
+      where: { id: sessionId }
+    });
+    if (!session || session.userId !== req.userId) {
+      return res.status(404).json({ error: "Session not found" });
+    }
+    await prisma.refreshToken.delete({ where: { id: sessionId } });
+    res.json({ success: true });
+  } catch (err) {
+    next(err);
+  }
 }

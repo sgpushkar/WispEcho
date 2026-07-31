@@ -9,6 +9,7 @@ router.get("/search", messageController.searchMessages);
 router.get("/conversations", messageController.listConversations);
 router.get("/conversations/direct/:userId", messageController.getOrCreateDirectConversation);
 router.get("/conversations/:conversationId/messages", messageController.getMessages);
+router.get("/conversations/:conversationId/media", messageController.getSharedMedia);
 router.post("/conversations/:conversationId/read", messageController.markRead);
 router.patch("/conversations/:conversationId/pin", messageController.togglePinChat);
 router.post("/", messageController.sendMessage);

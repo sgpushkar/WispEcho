@@ -5,6 +5,7 @@ import { useAuthStore } from "@/store/useAuthStore";
 import { useNotifications } from "@/hooks/useNotifications";
 import { useChatStore } from "@/store/useChatStore";
 import { getSocket, disconnectSocket } from "@/lib/socket";
+import { useQueryClient } from "@tanstack/react-query";
 
 // Simple helper to play a beep sound using Web Audio API
 function playNotificationSound() {
@@ -35,6 +36,7 @@ export function useSocketEvents() {
   const { addMessage, updateMessage, removeMessage, setTyping, setPresence, addReaction, removeReaction, activeConversationId } = useChatStore();
   const { sendNotification } = useNotifications();
   const activeConvRef = useRef(activeConversationId);
+  const queryClient = useQueryClient();
 
   useEffect(() => {
     activeConvRef.current = activeConversationId;
@@ -68,6 +70,14 @@ export function useSocketEvents() {
     socket.on("message:viewed", (data) => {
       useChatStore.getState().markMessageViewed(data.conversationId, data.messageId, data.userId);
     });
+    
+    socket.on("message:delivered", (data) => {
+      useChatStore.getState().setMessageStatus(data.conversationId, data.messageId, "delivered");
+    });
+    
+    socket.on("message:read", (data) => {
+      useChatStore.getState().setMessageStatus(data.conversationId, data.messageId, "read");
+    });
 
     socket.on("message:edited", (msg) => updateMessage(msg));
     socket.on("message:deleted", ({ id, conversationId }) => removeMessage(conversationId, id));
@@ -94,9 +104,21 @@ export function useSocketEvents() {
       }
     });
 
+    socket.on("connect", () => {
+      useChatStore.getState().setOffline(false);
+      // Invalidate queries to trigger background sync of conversations/messages
+      queryClient.invalidateQueries();
+    });
+
+    socket.on("disconnect", () => {
+      useChatStore.getState().setOffline(true);
+    });
+
     return () => {
       socket.off("message:new");
       socket.off("message:viewed");
+      socket.off("message:delivered");
+      socket.off("message:read");
       socket.off("message:edited");
       socket.off("message:deleted");
       socket.off("reaction:added");
@@ -106,6 +128,8 @@ export function useSocketEvents() {
       socket.off("presence:update");
       socket.off("conversation:read");
       socket.off("notification:mention");
+      socket.off("connect");
+      socket.off("disconnect");
     };
   }, [accessToken, currentUserId]);
 

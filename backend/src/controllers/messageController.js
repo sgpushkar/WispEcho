@@ -29,6 +29,14 @@ export async function listConversations(req, res, next) {
         id: conv.id,
         isGroup: conv.isGroup,
         group: conv.group,
+        participants: conv.participants.map(cp => ({
+          user: {
+            id: cp.user.id,
+            username: cp.user.username,
+            displayName: cp.user.displayName,
+            avatarUrl: cp.user.avatarUrl,
+          }
+        })),
         otherUser: otherParticipant
           ? {
               id: otherParticipant.id,
@@ -109,6 +117,36 @@ export async function getMessages(req, res, next) {
     });
 
     res.json({ messages: messages.reverse(), nextCursor: messages.length === take ? messages[0]?.id : null });
+  } catch (err) {
+    next(err);
+  }
+}
+
+export async function getSharedMedia(req, res, next) {
+  try {
+    const { conversationId } = req.params;
+
+    const isParticipant = await prisma.conversationParticipant.findUnique({
+      where: { conversationId_userId: { conversationId, userId: req.userId } },
+    });
+    if (!isParticipant) return res.status(403).json({ error: "Not a participant" });
+
+    const messages = await prisma.message.findMany({
+      where: { 
+        conversationId,
+        mediaUrl: { not: null },
+        NOT: { deletedByIds: { has: req.userId } }
+      },
+      orderBy: { createdAt: "desc" },
+      select: {
+        id: true,
+        mediaUrl: true,
+        type: true,
+        createdAt: true,
+      }
+    });
+
+    res.json({ media: messages });
   } catch (err) {
     next(err);
   }
@@ -294,6 +332,28 @@ export async function markRead(req, res, next) {
       where: { conversationId_userId: { conversationId, userId: req.userId } },
       data: { lastReadAt: new Date() },
     });
+    
+    // Update messages to READ
+    const unreadMessages = await prisma.message.findMany({
+      where: {
+        conversationId,
+        senderId: { not: req.userId },
+        status: { in: ["SENT", "DELIVERED"] }
+      },
+      select: { id: true }
+    });
+
+    if (unreadMessages.length > 0) {
+      await prisma.message.updateMany({
+        where: { id: { in: unreadMessages.map(m => m.id) } },
+        data: { status: "READ" }
+      });
+
+      unreadMessages.forEach(msg => {
+        emitToConversation(conversationId, "message:read", { conversationId, messageId: msg.id, userId: req.userId });
+      });
+    }
+    
     emitToConversation(conversationId, "conversation:read", { conversationId, userId: req.userId });
     res.json({ success: true });
   } catch (err) {

@@ -17,9 +17,11 @@ import messageRoutes from "./routes/message.routes.js";
 import groupRoutes from "./routes/group.routes.js";
 import versionRoutes from "./routes/version.routes.js";
 import uploadRoutes from "./routes/upload.routes.js";
+import linkpreviewRoutes from "./routes/linkpreview.routes.js";
 import { getVersion } from "./controllers/versionController.js";
 import { notFound, errorHandler } from "./middleware/errorHandler.js";
 import { initSockets } from "./sockets/index.js";
+import { redisAdapter } from "./config/redis.js";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -39,6 +41,10 @@ const allowedOrigins = (origin, callback) => {
 const io = new Server(server, {
   cors: { origin: allowedOrigins, credentials: true },
 });
+
+if (redisAdapter) {
+  io.adapter(redisAdapter);
+}
 
 app.use(cors({ origin: allowedOrigins, credentials: true }));
 app.use(cookieParser());
@@ -67,6 +73,7 @@ app.use("/api/messages", messageRoutes);
 app.use("/api/groups", groupRoutes);
 app.use("/api/version", versionRoutes);
 app.use("/api/upload", uploadRoutes);
+app.use("/api/linkpreview", linkpreviewRoutes);
 
 app.use(notFound);
 app.use(errorHandler);
