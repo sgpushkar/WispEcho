@@ -140,7 +140,7 @@ export function useUpdateChecker() {
         }
 
         // 2. Convert to base64
-        const blob = new Blob(chunks, { type: "application/vnd.android.package-archive" });
+        const blob = new Blob(chunks as unknown as BlobPart[], { type: "application/vnd.android.package-archive" });
         const base64 = await new Promise<string>((resolve, reject) => {
           const reader2 = new FileReader();
           reader2.onload = () => {
