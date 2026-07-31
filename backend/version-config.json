@@ -1,10 +1,29 @@
 {
-  "latestVersion": "1.2.0",
+  "latestVersion": "1.2.1",
   "minimumVersion": "1.0.0",
-  "versionCode": 3,
-  "downloadUrl": "https://github.com/sgpushkar/WispEcho/releases/download/latest/WispEcho-v1.2.0.apk",
-  "releaseDate": "2026-07-30",
+  "versionCode": 4,
+  "downloadUrl": "https://github.com/sgpushkar/WispEcho/releases/download/latest/WispEcho-v1.2.1.apk",
+  "releaseDate": "2026-07-31",
   "changelog": [
+    {
+      "version": "1.2.1",
+      "date": "2026-07-31",
+      "changes": {
+        "new": [
+          "Voice notes feature",
+          "Device session management"
+        ],
+        "improved": [
+          "Performance with React.memo and image caching",
+          "Horizontal scalability with Redis"
+        ],
+        "fixed": [
+          "Google Sign-In on Android App",
+          "Voice recorder permissions on Android App",
+          "In-app updater download logic for Android WebViews"
+        ]
+      }
+    },
     {
       "version": "1.2.0",
       "date": "2026-07-30",
