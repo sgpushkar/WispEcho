@@ -14,6 +14,8 @@ import { SessionManager } from "./SessionManager";
 export function SettingsModal({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }) {
   const user = useAuthStore((s) => s.user);
   const setUser = useAuthStore((s) => s.setUser);
+  const { theme: storeTheme } = useUIStore();
+  const isDark = storeTheme === "dark";
 
   const [activeTab, setActiveTab] = useState<"profile" | "customization" | "preferences" | "devices">("profile");
 
@@ -80,7 +82,7 @@ export function SettingsModal({ isOpen, onClose }: { isOpen: boolean; onClose: (
   const [pwError, setPwError] = useState<string | null>(null);
   const [pwSuccess, setPwSuccess] = useState(false);
 
-  const { theme: storeTheme, setTheme: setStoreTheme } = useUIStore();
+  const { setTheme: setStoreTheme } = useUIStore();
   const [themeMode, setThemeMode] = useState<"light" | "dark">("dark");
 
   useEffect(() => {
@@ -171,58 +173,106 @@ export function SettingsModal({ isOpen, onClose }: { isOpen: boolean; onClose: (
     "#ef4444", // Red
   ];
 
+  // Theme-aware style tokens
+  const modalBg = isDark ? "rgba(18,18,22,0.97)" : "rgba(255,255,255,0.97)";
+  const headerBorder = isDark ? "rgba(255,255,255,0.07)" : "rgba(0,0,0,0.08)";
+  const inkColor = isDark ? "#ffffff" : "#000000";
+  const inkDim = isDark ? "rgba(255,255,255,0.7)" : "#333333";
+  const inkFaint = isDark ? "rgba(255,255,255,0.4)" : "#777777";
+  const inputBg = isDark ? "rgba(255,255,255,0.05)" : "rgba(0,0,0,0.04)";
+  const inputBorder = isDark ? "rgba(255,255,255,0.07)" : "rgba(0,0,0,0.1)";
+  const inputFocusBorder = isDark ? "rgba(255,255,255,0.15)" : "rgba(0,0,0,0.2)";
+  const sectionBg = isDark ? "rgba(255,255,255,0.02)" : "rgba(0,0,0,0.02)";
+  const sectionBorder = isDark ? "rgba(255,255,255,0.06)" : "rgba(0,0,0,0.08)";
+  const footerBg = isDark ? "rgba(255,255,255,0.01)" : "rgba(0,0,0,0.02)";
+  const cancelBg = isDark ? "rgba(255,255,255,0.05)" : "rgba(0,0,0,0.05)";
+  const cancelHoverBg = isDark ? "rgba(255,255,255,0.1)" : "rgba(0,0,0,0.1)";
+  const saveBg = isDark ? "#ffffff" : "#111111";
+  const saveText = isDark ? "#0a0a0a" : "#ffffff";
+  const overlayBg = isDark ? "rgba(0,0,0,0.7)" : "rgba(0,0,0,0.4)";
+  const tabActiveBorder = isDark ? "#ffffff" : "#000000";
+  const tabActiveText = isDark ? "#ffffff" : "#000000";
+  const closeHoverBg = isDark ? "rgba(255,255,255,0.07)" : "rgba(0,0,0,0.07)";
+  const toggleActiveBg = isDark ? "rgba(255,255,255,0.3)" : "rgba(0,0,0,0.25)";
+  const toggleInactiveBg = isDark ? "rgba(255,255,255,0.1)" : "rgba(0,0,0,0.1)";
+  const pwSectionBg = isDark ? "rgba(255,255,255,0.02)" : "rgba(0,0,0,0.03)";
+  const pwSectionBorder = isDark ? "rgba(255,255,255,0.05)" : "rgba(0,0,0,0.08)";
+
+  const inputStyle: React.CSSProperties = {
+    width: "100%",
+    borderRadius: "16px",
+    border: `1px solid ${inputBorder}`,
+    background: inputBg,
+    padding: "12px 16px",
+    fontSize: "14px",
+    outline: "none",
+    color: inkColor,
+    transition: "border-color 0.18s",
+  };
+
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4 backdrop-blur-md">
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center p-4"
+      style={{ background: overlayBg, backdropFilter: "blur(12px)" }}
+    >
       <motion.div
         initial={{ opacity: 0, scale: 0.95, y: 20 }}
         animate={{ opacity: 1, scale: 1, y: 0 }}
         exit={{ opacity: 0, scale: 0.95, y: 20 }}
-        className="glass relative flex h-[580px] w-full max-w-md flex-col overflow-hidden rounded-3xl border border-white/10"
+        className="relative flex h-[580px] w-full max-w-md flex-col overflow-hidden rounded-3xl"
+        style={{
+          background: modalBg,
+          border: `1px solid ${headerBorder}`,
+          backdropFilter: "blur(32px)",
+        }}
       >
         {/* Header */}
-        <div className="flex items-center justify-between border-b border-white/5 px-6 py-4">
-          <h2 className="text-lg font-semibold flex items-center gap-2">
-            <Settings size={18} className="text-white/80" /> App Settings
+        <div
+          className="flex items-center justify-between px-6 py-4"
+          style={{ borderBottom: `1px solid ${headerBorder}` }}
+        >
+          <h2 className="text-lg font-semibold flex items-center gap-2" style={{ color: inkColor }}>
+            <Settings size={18} style={{ color: inkDim }} /> App Settings
           </h2>
-          <button onClick={onClose} className="rounded-full p-1.5 text-white/40 hover:bg-white/5 hover:text-white transition">
+          <button
+            onClick={onClose}
+            className="rounded-full p-1.5 transition"
+            style={{ color: inkFaint }}
+            onMouseEnter={(e) => (e.currentTarget.style.background = closeHoverBg)}
+            onMouseLeave={(e) => (e.currentTarget.style.background = "transparent")}
+          >
             <X size={20} />
           </button>
         </div>
 
         {/* Tab Navigation */}
-        <div className="flex border-b border-white/5 bg-white/[0.01]">
-          <button
-            onClick={() => setActiveTab("profile")}
-            className={`flex-1 py-3 text-xs font-semibold uppercase tracking-wider transition ${
-              activeTab === "profile" ? "border-b-2 border-white text-white" : "text-white/40 hover:text-white/60"
-            }`}
-          >
-            Profile
-          </button>
-          <button
-            onClick={() => setActiveTab("customization")}
-            className={`flex-1 py-3 text-xs font-semibold uppercase tracking-wider transition ${
-              activeTab === "customization" ? "border-b-2 border-white text-white" : "text-white/40 hover:text-white/60"
-            }`}
-          >
-            Appearance
-          </button>
-          <button
-            onClick={() => setActiveTab("preferences")}
-            className={`flex-1 py-3 text-xs font-semibold uppercase tracking-wider transition ${
-              activeTab === "preferences" ? "border-b-2 border-white text-white" : "text-white/40 hover:text-white/60"
-            }`}
-          >
-            Preferences
-          </button>
-          <button
-            onClick={() => setActiveTab("devices")}
-            className={`flex-1 py-3 text-xs font-semibold uppercase tracking-wider transition ${
-              activeTab === "devices" ? "border-b-2 border-white text-white" : "text-white/40 hover:text-white/60"
-            }`}
-          >
-            Devices
-          </button>
+        <div
+          className="flex"
+          style={{ borderBottom: `1px solid ${headerBorder}`, background: isDark ? "rgba(255,255,255,0.01)" : "rgba(0,0,0,0.02)" }}
+        >
+          {(["profile", "customization", "preferences", "devices"] as const).map((tab) => {
+            const labels: Record<string, string> = {
+              profile: "Profile",
+              customization: "Appearance",
+              preferences: "Preferences",
+              devices: "Devices",
+            };
+            const isActive = activeTab === tab;
+            return (
+              <button
+                key={tab}
+                onClick={() => setActiveTab(tab)}
+                className="flex-1 py-3 text-xs font-semibold uppercase tracking-wider transition"
+                style={{
+                  color: isActive ? tabActiveText : inkFaint,
+                  borderBottom: isActive ? `2px solid ${tabActiveBorder}` : "2px solid transparent",
+                  background: "transparent",
+                }}
+              >
+                {labels[tab]}
+              </button>
+            );
+          })}
         </div>
 
         {/* Content */}
@@ -231,7 +281,7 @@ export function SettingsModal({ isOpen, onClose }: { isOpen: boolean; onClose: (
             <div className="space-y-4">
               <div className="flex justify-center mb-6">
                 <div className="relative group cursor-pointer rounded-full">
-                  <Avatar src={avatarUrl} name={displayName || username} className="h-24 w-24 rounded-full border-2 border-white/10 text-2xl" />
+                  <Avatar src={avatarUrl} name={displayName || username} className="h-24 w-24 rounded-full text-2xl border-2" />
                   <div className="absolute inset-0 bg-black/50 rounded-full opacity-0 group-hover:opacity-100 transition flex items-center justify-center">
                     {isUploadingAvatar ? <div className="w-5 h-5 border-2 border-white/50 border-t-white rounded-full animate-spin" /> : <Camera size={24} className="text-white" />}
                   </div>
@@ -241,51 +291,51 @@ export function SettingsModal({ isOpen, onClose }: { isOpen: boolean; onClose: (
 
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-1.5">
-                  <label className="text-xs font-semibold uppercase tracking-wider text-white/45">Username</label>
+                  <label className="text-xs font-semibold uppercase tracking-wider" style={{ color: inkFaint }}>Username</label>
                   <input
                     value={username}
                     onChange={(e) => setUsername(e.target.value)}
                     placeholder="username"
-                    className="w-full rounded-2xl border border-white/5 bg-white/5 px-4 py-3 text-sm outline-none placeholder:text-white/20 text-white focus:border-white/10 transition"
+                    style={{ ...inputStyle }}
                   />
                 </div>
                 <div className="space-y-1.5">
-                  <label className="text-xs font-semibold uppercase tracking-wider text-white/45">Display Name</label>
+                  <label className="text-xs font-semibold uppercase tracking-wider" style={{ color: inkFaint }}>Display Name</label>
                   <input
                     value={displayName}
                     onChange={(e) => setDisplayName(e.target.value)}
                     placeholder="your name"
-                    className="w-full rounded-2xl border border-white/5 bg-white/5 px-4 py-3 text-sm outline-none placeholder:text-white/20 text-white focus:border-white/10 transition"
+                    style={{ ...inputStyle }}
                   />
                 </div>
               </div>
 
               <div className="space-y-1.5">
-                <label className="text-xs font-semibold uppercase tracking-wider text-white/45">Avatar URL</label>
+                <label className="text-xs font-semibold uppercase tracking-wider" style={{ color: inkFaint }}>Avatar URL</label>
                 <input
                   value={avatarUrl}
                   onChange={(e) => setAvatarUrl(e.target.value)}
                   placeholder="https://..."
-                  className="w-full rounded-2xl border border-white/5 bg-white/5 px-4 py-3 text-sm outline-none placeholder:text-white/20 text-white focus:border-white/10 transition"
+                  style={{ ...inputStyle }}
                 />
               </div>
 
               <div className="space-y-1.5">
-                <label className="text-xs font-semibold uppercase tracking-wider text-white/45">Bio</label>
+                <label className="text-xs font-semibold uppercase tracking-wider" style={{ color: inkFaint }}>Bio</label>
                 <textarea
                   value={bio}
                   onChange={(e) => setBio(e.target.value)}
                   placeholder="vibing..."
                   rows={3}
-                  className="w-full rounded-2xl border border-white/5 bg-white/5 px-4 py-3 text-sm outline-none placeholder:text-white/20 text-white resize-none focus:border-white/10 transition"
+                  style={{ ...inputStyle, resize: "none", fontFamily: "inherit" }}
                 />
               </div>
 
               {/* Password section */}
-              <div className="rounded-2xl border border-white/5 bg-white/[0.02] p-4 space-y-3">
+              <div className="rounded-2xl p-4 space-y-3" style={{ border: `1px solid ${pwSectionBorder}`, background: pwSectionBg }}>
                 <div className="flex items-center gap-2 mb-1">
-                  <Lock size={14} className="text-white/40" />
-                  <span className="text-xs font-semibold uppercase tracking-wider text-white/45">
+                  <Lock size={14} style={{ color: inkFaint }} />
+                  <span className="text-xs font-semibold uppercase tracking-wider" style={{ color: inkFaint }}>
                     {hasPassword ? "Change Password" : "Set Password"}
                   </span>
                 </div>
@@ -297,7 +347,7 @@ export function SettingsModal({ isOpen, onClose }: { isOpen: boolean; onClose: (
                       value={currentPassword}
                       onChange={(e) => setCurrentPassword(e.target.value)}
                       placeholder="Current password"
-                      className="w-full rounded-2xl border border-white/5 bg-white/5 px-4 py-3 text-sm outline-none placeholder:text-white/20 text-white focus:border-white/10 transition pr-10"
+                      style={{ ...inputStyle, paddingRight: "40px" }}
                     />
                   </div>
                 )}
@@ -308,12 +358,13 @@ export function SettingsModal({ isOpen, onClose }: { isOpen: boolean; onClose: (
                     value={newPassword}
                     onChange={(e) => setNewPassword(e.target.value)}
                     placeholder="New password"
-                    className="w-full rounded-2xl border border-white/5 bg-white/5 px-4 py-3 text-sm outline-none placeholder:text-white/20 text-white focus:border-white/10 transition pr-10"
+                    style={{ ...inputStyle, paddingRight: "40px" }}
                   />
                   <button
                     type="button"
                     onClick={() => setShowPw((v) => !v)}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 text-white/30 hover:text-white transition"
+                    className="absolute right-3 top-1/2 -translate-y-1/2 transition"
+                    style={{ color: inkFaint }}
                   >
                     {showPw ? <EyeOff size={14} /> : <Eye size={14} />}
                   </button>
@@ -324,17 +375,18 @@ export function SettingsModal({ isOpen, onClose }: { isOpen: boolean; onClose: (
                   value={confirmPassword}
                   onChange={(e) => setConfirmPassword(e.target.value)}
                   placeholder="Confirm new password"
-                  className="w-full rounded-2xl border border-white/5 bg-white/5 px-4 py-3 text-sm outline-none placeholder:text-white/20 text-white focus:border-white/10 transition"
+                  style={{ ...inputStyle }}
                 />
 
-                {pwError && <p className="text-xs text-red-400">{pwError}</p>}
-                {pwSuccess && <p className="text-xs text-green-400">Password updated successfully!</p>}
+                {pwError && <p className="text-xs text-red-500">{pwError}</p>}
+                {pwSuccess && <p className="text-xs text-green-500">Password updated successfully!</p>}
 
                 <button
                   type="button"
                   onClick={handlePasswordSubmit}
                   disabled={changePassword.isPending}
-                  className="w-full rounded-2xl bg-white/10 border border-white/10 py-2.5 text-sm font-semibold text-white hover:bg-white/15 transition disabled:opacity-50"
+                  className="w-full rounded-2xl py-2.5 text-sm font-semibold transition disabled:opacity-50"
+                  style={{ background: inputBg, border: `1px solid ${inputBorder}`, color: inkColor }}
                 >
                   {changePassword.isPending ? "Saving..." : hasPassword ? "Update Password" : "Set Password"}
                 </button>
@@ -344,8 +396,8 @@ export function SettingsModal({ isOpen, onClose }: { isOpen: boolean; onClose: (
 
           {activeTab === "customization" && (
             <div className="space-y-4">
-              <div className="relative h-24 rounded-2xl overflow-hidden bg-white/5 border border-white/10 group cursor-pointer mb-2">
-                {bannerUrl ? <img src={bannerUrl} className="w-full h-full object-cover" /> : <div className="w-full h-full flex items-center justify-center text-white/20">No Banner</div>}
+              <div className="relative h-24 rounded-2xl overflow-hidden group cursor-pointer mb-2" style={{ background: inputBg, border: `1px solid ${inputBorder}` }}>
+                {bannerUrl ? <img src={bannerUrl} className="w-full h-full object-cover" /> : <div className="w-full h-full flex items-center justify-center" style={{ color: inkFaint }}>No Banner</div>}
                 <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition flex items-center justify-center">
                   {isUploadingBanner ? <div className="w-5 h-5 border-2 border-white/50 border-t-white rounded-full animate-spin" /> : <Camera size={24} className="text-white" />}
                 </div>
@@ -353,47 +405,47 @@ export function SettingsModal({ isOpen, onClose }: { isOpen: boolean; onClose: (
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-1.5">
-                  <label className="text-xs font-semibold uppercase tracking-wider text-white/45">Pronouns</label>
+                  <label className="text-xs font-semibold uppercase tracking-wider" style={{ color: inkFaint }}>Pronouns</label>
                   <input
                     value={pronouns}
                     onChange={(e) => setPronouns(e.target.value)}
                     placeholder="e.g. they/them"
-                    className="w-full rounded-2xl border border-white/5 bg-white/5 px-4 py-3 text-sm outline-none placeholder:text-white/20 text-white focus:border-white/10 transition"
+                    style={{ ...inputStyle }}
                   />
                 </div>
                 <div className="space-y-1.5">
-                  <label className="text-xs font-semibold uppercase tracking-wider text-white/45">Custom Status</label>
+                  <label className="text-xs font-semibold uppercase tracking-wider" style={{ color: inkFaint }}>Custom Status</label>
                   <input
                     value={status}
                     onChange={(e) => setStatus(e.target.value)}
                     placeholder="current mood..."
-                    className="w-full rounded-2xl border border-white/5 bg-white/5 px-4 py-3 text-sm outline-none placeholder:text-white/20 text-white focus:border-white/10 transition"
+                    style={{ ...inputStyle }}
                   />
                 </div>
               </div>
 
               <div className="space-y-1.5">
-                <label className="text-xs font-semibold uppercase tracking-wider text-white/45">Banner URL</label>
+                <label className="text-xs font-semibold uppercase tracking-wider" style={{ color: inkFaint }}>Banner URL</label>
                 <input
                   value={bannerUrl}
                   onChange={(e) => setBannerUrl(e.target.value)}
                   placeholder="https://..."
-                  className="w-full rounded-2xl border border-white/5 bg-white/5 px-4 py-3 text-sm outline-none placeholder:text-white/20 text-white focus:border-white/10 transition"
+                  style={{ ...inputStyle }}
                 />
               </div>
 
               <div className="space-y-2">
-                <label className="text-xs font-semibold uppercase tracking-wider text-white/45">Accent Color</label>
+                <label className="text-xs font-semibold uppercase tracking-wider" style={{ color: inkFaint }}>Accent Color</label>
                 <div className="flex gap-3 pt-1">
                   {ACCENT_COLORS.map((c) => (
                     <button
                       key={c}
                       type="button"
                       onClick={() => setAccentColor(c)}
-                      className={`h-7 w-7 rounded-full transition-transform border border-white/10 ${
-                        accentColor === c ? "scale-125 border-white shadow-lg" : "hover:scale-110"
+                      className={`h-7 w-7 rounded-full transition-transform border ${
+                        accentColor === c ? "scale-125 shadow-lg" : "hover:scale-110"
                       }`}
-                      style={{ backgroundColor: c }}
+                      style={{ backgroundColor: c, borderColor: accentColor === c ? inkColor : inputBorder }}
                     />
                   ))}
                 </div>
@@ -403,85 +455,83 @@ export function SettingsModal({ isOpen, onClose }: { isOpen: boolean; onClose: (
 
           {activeTab === "preferences" && (
             <div className="space-y-5 pt-2">
-              <div className="flex items-center justify-between rounded-2xl border border-white/5 bg-white/[0.02] p-4">
+              <div className="flex items-center justify-between rounded-2xl p-4" style={{ border: `1px solid ${sectionBorder}`, background: sectionBg }}>
                 <div className="flex flex-col gap-0.5">
-                  <span className="text-sm font-semibold text-white/80 flex items-center gap-2">
-                    <Palette size={16} className="text-white/50" /> Theme Mode
+                  <span className="text-sm font-semibold flex items-center gap-2" style={{ color: inkDim }}>
+                    <Palette size={16} style={{ color: inkFaint }} /> Theme Mode
                   </span>
-                  <span className="text-xs text-white/40">Select application visual style</span>
+                  <span className="text-xs" style={{ color: inkFaint }}>Select application visual style</span>
                 </div>
                 <div className="flex gap-2">
                   <button
                     type="button"
                     onClick={() => setThemeMode("light")}
-                    className={`px-3.5 py-2 text-xs font-semibold rounded-xl border transition ${
-                      themeMode === "light"
-                        ? "bg-white text-black border-white"
-                        : "bg-white/5 text-white border-white/5 hover:bg-white/10"
-                    }`}
+                    className="px-3.5 py-2 text-xs font-semibold rounded-xl transition"
+                    style={{
+                      background: themeMode === "light" ? inkColor : inputBg,
+                      color: themeMode === "light" ? (isDark ? "#000" : "#fff") : inkDim,
+                      border: `1px solid ${themeMode === "light" ? inkColor : inputBorder}`,
+                    }}
                   >
                     Light
                   </button>
                   <button
                     type="button"
                     onClick={() => setThemeMode("dark")}
-                    className={`px-3.5 py-2 text-xs font-semibold rounded-xl border transition ${
-                      themeMode === "dark"
-                        ? "bg-white text-black border-white"
-                        : "bg-white/5 text-white border-white/5 hover:bg-white/10"
-                    }`}
+                    className="px-3.5 py-2 text-xs font-semibold rounded-xl transition"
+                    style={{
+                      background: themeMode === "dark" ? inkColor : inputBg,
+                      color: themeMode === "dark" ? (isDark ? "#000" : "#fff") : inkDim,
+                      border: `1px solid ${themeMode === "dark" ? inkColor : inputBorder}`,
+                    }}
                   >
                     Dark
                   </button>
                 </div>
               </div>
 
-              <div className="flex items-center justify-between rounded-2xl border border-white/5 bg-white/[0.02] p-4">
+              <div className="flex items-center justify-between rounded-2xl p-4" style={{ border: `1px solid ${sectionBorder}`, background: sectionBg }}>
                 <div className="flex flex-col gap-0.5">
-                  <span className="text-sm font-semibold text-white/80 flex items-center gap-2">
-                    <Bell size={16} className="text-white/50" /> Sound Notifications
+                  <span className="text-sm font-semibold flex items-center gap-2" style={{ color: inkDim }}>
+                    <Bell size={16} style={{ color: inkFaint }} /> Sound Notifications
                   </span>
-                  <span className="text-xs text-white/40">Play a subtle ring on receiving messages</span>
+                  <span className="text-xs" style={{ color: inkFaint }}>Play a subtle ring on receiving messages</span>
                 </div>
                 <button
                   type="button"
                   onClick={() => setMuteSounds(!muteSounds)}
-                  className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${
-                    !muteSounds ? "bg-white/30" : "bg-white/10"
-                  }`}
+                  className="relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none"
+                  style={{ background: !muteSounds ? toggleActiveBg : toggleInactiveBg }}
                 >
                   <span
-                    className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out ${
-                      !muteSounds ? "translate-x-5" : "translate-x-0"
-                    }`}
+                    className="pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out"
+                    style={{ transform: !muteSounds ? "translateX(20px)" : "translateX(0)" }}
                   />
                 </button>
               </div>
 
-              <div className="flex items-center justify-between rounded-2xl border border-white/5 bg-white/[0.02] p-4">
+              <div className="flex items-center justify-between rounded-2xl p-4" style={{ border: `1px solid ${sectionBorder}`, background: sectionBg }}>
                 <div className="flex flex-col gap-0.5">
-                  <span className="text-sm font-semibold text-white/80 flex items-center gap-2">
-                    <Palette size={16} className="text-white/50" /> Ambient Glow
+                  <span className="text-sm font-semibold flex items-center gap-2" style={{ color: inkDim }}>
+                    <Palette size={16} style={{ color: inkFaint }} /> Ambient Glow
                   </span>
-                  <span className="text-xs text-white/40">Enable translucent glass effects</span>
+                  <span className="text-xs" style={{ color: inkFaint }}>Enable translucent glass effects</span>
                 </div>
                 <button
                   type="button"
                   onClick={() => setAmbientGlow(!ambientGlow)}
-                  className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${
-                    ambientGlow ? "bg-white/30" : "bg-white/10"
-                  }`}
+                  className="relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none"
+                  style={{ background: ambientGlow ? toggleActiveBg : toggleInactiveBg }}
                 >
                   <span
-                    className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out ${
-                      ambientGlow ? "translate-x-5" : "translate-x-0"
-                    }`}
+                    className="pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out"
+                    style={{ transform: ambientGlow ? "translateX(20px)" : "translateX(0)" }}
                   />
                 </button>
               </div>
 
               {/* Version & Update Checks */}
-              <div className="border-t border-white/5 pt-4">
+              <div className="pt-4" style={{ borderTop: `1px solid ${sectionBorder}` }}>
                 <VersionSettings />
               </div>
             </div>
@@ -493,23 +543,30 @@ export function SettingsModal({ isOpen, onClose }: { isOpen: boolean; onClose: (
         </div>
 
         {/* Footer */}
-        <div className="border-t border-white/5 p-4 flex flex-col gap-3 bg-white/[0.01]">
+        <div
+          className="p-4 flex flex-col gap-3"
+          style={{ borderTop: `1px solid ${headerBorder}`, background: footerBg }}
+        >
           <div className="flex gap-3">
             <button
               onClick={onClose}
-              className="flex-1 rounded-2xl bg-white/5 border border-white/10 px-4 py-3 text-xs font-semibold uppercase tracking-wider text-white/80 hover:bg-white/10 hover:text-white transition"
+              className="flex-1 rounded-2xl px-4 py-3 text-xs font-semibold uppercase tracking-wider transition"
+              style={{ background: cancelBg, border: `1px solid ${inputBorder}`, color: inkDim }}
+              onMouseEnter={(e) => (e.currentTarget.style.background = cancelHoverBg)}
+              onMouseLeave={(e) => (e.currentTarget.style.background = cancelBg)}
             >
               Cancel
             </button>
             <button
               onClick={() => updateProfile.mutate()}
               disabled={!username || !displayName || updateProfile.isPending}
-              className="flex-1 rounded-2xl bg-white text-[#0a0a0a] px-4 py-3 text-xs font-semibold uppercase tracking-wider hover:bg-white/90 transition disabled:opacity-50"
+              className="flex-1 rounded-2xl px-4 py-3 text-xs font-semibold uppercase tracking-wider transition disabled:opacity-50"
+              style={{ background: saveBg, color: saveText }}
             >
               {updateProfile.isPending ? "Saving..." : "Save Changes"}
             </button>
           </div>
-          <p className="text-center text-[10px] text-white/35 font-semibold tracking-wider uppercase">
+          <p className="text-center text-[10px] font-semibold tracking-wider uppercase" style={{ color: inkFaint }}>
             WispEcho App v1.2.0
           </p>
         </div>

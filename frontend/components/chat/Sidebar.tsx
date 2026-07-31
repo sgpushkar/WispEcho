@@ -98,7 +98,8 @@ export function Sidebar() {
         {/* Header / Brand */}
         <div className="flex items-center justify-between pb-1">
           <div className="flex items-center gap-2">
-            <img src="/logo.png" alt="WispEcho" className="h-8 w-auto rounded-[6px] brand-logo" />
+            <img src="/logo-dark.png" alt="WispEcho" className="h-8 w-auto rounded-[6px] logo-dark" />
+            <img src="/logo-light.png" alt="WispEcho" className="h-8 w-auto rounded-[6px] logo-light" />
             <span className="brand-name text-base font-bold">WispEcho</span>
           </div>
           {/* Desktop action buttons only */}
