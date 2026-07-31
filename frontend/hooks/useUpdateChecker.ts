@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback, useRef } from "react";
 
 /** Must match the app's built-in version (update on each release) */
-export const CURRENT_VERSION = "1.2.1";
+export const CURRENT_VERSION = "1.2.2";
 
 /* ---------- types ---------- */
 
@@ -103,20 +103,79 @@ export function useUpdateChecker() {
   }, []);
 
   /** Download the APK with progress tracking, then open the Android installer. */
-  const startDownload = useCallback(() => {
+  const startDownload = useCallback(async () => {
     const url = state.payload?.downloadUrl;
     if (!url) return;
 
-    // On non-Capacitor (web), just open the URL directly
     const isCapacitor = typeof window !== "undefined" && (window as any).Capacitor;
+
     if (isCapacitor) {
-      // On Android/Capacitor, we cannot trigger an APK install from a Blob URL.
-      // We must hand it off to the system browser/download manager.
-      window.open(url, "_system");
-      dismiss();
+      // ── Native Android path ──────────────────────────────────────────────
+      // Download in-app with a progress bar, save to Downloads, then install.
+      setState((s) => ({ ...s, status: "downloading", downloadProgress: 0, error: null }));
+
+      try {
+        const { Filesystem, Directory } = await import("@capacitor/filesystem");
+        const version = state.payload?.latestVersion || "update";
+        const fileName = `WispEcho-v${version}.apk`;
+
+        // 1. Fetch with progress via ReadableStream
+        const response = await fetch(url);
+        if (!response.ok) throw new Error(`HTTP ${response.status}`);
+
+        const contentLength = Number(response.headers.get("content-length") || "0");
+        const reader = response.body!.getReader();
+        const chunks: Uint8Array[] = [];
+        let received = 0;
+
+        while (true) {
+          const { done, value } = await reader.read();
+          if (done) break;
+          chunks.push(value);
+          received += value.length;
+          if (contentLength > 0) {
+            const pct = Math.round((received / contentLength) * 100);
+            setState((s) => ({ ...s, downloadProgress: pct }));
+          }
+        }
+
+        // 2. Convert to base64
+        const blob = new Blob(chunks, { type: "application/vnd.android.package-archive" });
+        const base64 = await new Promise<string>((resolve, reject) => {
+          const reader2 = new FileReader();
+          reader2.onload = () => {
+            const result = reader2.result as string;
+            resolve(result.split(",")[1]); // strip data:...;base64,
+          };
+          reader2.onerror = reject;
+          reader2.readAsDataURL(blob);
+        });
+
+        // 3. Save to the device Downloads folder
+        const { uri } = await Filesystem.writeFile({
+          path: fileName,
+          data: base64,
+          directory: Directory.Downloads,
+          recursive: true,
+        });
+
+        setState((s) => ({ ...s, status: "download-complete", downloadProgress: 100 }));
+
+        // 4. Open the saved file to trigger the Android package installer
+        // file:// URI is handled by Android's FileProvider for APK installs
+        const fileUrl = uri.startsWith("file://") ? uri : `file://${uri}`;
+        window.open(fileUrl, "_system");
+      } catch (err: any) {
+        console.error("In-app download failed, falling back to browser:", err);
+        // Fallback: open in system browser
+        window.open(url, "_system");
+        dismiss();
+      }
+
       return;
     }
 
+    // ── Web path ─────────────────────────────────────────────────────────────
     setState((s) => ({ ...s, status: "downloading", downloadProgress: 0, error: null }));
 
     const xhr = new XMLHttpRequest();

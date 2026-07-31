@@ -1,10 +1,24 @@
 {
-  "latestVersion": "1.2.1",
+  "latestVersion": "1.2.2",
   "minimumVersion": "1.0.0",
-  "versionCode": 4,
-  "downloadUrl": "https://github.com/sgpushkar/WispEcho/releases/download/latest/WispEcho-v1.2.1.apk",
+  "versionCode": 5,
+  "downloadUrl": "https://github.com/sgpushkar/WispEcho/releases/download/latest/WispEcho-v1.2.2.apk",
   "releaseDate": "2026-07-31",
   "changelog": [
+    {
+      "version": "1.2.2",
+      "date": "2026-07-31",
+      "changes": {
+        "new": [],
+        "improved": [
+          "In-app APK downloads for seamless Android updates"
+        ],
+        "fixed": [
+          "Message duplication race condition",
+          "Silent notification failures"
+        ]
+      }
+    },
     {
       "version": "1.2.1",
       "date": "2026-07-31",
