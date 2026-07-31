@@ -62,9 +62,19 @@ jobs:
         run: ./gradlew assembleDebug --no-daemon
 
       - name: Print debug keystore SHA-1 (for Google Sign-In setup)
+        continue-on-error: true
         run: |
+          KEYSTORE_PATH="${HOME}/.android/debug.keystore"
+          if [ ! -f "$KEYSTORE_PATH" ]; then
+            KEYSTORE_PATH=$(find $HOME -name "debug.keystore" 2>/dev/null | head -n 1)
+          fi
+          if [ -z "$KEYSTORE_PATH" ] || [ ! -f "$KEYSTORE_PATH" ]; then
+            echo "debug.keystore not found — skipping SHA-1 print."
+            exit 0
+          fi
+          echo "Using keystore at: $KEYSTORE_PATH"
           keytool -list -v \
-            -keystore ~/.android/debug.keystore \
+            -keystore "$KEYSTORE_PATH" \
             -alias androiddebugkey \
             -storepass android \
             -keypass android \
