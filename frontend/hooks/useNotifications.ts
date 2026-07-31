@@ -38,8 +38,6 @@ export function useNotifications() {
               body,
               id: Math.floor(Math.random() * 100000),
               // No `schedule` = fires immediately
-              smallIcon: "ic_launcher_foreground",
-              actionTypeId: "",
               extra: null,
             },
           ],

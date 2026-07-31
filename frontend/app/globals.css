@@ -4,14 +4,14 @@
 
 @layer base {
   :root {
-    --bg: #0a0a0a;
+    --bg: #050505;
     --ink: #ffffff;
-    --ink-dim: rgba(255,255,255,0.55);
-    --ink-faint: rgba(255,255,255,0.35);
-    --glass-bg: rgba(255,255,255,0.03);
-    --glass-bg-strong: rgba(255,255,255,0.05);
-    --glass-border: rgba(255,255,255,0.05);
-    --glass-border-strong: rgba(255,255,255,0.08);
+    --ink-dim: rgba(255,255,255,0.7);
+    --ink-faint: rgba(255,255,255,0.45);
+    --glass-bg: rgba(255,255,255,0.04);
+    --glass-bg-strong: rgba(30, 30, 30, 0.85);
+    --glass-border: rgba(255,255,255,0.08);
+    --glass-border-strong: rgba(255,255,255,0.15);
     --bubble-theirs: rgba(255,255,255,0.04);
     --bubble-theirs-border: rgba(255,255,255,0.04);
     --bubble-mine: rgba(255,255,255,0.09);
@@ -31,14 +31,14 @@
   }
 
   .light {
-    --bg: #f4f4f7;
-    --ink: #18181b;
-    --ink-dim: #71717a;
-    --ink-faint: #a1a1aa;
-    --glass-bg: rgba(255, 255, 255, 0.65);
-    --glass-bg-strong: rgba(255, 255, 255, 0.85);
-    --glass-border: rgba(0, 0, 0, 0.06);
-    --glass-border-strong: rgba(0, 0, 0, 0.1);
+    --bg: #f8f9fa;
+    --ink: #111111;
+    --ink-dim: #555555;
+    --ink-faint: #888888;
+    --glass-bg: rgba(255, 255, 255, 0.7);
+    --glass-bg-strong: rgba(255, 255, 255, 0.95);
+    --glass-border: rgba(0, 0, 0, 0.08);
+    --glass-border-strong: rgba(0, 0, 0, 0.15);
     --bubble-theirs: #e4e4e7;
     --bubble-theirs-border: #e4e4e7;
     --bubble-mine: #e8e5ff;
@@ -146,7 +146,7 @@
   }
 
   /* Specific Components */
-  .brand-name { font-family: var(--font-space), sans-serif; font-weight: 700; font-size: 18px; letter-spacing: -0.02em; }
+  .brand-name { font-family: var(--font-space), sans-serif; font-weight: 700; font-size: 18px; letter-spacing: -0.02em; color: var(--ink); }
   .avatar-font { font-family: var(--font-space), sans-serif; font-weight: 500; }
   .info-name { font-family: var(--font-space), sans-serif; font-size: 16px; font-weight: 500; }
 
@@ -173,8 +173,8 @@
   }
 
   .brand { display: flex; align-items: center; gap: 10px; padding: 0 4px; }
-  .brand-logo { transition: filter 0.3s ease; filter: invert(1); }
-  .light .brand-logo { filter: invert(0); }
+  .brand-logo { transition: filter 0.3s ease; filter: invert(1) brightness(1.2); }
+  .light .brand-logo { filter: invert(0) brightness(0.9); }
 
   .search { display: flex; align-items: center; gap: 8px; padding: 10px 14px; border-radius: 16px; background: var(--search-bg); border: 1px solid var(--search-border); font-size: 13px; color: var(--ink-faint); transition: all 0.18s cubic-bezier(0.2, 0.8, 0.2, 1); }
   .search:focus-within { background: var(--hover-bg); border-color: var(--hover-border); backdrop-filter: blur(12px); box-shadow: 0 8px 24px rgba(0,0,0,0.2); }

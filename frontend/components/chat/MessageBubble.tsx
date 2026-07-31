@@ -124,21 +124,11 @@ export const MessageBubble = memo(function MessageBubble({ message, isGroup, onR
           </button>
         )}
         <motion.div 
-          drag={!pendingUpload && !isMine ? "x" : false}
+          drag={!pendingUpload ? "x" : false}
           dragConstraints={{ left: 0, right: 0 }}
           dragElastic={{ left: 0, right: 0.2 }}
           onDragStart={() => setIsDragging(true)}
           onDragEnd={handleDragEnd}
-          onClick={(e) => {
-            const now = Date.now();
-            if (now - lastTapRef.current < 300) {
-              if (typeof navigator !== "undefined" && navigator.vibrate) navigator.vibrate([10, 50, 10]);
-              react("❤️");
-              lastTapRef.current = 0;
-            } else {
-              lastTapRef.current = now;
-            }
-          }}
           animate={controls}
           className={`flex flex-col max-w-[60%] sm:max-w-[70%] relative group ${!isMine && !pendingUpload ? "touch-pan-y" : ""}`}
           onContextMenu={(e) => {

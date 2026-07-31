@@ -91,7 +91,12 @@ export const useChatStore = create<ChatState>((set, get) => ({
   setActiveConversation: (id) => set({ activeConversationId: id }),
 
   setMessages: (conversationId, msgs) =>
-    set((state) => ({ messages: { ...state.messages, [conversationId]: msgs } })),
+    set((state) => {
+      const currentMessages = state.messages[conversationId] || [];
+      const pendingMessages = currentMessages.filter(m => m.status === "sending" || m.status === "failed");
+      const merged = [...msgs, ...pendingMessages.filter(p => !msgs.some(m => m.id === p.id))];
+      return { messages: { ...state.messages, [conversationId]: merged } };
+    }),
 
   prependMessages: (conversationId, msgs) =>
     set((state) => ({

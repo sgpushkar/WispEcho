@@ -80,10 +80,20 @@ export function ChatWindow() {
   }, [data, activeConversationId]);
 
   useEffect(() => {
-    if (isAtBottom || pendingUploads.length > 0) {
+    // Scroll to bottom immediately on initial load or conversation switch
+    if (conversationMessages.length > 0 && isAtBottom) {
       bottomRef.current?.scrollIntoView({ behavior: "smooth" });
     }
   }, [conversationMessages.length, pendingUploads.length, isAtBottom]);
+
+  useEffect(() => {
+    // Jump to bottom instantly when switching chats
+    if (activeConversationId) {
+      setTimeout(() => {
+        bottomRef.current?.scrollIntoView({ behavior: "auto" });
+      }, 50);
+    }
+  }, [activeConversationId]);
 
   useEffect(() => {
     if (!activeConversationId) return;
@@ -649,6 +659,8 @@ export function ChatWindow() {
             whileTap={{ scale: 0.9 }}
             animate={isSending ? { scale: [1, 1.2, 1], filter: ["brightness(1)", "brightness(1.5)", "brightness(1)"] } : {}}
             transition={{ type: "spring", stiffness: 400, damping: 17 }}
+            onMouseDown={(e) => e.preventDefault()}
+            onTouchStart={(e) => e.preventDefault()}
             onClick={() => sendMessage()}
             className="send-btn"
           >

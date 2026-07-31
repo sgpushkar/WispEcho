@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { X, Settings, User as UserIcon, Palette, Bell, Lock, Eye, EyeOff } from "lucide-react";
+import { X, Settings, User as UserIcon, Palette, Bell, Lock, Eye, EyeOff, Camera } from "lucide-react";
 import { useMutation } from "@tanstack/react-query";
 import { api } from "@/lib/api";
 import { useAuthStore } from "@/store/useAuthStore";
@@ -28,6 +28,44 @@ export function SettingsModal({ isOpen, onClose }: { isOpen: boolean; onClose: (
   const [status, setStatus] = useState("");
   const [accentColor, setAccentColor] = useState("");
   const [bannerUrl, setBannerUrl] = useState("");
+
+  const [isUploadingAvatar, setIsUploadingAvatar] = useState(false);
+  const [isUploadingBanner, setIsUploadingBanner] = useState(false);
+
+  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>, type: "avatar" | "banner") => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (type === "avatar") setIsUploadingAvatar(true);
+    else setIsUploadingBanner(true);
+
+    try {
+      const sigRes = await api.get("/upload/signature");
+      const { signature, timestamp, cloudName, apiKey, folder } = sigRes.data;
+
+      const formData = new FormData();
+      formData.append("file", file);
+      formData.append("api_key", apiKey);
+      formData.append("timestamp", timestamp.toString());
+      formData.append("signature", signature);
+      formData.append("folder", folder);
+
+      const res = await fetch(`https://api.cloudinary.com/v1_1/${cloudName}/image/upload`, {
+        method: "POST",
+        body: formData,
+      });
+      const data = await res.json();
+      
+      if (type === "avatar") setAvatarUrl(data.secure_url);
+      else setBannerUrl(data.secure_url);
+    } catch (err) {
+      console.error("Upload failed", err);
+      alert("Failed to upload image");
+    } finally {
+      if (type === "avatar") setIsUploadingAvatar(false);
+      else setIsUploadingBanner(false);
+    }
+  };
 
   // Preferences fields (Local)
   const [muteSounds, setMuteSounds] = useState(false);
@@ -192,7 +230,13 @@ export function SettingsModal({ isOpen, onClose }: { isOpen: boolean; onClose: (
           {activeTab === "profile" && (
             <div className="space-y-4">
               <div className="flex justify-center mb-6">
-                <Avatar src={avatarUrl} name={displayName || username} className="h-24 w-24 rounded-full border-2 border-white/10 text-2xl" />
+                <div className="relative group cursor-pointer rounded-full">
+                  <Avatar src={avatarUrl} name={displayName || username} className="h-24 w-24 rounded-full border-2 border-white/10 text-2xl" />
+                  <div className="absolute inset-0 bg-black/50 rounded-full opacity-0 group-hover:opacity-100 transition flex items-center justify-center">
+                    {isUploadingAvatar ? <div className="w-5 h-5 border-2 border-white/50 border-t-white rounded-full animate-spin" /> : <Camera size={24} className="text-white" />}
+                  </div>
+                  <input type="file" accept="image/*" className="absolute inset-0 opacity-0 cursor-pointer rounded-full w-full h-full" onChange={(e) => handleImageUpload(e, "avatar")} disabled={isUploadingAvatar} />
+                </div>
               </div>
 
               <div className="grid grid-cols-2 gap-4">
@@ -300,6 +344,13 @@ export function SettingsModal({ isOpen, onClose }: { isOpen: boolean; onClose: (
 
           {activeTab === "customization" && (
             <div className="space-y-4">
+              <div className="relative h-24 rounded-2xl overflow-hidden bg-white/5 border border-white/10 group cursor-pointer mb-2">
+                {bannerUrl ? <img src={bannerUrl} className="w-full h-full object-cover" /> : <div className="w-full h-full flex items-center justify-center text-white/20">No Banner</div>}
+                <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition flex items-center justify-center">
+                  {isUploadingBanner ? <div className="w-5 h-5 border-2 border-white/50 border-t-white rounded-full animate-spin" /> : <Camera size={24} className="text-white" />}
+                </div>
+                <input type="file" accept="image/*" className="absolute inset-0 w-full h-full opacity-0 cursor-pointer" onChange={(e) => handleImageUpload(e, "banner")} disabled={isUploadingBanner} />
+              </div>
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-1.5">
                   <label className="text-xs font-semibold uppercase tracking-wider text-white/45">Pronouns</label>
