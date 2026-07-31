@@ -1,10 +1,23 @@
 {
-  "latestVersion": "1.2.3",
+  "latestVersion": "1.2.4",
   "minimumVersion": "1.0.0",
-  "versionCode": 6,
-  "downloadUrl": "https://github.com/sgpushkar/WispEcho/releases/download/latest/WispEcho-v1.2.3.apk",
-  "releaseDate": "2026-07-31",
+  "versionCode": 7,
+  "downloadUrl": "https://github.com/sgpushkar/WispEcho/releases/download/latest/WispEcho-v1.2.4.apk",
+  "releaseDate": "2026-08-01",
   "changelog": [
+    {
+      "version": "1.2.4",
+      "date": "2026-08-01",
+      "changes": {
+        "new": [],
+        "improved": [
+          "UI contrast improvements for Light/Dark mode"
+        ],
+        "fixed": [
+          "Horizontal scrolling and screen dragging on mobile"
+        ]
+      }
+    },
     {
       "version": "1.2.3",
       "date": "2026-07-31",
