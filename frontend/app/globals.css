@@ -71,6 +71,8 @@
     background: var(--bg);
     color: var(--ink);
     transition: background-color 0.3s ease, color 0.3s ease;
+    overflow-x: hidden;
+    overscroll-behavior-x: none;
   }
 
   /* Lock scroll only for the chat app shell — landing page scrolls naturally */
@@ -136,6 +138,7 @@
     padding: 0;
     gap: 0;
     perspective: 1400px;
+    overflow: hidden;
   }
 
   @media (min-width: 768px) {
