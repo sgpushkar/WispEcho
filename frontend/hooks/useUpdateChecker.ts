@@ -109,8 +109,11 @@ export function useUpdateChecker() {
 
     // On non-Capacitor (web), just open the URL directly
     const isCapacitor = typeof window !== "undefined" && (window as any).Capacitor;
-    if (!isCapacitor) {
-      window.open(url, "_blank");
+    if (isCapacitor) {
+      // On Android/Capacitor, we cannot trigger an APK install from a Blob URL.
+      // We must hand it off to the system browser/download manager.
+      window.open(url, "_system");
+      dismiss();
       return;
     }
 
@@ -131,8 +134,6 @@ export function useUpdateChecker() {
       if (xhr.status >= 200 && xhr.status < 300) {
         setState((s) => ({ ...s, status: "download-complete", downloadProgress: 100 }));
 
-        // Trigger Android's package installer via a blob URL
-        // The Capacitor webview will hand this off to the system
         const blob = xhr.response as Blob;
         const blobUrl = URL.createObjectURL(blob);
         const a = document.createElement("a");
