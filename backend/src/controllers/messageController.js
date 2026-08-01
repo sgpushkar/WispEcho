@@ -1,7 +1,7 @@
 import prisma from "../config/db.js";
 import { sendMessageSchema } from "../utils/validators.js";
 import { emitToConversation, notifyUser } from "../sockets/index.js";
-
+import { sendPushNotification } from "../services/pushService.js";
 // Get or create a 1:1 conversation, then list conversations for sidebar
 export async function listConversations(req, res, next) {
   try {
@@ -250,6 +250,31 @@ export async function sendMessage(req, res, next) {
             });
           }
         });
+      }
+    }
+
+    // ── Background Web Push to offline participants ──
+    const conversation = await prisma.conversation.findUnique({
+      where: { id: conversationId },
+      include: { participants: { select: { userId: true } } }
+    });
+
+    if (conversation) {
+      for (const p of conversation.participants) {
+        if (p.userId !== req.userId) {
+          const pushData = {
+            type: "NEW_MESSAGE",
+            conversationId,
+            messageId: message.id,
+            title: `New message from ${message.sender.displayName}`,
+            body: data.content || (data.type === "IMAGE" ? "📷 Sent a photo" : "🎤 Sent a voice note"),
+            actions: [
+              { action: "reply", title: "Reply" },
+              { action: "react", title: "👍 React" }
+            ]
+          };
+          sendPushNotification(p.userId, pushData);
+        }
       }
     }
 

@@ -64,6 +64,7 @@ model User {
   refreshTokens         RefreshToken[]
   emailTokens            EmailToken[]
   savedMessages          SavedMessage[]
+  pushSubscriptions      PushSubscription[]
 }
 
 model RefreshToken {
@@ -236,4 +237,19 @@ model SavedMessage {
   message Message @relation(fields: [messageId], references: [id], onDelete: Cascade)
 
   @@unique([userId, messageId])
+}
+
+model PushSubscription {
+  id        String   @id @default(uuid())
+  userId    String
+  endpoint  String   @unique
+  p256dh    String
+  auth      String
+  userAgent String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
 }
