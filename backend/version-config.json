@@ -1,20 +1,28 @@
 {
-  "latestVersion": "1.2.4",
+  "latestVersion": "1.2.5",
   "minimumVersion": "1.0.0",
-  "versionCode": 7,
-  "downloadUrl": "https://github.com/sgpushkar/WispEcho/releases/download/latest/WispEcho-v1.2.4.apk",
+  "versionCode": 8,
+  "downloadUrl": "https://github.com/sgpushkar/WispEcho/releases/download/latest/WispEcho-v1.2.5.apk",
   "releaseDate": "2026-08-01",
   "changelog": [
     {
-      "version": "1.2.4",
+      "version": "1.2.5",
       "date": "2026-08-01",
       "changes": {
-        "new": [],
+        "new": [
+          "Secure photo delivery — images are now proxied through the backend, raw Cloudinary URLs are never exposed to clients",
+          "View Once anti-capture — canvas rendering, watermark, 10-second auto-close timer, and screenshot detection",
+          "Android screenshot prevention via FLAG_SECURE — blocks OS-level screenshots and screen recording"
+        ],
         "improved": [
-          "UI contrast improvements for Light/Dark mode"
+          "View Once photos now permanently blocked server-side after first view",
+          "Images stripped from API and socket responses — only accessible via authenticated proxy"
         ],
         "fixed": [
-          "Horizontal scrolling and screen dragging on mobile"
+          "Voice notes were silently dropped and never sent",
+          "Messages failing to send due to null mediaPublicId in schema validation",
+          "Download button incorrectly appearing on View Once photos",
+          "Deleted image messages showing double content"
         ]
       }
     },

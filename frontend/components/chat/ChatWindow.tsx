@@ -166,15 +166,8 @@ export function ChatWindow() {
     try {
       setIsSending(true);
       const secureUrl = await uploadAudio(audioBlob);
-      // Send the VOICE note message
-      const socket = getSocket(accessToken);
-      if (socket && activeConversationId) {
-        socket.emit("message:send", {
-          conversationId: activeConversationId,
-          type: "VOICE",
-          mediaUrl: secureUrl,
-        });
-      }
+      // Use sendMessage (api.post) — the socket has no "message:send" listener server-side
+      await sendMessage("", "VOICE", secureUrl);
     } catch (err) {
       console.error(err);
       alert("Failed to upload voice note.");
@@ -182,6 +175,7 @@ export function ChatWindow() {
       setIsSending(false);
     }
   };
+
 
   async function sendMessage(content: string = draft, type: "TEXT" | "IMAGE" | "VOICE" = "TEXT", mediaUrl?: string, isViewOnce?: boolean, mediaPublicId?: string) {
     if ((!content.trim() && type === "TEXT") || !activeConversationId) return;

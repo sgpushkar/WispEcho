@@ -7,6 +7,28 @@ Versioning follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ---
 
+## [1.2.5] — 2026-08-01
+
+### New
+- **Secure photo delivery** — images are proxied through the backend; raw Cloudinary URLs are never sent to clients
+- **View Once anti-capture** — canvas rendering with watermark, 10-second auto-close countdown timer, screenshot detection via visibility/blur events
+- **Android screenshot prevention** — `FLAG_SECURE` blocks OS-level screenshots, screen recording, and recent-apps thumbnail
+- View Once images permanently blocked server-side after first view — `mediaUrl` nulled in DB, proxy returns 403 on re-access
+
+### Improved
+- Images stripped from API responses and `message:new` socket events — only accessible via authenticated proxy endpoint
+- View Once photos load via blob URLs that are revoked on viewer close — no memory residue
+- View Once images excluded from Cache API / Service Worker cache
+
+### Fixed
+- Voice notes were silently dropped and never sent (missing socket handler — now uses REST API)
+- Messages failing to send due to `null` mediaPublicId triggering Zod schema rejection
+- Download button incorrectly appearing on View Once photos (`null` vs `false` coercion bug)
+- Deleted image messages showing "Image unavailable" alongside "this message was deleted"
+- Raw Cloudinary URLs leaking via `message:new` WebSocket events for all conversation participants
+
+---
+
 ## [1.1.0] — 2026-07-30
 
 ### New

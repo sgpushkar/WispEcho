@@ -229,8 +229,8 @@ export function FullscreenImageViewer({
             </div>
           )}
 
-          {/* Download — only for non-view-once images */}
-          {!isViewOnce && (
+          {/* Download — hidden for view-once. Double guard: !isViewOnce AND isViewOnce !== true */}
+          {!isViewOnce && isViewOnce !== true && (
             <button
               onClick={handleDownload}
               className="p-2 rounded-full hover:bg-white/10 text-white transition bg-black/20"

@@ -116,9 +116,10 @@ export async function getMessages(req, res, next) {
       },
     });
 
-    // Strip sensitive media info from view-once images that this user has already viewed
+    // Strip raw Cloudinary URLs from IMAGE messages — clients always fetch via the proxy.
+    // Voice notes (VOICE type) keep their mediaUrl since they use direct Cloudinary delivery.
     const sanitized = messages.map((msg) => {
-      if (msg.isViewOnce && msg.viewedByIds.includes(req.userId) && msg.senderId !== req.userId) {
+      if (msg.type === "IMAGE") {
         return { ...msg, mediaUrl: null, mediaPublicId: null };
       }
       return msg;
@@ -215,7 +216,13 @@ export async function sendMessage(req, res, next) {
       data: { updatedAt: new Date() },
     });
 
-    emitToConversation(conversationId, "message:new", message);
+    // Strip raw mediaUrl before emitting over socket — clients fetch images via the proxy.
+    // Voice notes keep their mediaUrl (direct Cloudinary delivery).
+    const messageForSocket = message.type === "IMAGE"
+      ? { ...message, mediaUrl: null, mediaPublicId: null }
+      : message;
+
+    emitToConversation(conversationId, "message:new", messageForSocket);
 
     // Extract mentions and notify users
     if (data.content) {

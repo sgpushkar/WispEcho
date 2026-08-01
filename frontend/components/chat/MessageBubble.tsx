@@ -298,8 +298,8 @@ export const MessageBubble = memo(function MessageBubble({ message, isGroup, onR
           <div className={`relative flex flex-col group/bubble ${isMine ? "items-end" : "items-start"}`}>
 
           <div className={`bubble ${isMine ? "mine" : "theirs"} ${message.isDeleted ? "italic opacity-60" : ""}`}>
-            {/* Secure image rendering */}
-            {isImageMessage && message.mediaUrl !== undefined && renderImageContent()}
+            {/* Secure image rendering — skip for deleted messages */}
+            {isImageMessage && !message.isDeleted && renderImageContent()}
             
             {message.type === "VOICE" && message.mediaUrl ? (
               <VoicePlayer url={message.mediaUrl} isMine={isMine} />
@@ -402,7 +402,7 @@ export const MessageBubble = memo(function MessageBubble({ message, isGroup, onR
             url={displayImageUrl}
             caption={message.content || undefined}
             onClose={() => setIsFullscreen(false)}
-            isViewOnce={message.isViewOnce}
+            isViewOnce={Boolean(message.isViewOnce)}
           />
         )}
       </AnimatePresence>
