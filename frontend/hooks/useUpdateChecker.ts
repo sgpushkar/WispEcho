@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback, useRef } from "react";
 
 /** Must match the app's built-in version (update on each release) */
-export const CURRENT_VERSION = "1.2.4";
+export const CURRENT_VERSION = "1.2.5";
 
 /* ---------- types ---------- */
 
