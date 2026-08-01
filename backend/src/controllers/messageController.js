@@ -116,7 +116,15 @@ export async function getMessages(req, res, next) {
       },
     });
 
-    res.json({ messages: messages.reverse(), nextCursor: messages.length === take ? messages[0]?.id : null });
+    // Strip sensitive media info from view-once images that this user has already viewed
+    const sanitized = messages.map((msg) => {
+      if (msg.isViewOnce && msg.viewedByIds.includes(req.userId) && msg.senderId !== req.userId) {
+        return { ...msg, mediaUrl: null, mediaPublicId: null };
+      }
+      return msg;
+    });
+
+    res.json({ messages: sanitized.reverse(), nextCursor: messages.length === take ? messages[0]?.id : null });
   } catch (err) {
     next(err);
   }
@@ -192,6 +200,7 @@ export async function sendMessage(req, res, next) {
         type: data.type,
         content: data.content,
         mediaUrl: data.mediaUrl,
+        mediaPublicId: data.mediaPublicId ?? null,
         replyToId: data.replyToId,
         isViewOnce: data.isViewOnce,
       },
@@ -432,10 +441,21 @@ export async function markViewOnce(req, res, next) {
       return res.status(404).json({ error: "Message not found or not view-once" });
     }
 
+    // Senders can't "view" their own view-once (they sent it)
+    if (existing.senderId === req.userId) {
+      return res.status(400).json({ error: "Sender cannot mark own view-once as viewed" });
+    }
+
     if (!existing.viewedByIds.includes(req.userId)) {
       const message = await prisma.message.update({
         where: { id: messageId },
-        data: { viewedByIds: { push: req.userId } },
+        data: {
+          viewedByIds: { push: req.userId },
+          viewOnceOpenedAt: existing.viewOnceOpenedAt ?? new Date(),
+          // Null out the public URL so it can no longer be fetched directly
+          // (mediaPublicId is kept for audit but the signed URL endpoint will reject)
+          mediaUrl: null,
+        },
       });
       
       // Notify conversation that this user viewed the message

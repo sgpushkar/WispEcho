@@ -183,7 +183,7 @@ export function ChatWindow() {
     }
   };
 
-  async function sendMessage(content: string = draft, type: "TEXT" | "IMAGE" | "VOICE" = "TEXT", mediaUrl?: string, isViewOnce?: boolean) {
+  async function sendMessage(content: string = draft, type: "TEXT" | "IMAGE" | "VOICE" = "TEXT", mediaUrl?: string, isViewOnce?: boolean, mediaPublicId?: string) {
     if ((!content.trim() && type === "TEXT") || !activeConversationId) return;
     
     setIsSending(true);
@@ -244,7 +244,15 @@ export function ChatWindow() {
       }
 
       try {
-        const res = await api.post("/messages", { conversationId: activeConversationId, content, type, mediaUrl, replyToId, isViewOnce });
+        const res = await api.post("/messages", {
+          conversationId: activeConversationId,
+          content,
+          type,
+          mediaUrl,
+          mediaPublicId: mediaPublicId || null,
+          replyToId,
+          isViewOnce,
+        });
         useChatStore.getState().replaceOptimisticMessage(activeConversationId, tempId, res.data.message);
       } catch (err) {
         console.error("Failed to send message", err);
@@ -329,10 +337,10 @@ export function ChatWindow() {
       // 2. Add to pending uploads (shows temporary UI bubble)
       const { tempId } = addPendingUpload(item.file, item.caption, item.isViewOnce);
       
-      // 3. Start upload
-      uploadFile(item.file, tempId, item.caption, async (secureUrl, tId, cap) => {
-        // On success, send actual message
-        await sendMessage(cap || "", "IMAGE", secureUrl, item.isViewOnce);
+      // 3. Start upload — onComplete now receives publicId (Cloudinary public_id)
+      uploadFile(item.file, tempId, item.caption, async (secureUrl, tId, cap, publicId) => {
+        // On success, send actual message with mediaPublicId for secure delivery
+        await sendMessage(cap || "", "IMAGE", secureUrl, item.isViewOnce, publicId);
         // Remove pending bubble
         removePendingUpload(tId);
       }, (err, tId) => {

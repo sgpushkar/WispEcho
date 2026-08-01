@@ -10,6 +10,7 @@ export interface PendingUpload {
   caption?: string;
   isViewOnce?: boolean;
   secureUrl?: string; // Filled when done
+  publicId?: string;  // Cloudinary public_id — used for secure signed URL generation
 }
 
 export function useImageUpload() {
@@ -21,7 +22,7 @@ export function useImageUpload() {
     file: File,
     tempId: string,
     caption?: string,
-    onComplete?: (url: string, tempId: string, caption?: string) => void,
+    onComplete?: (url: string, tempId: string, caption?: string, publicId?: string) => void,
     onError?: (err: Error, tempId: string) => void
   ) => {
     try {
@@ -35,7 +36,7 @@ export function useImageUpload() {
 
       // 1. Get Signature from backend
       const sigRes = await api.get("/upload/signature");
-      const { signature, timestamp, cloudName, apiKey, folder } = sigRes.data;
+      const { signature, timestamp, cloudName, apiKey, folder, resourceType } = sigRes.data;
 
       // 2. Prepare FormData for Cloudinary
       const formData = new FormData();
@@ -47,7 +48,8 @@ export function useImageUpload() {
 
       // 3. Upload with XHR to track progress
       const xhr = new XMLHttpRequest();
-      xhr.open("POST", `https://api.cloudinary.com/v1_1/${cloudName}/image/upload`);
+      const endpoint = resourceType === "video" ? "video" : "image";
+      xhr.open("POST", `https://api.cloudinary.com/v1_1/${cloudName}/${endpoint}/upload`);
 
       xhr.upload.onprogress = (e) => {
         if (e.lengthComputable) {
@@ -64,12 +66,14 @@ export function useImageUpload() {
         if (xhr.status >= 200 && xhr.status < 300) {
           const response = JSON.parse(xhr.responseText);
           const secureUrl = response.secure_url;
+          const publicId = response.public_id;
+
           setPendingUploads((prev) =>
             prev.map((up) =>
-              up.id === tempId ? { ...up, status: "done", progress: 100, secureUrl } : up
+              up.id === tempId ? { ...up, status: "done", progress: 100, secureUrl, publicId } : up
             )
           );
-          if (onComplete) onComplete(secureUrl, tempId, caption);
+          if (onComplete) onComplete(secureUrl, tempId, caption, publicId);
         } else {
           setPendingUploads((prev) =>
             prev.map((up) => (up.id === tempId ? { ...up, status: "error" } : up))

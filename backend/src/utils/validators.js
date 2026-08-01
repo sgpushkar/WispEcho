@@ -31,6 +31,7 @@ export const sendMessageSchema = z.object({
   type: z.enum(["TEXT", "IMAGE", "VIDEO", "FILE", "VOICE", "GIF"]).default("TEXT"),
   content: z.string().max(4000).optional(),
   mediaUrl: z.string().url().optional(),
+  mediaPublicId: z.string().optional(), // Cloudinary public_id for authenticated delivery
   replyToId: z.string().uuid().optional(),
   isViewOnce: z.boolean().optional().default(false),
 });

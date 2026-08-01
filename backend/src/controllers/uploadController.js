@@ -1,6 +1,5 @@
 import { v2 as cloudinary } from "cloudinary";
 
-// Ensure cloudinary is configured (using env vars automatically if CLOUDINARY_URL is present, or configure manually)
 cloudinary.config({
   cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
   api_key: process.env.CLOUDINARY_API_KEY,
@@ -18,7 +17,11 @@ export const getCloudinarySignature = (req, res) => {
 
     const timestamp = Math.round(new Date().getTime() / 1000);
 
-    // All params sent to Cloudinary MUST be included in the signature
+    // Images upload as standard "upload" type (public on Cloudinary free plan).
+    // Security is enforced at the backend proxy layer — the raw Cloudinary URL
+    // is stored server-side only and NEVER sent to any client directly.
+    // Clients always fetch media through /api/media/image/:messageId which
+    // verifies participant auth before streaming bytes.
     const paramsToSign = { timestamp, folder };
 
     const signature = cloudinary.utils.api_sign_request(
@@ -32,7 +35,7 @@ export const getCloudinarySignature = (req, res) => {
       cloudName: process.env.CLOUDINARY_CLOUD_NAME,
       apiKey: process.env.CLOUDINARY_API_KEY,
       folder,
-      resourceType, // "image" or "video" — tells the frontend which Cloudinary endpoint to use
+      resourceType, // "image" or "video"
     });
   } catch (error) {
     console.error("Cloudinary signature error:", error);

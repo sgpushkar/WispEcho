@@ -8,7 +8,7 @@ import { useAuthStore } from "@/store/useAuthStore";
 import { useChatStore } from "@/store/useChatStore";
 import { useUIStore } from "@/store/useUIStore";
 import { api } from "@/lib/api";
-import { Reply, AlertCircle, Eye, CheckCheck, Clock, Check, X } from "lucide-react";
+import { Reply, AlertCircle, Eye, CheckCheck, Clock, Check, X, Lock } from "lucide-react";
 import { ContextMenu, ContextMenuPosition } from "./ContextMenu";
 import Link from "next/link";
 import { Avatar } from "../ui/Avatar";
@@ -18,6 +18,7 @@ import { useMessageRetry } from "@/hooks/useMessageRetry";
 import { ProgressiveImage } from "../ui/ProgressiveImage";
 import { LinkPreviewCard } from "./LinkPreviewCard";
 import { VoicePlayer } from "./VoicePlayer";
+import { useSecureImage } from "@/hooks/useSecureImage";
 
 const QUICK_REACTIONS = ["❤️", "😂", "🔥", "😭", "👍"];
 
@@ -45,6 +46,26 @@ export const MessageBubble = memo(function MessageBubble({ message, isGroup, onR
   const controls = useAnimation();
   const [isDragging, setIsDragging] = useState(false);
   const lastTapRef = useRef<number>(0);
+
+  const alreadyViewed = !!(message.isViewOnce && message.viewedByIds?.includes(currentUserId || ""));
+
+  // ─── Secure image URL ───────────────────────────────────────────────────────
+  // For images: fetch a short-lived signed URL from the backend instead of using the raw URL.
+  // Handles both legacy (public URL) and new (authenticated) Cloudinary images.
+  // - View-once images already viewed: no URL fetched, placeholder shown
+  // - Pending uploads: use local blob preview URL directly
+  const isImageMessage = message.type === "IMAGE";
+  const hasId = !!message.id && !message.id.startsWith("temp_");
+
+  const { url: secureImageUrl, loading: imageLoading } = useSecureImage({
+    messageId: hasId && isImageMessage ? message.id : null,
+    isViewOnce: message.isViewOnce,
+    alreadyViewed: alreadyViewed && !isMine,
+    enabled: isImageMessage && !pendingUpload && hasId,
+  });
+
+  // For pending uploads, show the local preview
+  const displayImageUrl = pendingUpload?.previewUrl ?? secureImageUrl;
 
   async function handleDragEnd(event: any, info: any) {
     setIsDragging(false);
@@ -100,6 +121,130 @@ export const MessageBubble = memo(function MessageBubble({ message, isGroup, onR
     });
   };
 
+  // ─── Image content renderer ──────────────────────────────────────────────────
+  const renderImageContent = () => {
+    if (!isImageMessage) return null;
+
+    // Sender sees their own sent view-once (pre-viewed state)
+    if (message.isViewOnce && isMine) {
+      return (
+        <div className="flex items-center gap-2 p-3 bg-accent/10 border border-accent/20 rounded-xl text-white text-xs select-none">
+          <Lock size={14} className="text-accent" />
+          <span className="font-medium">View once sent</span>
+          {message.viewedByIds && message.viewedByIds.length > 0 && (
+            <span className="text-white/50 ml-1">· Viewed</span>
+          )}
+        </div>
+      );
+    }
+
+    // Already viewed — show placeholder, never load URL
+    if (alreadyViewed) {
+      return (
+        <div className="flex items-center gap-2 p-3 bg-white/5 rounded-xl text-white/50 text-xs select-none">
+          <CheckCheck size={16} className="text-accent" />
+          <span>Viewed</span>
+        </div>
+      );
+    }
+
+    // View-once not yet opened — show tap-to-view prompt (no image preview)
+    if (message.isViewOnce && !isMine && !alreadyViewed) {
+      return (
+        <div
+          className="flex items-center gap-2 p-3 bg-accent/10 border border-accent/20 rounded-xl text-white text-xs select-none hover:bg-accent/20 transition cursor-pointer"
+          onClick={handleImageClick}
+        >
+          <Eye size={16} className="text-accent" />
+          <span className="font-medium">Photo (View once)</span>
+        </div>
+      );
+    }
+
+    // Normal image or view-once first open
+    return (
+      <div
+        className={`relative overflow-hidden rounded-xl ${message.content ? "mb-2" : ""} cursor-pointer bg-black/20`}
+        onClick={handleImageClick}
+      >
+        {displayImageUrl ? (
+          <>
+            <ProgressiveImage
+              src={displayImageUrl}
+              alt={message.content || "Image"}
+              className={`max-w-full ${pendingUpload ? "opacity-60 blur-sm" : ""} transition duration-300`}
+              style={{ maxHeight: "300px" }}
+              isViewOnce={message.isViewOnce}
+            />
+            {message.isViewOnce && !alreadyViewed && (
+              <div className="absolute top-2 left-2 bg-black/60 backdrop-blur-md px-2 py-1 rounded-full flex items-center gap-1 text-[10px] text-white/90 border border-white/10">
+                <Eye size={12} className="text-accent" />
+                <span>View once</span>
+              </div>
+            )}
+          </>
+        ) : imageLoading ? (
+          <div className="flex items-center justify-center w-full" style={{ minHeight: "120px" }}>
+            <div className="w-8 h-8 border-2 border-white/20 border-t-white rounded-full animate-spin" />
+          </div>
+        ) : (
+          // URL failed to load (e.g. legacy broken link)
+          <div className="flex items-center gap-2 p-3 bg-white/5 rounded-xl text-white/40 text-xs select-none">
+            <AlertCircle size={14} />
+            <span>Image unavailable</span>
+          </div>
+        )}
+
+        {/* Upload Progress Overlay */}
+        {pendingUpload && pendingUpload.status === "uploading" && (
+          <div className="absolute inset-0 flex flex-col items-center justify-center bg-black/40 backdrop-blur-sm gap-3">
+            <div className="w-16 h-16 rounded-full border-4 border-white/20 border-t-white animate-spin" />
+            <span className="text-white font-medium text-sm drop-shadow-md">{pendingUpload.progress}%</span>
+          </div>
+        )}
+
+        {/* Error Overlay */}
+        {pendingUpload && pendingUpload.status === "error" && (
+          <div className="absolute inset-0 flex flex-col items-center justify-center bg-red-900/60 backdrop-blur-sm gap-2">
+            <AlertCircle size={32} className="text-white" />
+            <span className="text-white font-medium text-sm drop-shadow-md text-center px-4">Upload failed</span>
+            <div className="flex gap-2 mt-2">
+              <button
+                onClick={(e) => { e.stopPropagation(); onCancelUpload?.(pendingUpload.id); }}
+                className="bg-white/10 px-3 py-1 rounded-full text-xs hover:bg-white/20 transition"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={(e) => { e.stopPropagation(); onRetryUpload?.(pendingUpload.id); }}
+                className="bg-accent text-white px-3 py-1 rounded-full text-xs hover:bg-accent/90 transition"
+              >
+                Retry
+              </button>
+            </div>
+          </div>
+        )}
+      </div>
+    );
+  };
+
+  const handleImageClick = async () => {
+    if (pendingUpload) return;
+    if (alreadyViewed && !isMine) return;
+    if (message.isViewOnce && isMine) return;
+
+    setIsFullscreen(true);
+
+    // Mark view-once as viewed (server-side) and null out the URL
+    if (message.isViewOnce && currentUserId && !alreadyViewed && !isMine) {
+      try {
+        await api.post(`/messages/${message.id}/view`);
+      } catch (e) {
+        console.error("Failed to mark view once", e);
+      }
+    }
+  };
+
   return (
     <>
       <motion.div
@@ -133,6 +278,8 @@ export const MessageBubble = memo(function MessageBubble({ message, isGroup, onR
           className={`flex flex-col max-w-[60%] sm:max-w-[70%] relative group ${!isMine && !pendingUpload ? "touch-pan-y" : ""}`}
           onContextMenu={(e) => {
             if (pendingUpload) return;
+            // Block context menu on images for privacy
+            if (isImageMessage) return;
             e.preventDefault();
             setContextMenuPos({ x: e.clientX, y: e.clientY });
           }}
@@ -151,82 +298,8 @@ export const MessageBubble = memo(function MessageBubble({ message, isGroup, onR
           <div className={`relative flex flex-col group/bubble ${isMine ? "items-end" : "items-start"}`}>
 
           <div className={`bubble ${isMine ? "mine" : "theirs"} ${message.isDeleted ? "italic opacity-60" : ""}`}>
-            {message.type === "IMAGE" && message.mediaUrl && (
-              <div 
-                className={`relative overflow-hidden rounded-xl ${message.content ? "mb-2" : ""} cursor-pointer bg-black/20`}
-                onClick={async () => {
-                  if (pendingUpload) return;
-                  const viewed = message.viewedByIds?.includes(currentUserId || "");
-                  if (message.isViewOnce && viewed) return;
-                  
-                  setIsFullscreen(true);
-                  if (message.isViewOnce && currentUserId && !viewed) {
-                    try {
-                      await api.post(`/messages/${message.id}/view`);
-                    } catch (e) {
-                      console.error("Failed to mark view once", e);
-                    }
-                  }
-                }}
-              >
-                {message.isViewOnce && message.viewedByIds?.includes(currentUserId || "") ? (
-                  <div className="flex items-center gap-2 p-3 bg-white/5 rounded-xl text-white/50 text-xs select-none">
-                    <CheckCheck size={16} className="text-accent" />
-                    <span>Viewed</span>
-                  </div>
-                ) : message.isViewOnce && !isMine && !message.viewedByIds?.includes(currentUserId || "") ? (
-                  <div className="flex items-center gap-2 p-3 bg-accent/10 border border-accent/20 rounded-xl text-white text-xs select-none hover:bg-accent/20 transition">
-                    <Eye size={16} className="text-accent" />
-                    <span className="font-medium">Photo (View once)</span>
-                  </div>
-                ) : (
-                  <>
-                    <ProgressiveImage 
-                      src={message.mediaUrl} 
-                      alt={message.content || "Image"} 
-                      className={`max-w-full ${pendingUpload ? "opacity-60 blur-sm" : ""} transition duration-300`} 
-                      style={{ maxHeight: "300px" }}
-                    />
-                    {message.isViewOnce && (
-                      <div className="absolute top-2 left-2 bg-black/60 backdrop-blur-md px-2 py-1 rounded-full flex items-center gap-1 text-[10px] text-white/90 border border-white/10">
-                        <Eye size={12} className="text-accent" />
-                        <span>View once</span>
-                      </div>
-                    )}
-                  </>
-                )}
-                
-                {/* Upload Progress Overlay */}
-                {pendingUpload && pendingUpload.status === "uploading" && (
-                  <div className="absolute inset-0 flex flex-col items-center justify-center bg-black/40 backdrop-blur-sm gap-3">
-                    <div className="w-16 h-16 rounded-full border-4 border-white/20 border-t-white animate-spin" />
-                    <span className="text-white font-medium text-sm drop-shadow-md">{pendingUpload.progress}%</span>
-                  </div>
-                )}
-                
-                {/* Error Overlay */}
-                {pendingUpload && pendingUpload.status === "error" && (
-                  <div className="absolute inset-0 flex flex-col items-center justify-center bg-red-900/60 backdrop-blur-sm gap-2">
-                    <AlertCircle size={32} className="text-white" />
-                    <span className="text-white font-medium text-sm drop-shadow-md text-center px-4">Upload failed</span>
-                    <div className="flex gap-2 mt-2">
-                      <button 
-                        onClick={(e) => { e.stopPropagation(); onCancelUpload?.(pendingUpload.id); }} 
-                        className="bg-white/10 px-3 py-1 rounded-full text-xs hover:bg-white/20 transition"
-                      >
-                        Cancel
-                      </button>
-                      <button 
-                        onClick={(e) => { e.stopPropagation(); onRetryUpload?.(pendingUpload.id); }} 
-                        className="bg-accent text-white px-3 py-1 rounded-full text-xs hover:bg-accent/90 transition"
-                      >
-                        Retry
-                      </button>
-                    </div>
-                  </div>
-                )}
-              </div>
-            )}
+            {/* Secure image rendering */}
+            {isImageMessage && message.mediaUrl !== undefined && renderImageContent()}
             
             {message.type === "VOICE" && message.mediaUrl ? (
               <VoicePlayer url={message.mediaUrl} isMine={isMine} />
@@ -324,11 +397,12 @@ export const MessageBubble = memo(function MessageBubble({ message, isGroup, onR
 
       {/* Fullscreen Image Viewer Modal */}
       <AnimatePresence>
-        {isFullscreen && message.type === "IMAGE" && message.mediaUrl && (
+        {isFullscreen && isImageMessage && displayImageUrl && (
           <FullscreenImageViewer
-            url={message.mediaUrl}
+            url={displayImageUrl}
             caption={message.content || undefined}
             onClose={() => setIsFullscreen(false)}
+            isViewOnce={message.isViewOnce}
           />
         )}
       </AnimatePresence>

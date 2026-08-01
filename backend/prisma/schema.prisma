@@ -170,9 +170,11 @@ model Message {
   isEdited       Boolean     @default(false)
   isDeleted      Boolean     @default(false)
   deletedByIds   String[]    @default([])
-  isViewOnce     Boolean     @default(false)
-  viewedByIds    String[]    @default([])
-  isPinned       Boolean     @default(false)
+  isViewOnce        Boolean     @default(false)
+  viewedByIds       String[]    @default([])
+  mediaPublicId     String?     // Cloudinary public_id for authenticated/private delivery
+  viewOnceOpenedAt  DateTime?   // Timestamp of first view (audit)
+  isPinned          Boolean     @default(false)
   createdAt      DateTime    @default(now())
   updatedAt      DateTime    @updatedAt
 

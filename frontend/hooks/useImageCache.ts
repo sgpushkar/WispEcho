@@ -2,7 +2,11 @@ import { useState, useEffect } from "react";
 
 const CACHE_NAME = "wispecho-image-cache-v1";
 
-export function useImageCache(url: string | null | undefined) {
+/**
+ * Caches images in the Cache API for performance.
+ * View-once images are NEVER cached — they exist only in memory for the duration of the session.
+ */
+export function useImageCache(url: string | null | undefined, isViewOnce?: boolean) {
   const [cachedUrl, setCachedUrl] = useState<string | null>(null);
 
   useEffect(() => {
@@ -13,6 +17,12 @@ export function useImageCache(url: string | null | undefined) {
 
     // Ignore local data urls or temporary preview urls
     if (url.startsWith("blob:") || url.startsWith("data:")) {
+      setCachedUrl(url);
+      return;
+    }
+
+    // NEVER cache view-once images — they must not persist in any browser storage
+    if (isViewOnce) {
       setCachedUrl(url);
       return;
     }
@@ -56,7 +66,7 @@ export function useImageCache(url: string | null | undefined) {
         URL.revokeObjectURL(cachedUrl);
       }
     };
-  }, [url]);
+  }, [url, isViewOnce]);
 
   return cachedUrl;
 }
