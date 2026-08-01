@@ -249,7 +249,7 @@ export function ChatWindow() {
           content,
           type,
           mediaUrl,
-          mediaPublicId: mediaPublicId || null,
+          ...(mediaPublicId ? { mediaPublicId } : {}),
           replyToId,
           isViewOnce,
         });
