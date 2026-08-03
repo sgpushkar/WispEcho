@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
-import { X, Users, Search, Save, Edit3 } from "lucide-react";
+import { X, Users, Search, Save, Edit3, LogOut, Trash2 } from "lucide-react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { api } from "@/lib/api";
 import { useAuthStore } from "@/store/useAuthStore";
@@ -69,6 +69,24 @@ export function GroupSettingsModal() {
       alert("Member added!");
     },
     onError: (err: any) => alert(err.response?.data?.error || "Error adding member"),
+  });
+
+  const leaveGroup = useMutation({
+    mutationFn: async () => api.post(`/groups/${activeGroupId}/leave`),
+    onSuccess: () => {
+      setGroupSettingsOpen(false);
+      // Socket group:memberLeft will remove conversation from store
+    },
+    onError: (err: any) => alert(err.response?.data?.error || "Error leaving group"),
+  });
+
+  const deleteGroup = useMutation({
+    mutationFn: async () => api.delete(`/groups/${activeGroupId}`),
+    onSuccess: () => {
+      setGroupSettingsOpen(false);
+      // Socket group:deleted will remove conversation from store
+    },
+    onError: (err: any) => alert(err.response?.data?.error || "Error deleting group"),
   });
 
   if (!groupSettingsOpen || !activeGroupId) return null;
@@ -240,18 +258,44 @@ export function GroupSettingsModal() {
           )}
         </div>
 
-        {/* Footer (Only for details tab and if can edit) */}
-        {activeTab === "details" && canEdit && (
-          <div className="border-t border-white/5 p-4 flex gap-3">
+        {/* Footer */}
+        <div className="border-t border-white/5 p-4 space-y-2 shrink-0">
+          {/* Save Changes — details tab + editor */}
+          {activeTab === "details" && canEdit && (
             <button
               onClick={() => updateGroup.mutate()}
               disabled={!name || updateGroup.isPending}
-              className="flex-1 flex items-center justify-center gap-2 rounded-xl bg-white/10 border border-white/10 px-4 py-2 font-medium text-white hover:bg-white/20 transition disabled:opacity-50"
+              className="w-full flex items-center justify-center gap-2 rounded-xl bg-white/10 border border-white/10 px-4 py-2 font-medium text-white hover:bg-white/20 transition disabled:opacity-50"
             >
               <Save size={16} /> {updateGroup.isPending ? "Saving..." : "Save Changes"}
             </button>
-          </div>
-        )}
+          )}
+
+          {/* Danger zone */}
+          {myMemberInfo && myMemberInfo.role !== "OWNER" && (
+            <button
+              onClick={() => {
+                if (confirm("Are you sure you want to leave this group?")) leaveGroup.mutate();
+              }}
+              disabled={leaveGroup.isPending}
+              className="w-full flex items-center justify-center gap-2 rounded-xl bg-red-500/10 border border-red-500/20 px-4 py-2 font-medium text-red-400 hover:bg-red-500/20 transition disabled:opacity-50"
+            >
+              <LogOut size={16} /> {leaveGroup.isPending ? "Leaving..." : "Leave Group"}
+            </button>
+          )}
+
+          {myMemberInfo && myMemberInfo.role === "OWNER" && (
+            <button
+              onClick={() => {
+                if (confirm("Delete this group permanently? This cannot be undone.")) deleteGroup.mutate();
+              }}
+              disabled={deleteGroup.isPending}
+              className="w-full flex items-center justify-center gap-2 rounded-xl bg-red-500/10 border border-red-500/20 px-4 py-2 font-medium text-red-400 hover:bg-red-500/20 transition disabled:opacity-50"
+            >
+              <Trash2 size={16} /> {deleteGroup.isPending ? "Deleting..." : "Delete Group"}
+            </button>
+          )}
+        </div>
       </motion.div>
 
       {showSharedMedia && groupData?.conversationId && (

@@ -11,5 +11,7 @@ router.patch("/:groupId", groupController.updateGroupDetails);
 router.post("/:groupId/invite", groupController.inviteMembers);
 router.patch("/:groupId/members/:userId/role", groupController.updateMemberRole);
 router.delete("/:groupId/members/:userId", groupController.kickMember);
+router.post("/:groupId/leave", groupController.leaveGroup);
+router.delete("/:groupId", groupController.deleteGroup);
 
 export default router;

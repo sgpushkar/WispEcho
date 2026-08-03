@@ -12,6 +12,9 @@ router.get("/conversations/:conversationId/messages", messageController.getMessa
 router.get("/conversations/:conversationId/media", messageController.getSharedMedia);
 router.post("/conversations/:conversationId/read", messageController.markRead);
 router.patch("/conversations/:conversationId/pin", messageController.togglePinChat);
+router.patch("/conversations/:conversationId/archive", messageController.toggleArchive);
+router.patch("/conversations/:conversationId/favorite", messageController.toggleFavorite);
+router.get("/saved", messageController.getSavedMessages);
 router.post("/", messageController.sendMessage);
 router.patch("/:messageId", messageController.editMessage);
 router.delete("/:messageId", messageController.deleteMessage);

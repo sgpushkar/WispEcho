@@ -324,7 +324,7 @@ export async function deleteMessage(req, res, next) {
         where: { id: messageId },
         data: { isDeleted: true, content: null, mediaUrl: null },
       });
-      emitToConversation(existing.conversationId, "message:deleted", { id: messageId, forEveryone: true });
+      emitToConversation(existing.conversationId, "message:deleted", { id: messageId, conversationId: existing.conversationId, forEveryone: true });
       return res.json({ message });
     } else {
       const message = await prisma.message.update({
@@ -415,6 +415,77 @@ export async function togglePinChat(req, res, next) {
       data: { isPinned: !participant.isPinned },
     });
     res.json({ isPinned: updated.isPinned });
+  } catch (err) {
+    next(err);
+  }
+}
+
+export async function getSavedMessages(req, res, next) {
+  try {
+    const saved = await prisma.savedMessage.findMany({
+      where: { userId: req.userId },
+      orderBy: { savedAt: "desc" },
+      include: {
+        message: {
+          include: {
+            sender: { select: { id: true, username: true, displayName: true, avatarUrl: true } },
+            conversation: {
+              include: {
+                group: { select: { name: true } },
+                participants: { select: { user: { select: { id: true, username: true, displayName: true } } } },
+              },
+            },
+          },
+        },
+      },
+    });
+
+    const messages = saved.map(({ savedAt, message }) => {
+      // Strip raw Cloudinary URLs from IMAGE messages — same policy as getMessages
+      const sanitized =
+        message.type === "IMAGE"
+          ? { ...message, mediaUrl: null, mediaPublicId: null }
+          : message;
+      return { ...sanitized, savedAt };
+    });
+
+    res.json({ messages });
+  } catch (err) {
+    next(err);
+  }
+}
+
+export async function toggleArchive(req, res, next) {
+  try {
+    const { conversationId } = req.params;
+    const participant = await prisma.conversationParticipant.findUnique({
+      where: { conversationId_userId: { conversationId, userId: req.userId } },
+    });
+    if (!participant) return res.status(404).json({ error: "Conversation not found" });
+
+    const updated = await prisma.conversationParticipant.update({
+      where: { conversationId_userId: { conversationId, userId: req.userId } },
+      data: { isArchived: !participant.isArchived },
+    });
+    res.json({ isArchived: updated.isArchived });
+  } catch (err) {
+    next(err);
+  }
+}
+
+export async function toggleFavorite(req, res, next) {
+  try {
+    const { conversationId } = req.params;
+    const participant = await prisma.conversationParticipant.findUnique({
+      where: { conversationId_userId: { conversationId, userId: req.userId } },
+    });
+    if (!participant) return res.status(404).json({ error: "Conversation not found" });
+
+    const updated = await prisma.conversationParticipant.update({
+      where: { conversationId_userId: { conversationId, userId: req.userId } },
+      data: { isFavorite: !participant.isFavorite },
+    });
+    res.json({ isFavorite: updated.isFavorite });
   } catch (err) {
     next(err);
   }

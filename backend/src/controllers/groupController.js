@@ -148,3 +148,62 @@ export async function updateGroupDetails(req, res, next) {
     next(err);
   }
 }
+
+export async function leaveGroup(req, res, next) {
+  try {
+    const { groupId } = req.params;
+
+    const member = await prisma.groupMember.findUnique({
+      where: { groupId_userId: { groupId, userId: req.userId } },
+    });
+    if (!member) return res.status(404).json({ error: "Not a member of this group" });
+    if (member.role === "OWNER") {
+      return res.status(400).json({ error: "Owner cannot leave. Transfer ownership or delete the group." });
+    }
+
+    const group = await prisma.group.findUnique({ where: { id: groupId } });
+
+    await prisma.groupMember.delete({ where: { groupId_userId: { groupId, userId: req.userId } } });
+    await prisma.conversationParticipant.deleteMany({
+      where: { conversationId: group.conversationId, userId: req.userId },
+    });
+
+    emitToConversation(group.conversationId, "group:memberLeft", {
+      groupId,
+      userId: req.userId,
+      conversationId: group.conversationId,
+    });
+    res.json({ success: true });
+  } catch (err) {
+    next(err);
+  }
+}
+
+export async function deleteGroup(req, res, next) {
+  try {
+    const { groupId } = req.params;
+
+    const requester = await prisma.groupMember.findUnique({
+      where: { groupId_userId: { groupId, userId: req.userId } },
+    });
+    if (!requester || requester.role !== "OWNER") {
+      return res.status(403).json({ error: "Only the owner can delete the group" });
+    }
+
+    const group = await prisma.group.findUnique({ where: { id: groupId } });
+    if (!group) return res.status(404).json({ error: "Group not found" });
+
+    // Notify all members before deletion so sockets can react
+    emitToConversation(group.conversationId, "group:deleted", {
+      groupId,
+      conversationId: group.conversationId,
+    });
+
+    // Cascade: conversation deletion cascades to participants/messages via Prisma relations
+    await prisma.conversation.delete({ where: { id: group.conversationId } });
+
+    res.json({ success: true });
+  } catch (err) {
+    next(err);
+  }
+}

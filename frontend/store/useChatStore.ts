@@ -59,6 +59,9 @@ interface ChatState {
   updateMessage: (msg: Partial<Message> & { id: string; conversationId: string }) => void;
   removeMessage: (conversationId: string, messageId: string) => void;
   togglePin: (conversationId: string) => void;
+  toggleArchive: (conversationId: string) => void;
+  toggleFavorite: (conversationId: string) => void;
+  removeConversation: (conversationId: string) => void;
   addReaction: (reaction: { id: string; emoji: string; userId: string; messageId: string; conversationId?: string }) => void;
   removeReaction: (payload: { messageId: string; userId: string; emoji: string; conversationId?: string }) => void;
   setTyping: (conversationId: string, userId: string, isTyping: boolean) => void;
@@ -164,6 +167,30 @@ export const useChatStore = create<ChatState>((set, get) => ({
         if (!a.isPinned && b.isPinned) return 1;
         return +new Date(b.updatedAt) - +new Date(a.updatedAt);
       }),
+    })),
+
+  toggleArchive: (conversationId) =>
+    set((state) => ({
+      conversations: state.conversations.map((c) =>
+        c.id === conversationId ? { ...c, isArchived: !c.isArchived } : c
+      ),
+    })),
+
+  toggleFavorite: (conversationId) =>
+    set((state) => ({
+      conversations: state.conversations.map((c) =>
+        c.id === conversationId ? { ...c, isFavorite: !c.isFavorite } : c
+      ),
+    })),
+
+  removeConversation: (conversationId) =>
+    set((state) => ({
+      conversations: state.conversations.filter((c) => c.id !== conversationId),
+      messages: Object.fromEntries(
+        Object.entries(state.messages).filter(([k]) => k !== conversationId)
+      ),
+      activeConversationId:
+        state.activeConversationId === conversationId ? null : state.activeConversationId,
     })),
 
   addReaction: (reaction) =>

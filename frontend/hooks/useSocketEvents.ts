@@ -33,7 +33,7 @@ export function useSocketEvents() {
   const accessToken = useAuthStore((s) => s.accessToken);
   const user = useAuthStore((s) => s.user);
   const currentUserId = user?.id;
-  const { addMessage, updateMessage, removeMessage, setTyping, setPresence, addReaction, removeReaction, activeConversationId } = useChatStore();
+  const { addMessage, updateMessage, removeMessage, setTyping, setPresence, addReaction, removeReaction, activeConversationId, removeConversation } = useChatStore();
   const { sendNotification } = useNotifications();
   const activeConvRef = useRef(activeConversationId);
   const queryClient = useQueryClient();
@@ -108,6 +108,20 @@ export function useSocketEvents() {
       }
     });
 
+    socket.on("group:memberLeft", ({ conversationId, userId: leftUserId }) => {
+      if (leftUserId === currentUserId) {
+        // Current user left — remove from sidebar
+        useChatStore.getState().removeConversation(conversationId);
+      } else {
+        // Someone else left — refresh group data
+        queryClient.invalidateQueries({ queryKey: ["group"] });
+      }
+    });
+
+    socket.on("group:deleted", ({ conversationId }) => {
+      useChatStore.getState().removeConversation(conversationId);
+    });
+
     socket.on("connect", () => {
       useChatStore.getState().setOffline(false);
       // Invalidate queries to trigger background sync of conversations/messages
@@ -132,6 +146,8 @@ export function useSocketEvents() {
       socket.off("presence:update");
       socket.off("conversation:read");
       socket.off("notification:mention");
+      socket.off("group:memberLeft");
+      socket.off("group:deleted");
       socket.off("connect");
       socket.off("disconnect");
     };

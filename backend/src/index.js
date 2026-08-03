@@ -20,6 +20,7 @@ import uploadRoutes from "./routes/upload.routes.js";
 import linkpreviewRoutes from "./routes/linkpreview.routes.js";
 import secureMediaRoutes from "./routes/secureMedia.routes.js";
 import pushRoutes from "./routes/push.routes.js";
+import notificationsRoutes from "./routes/notifications.routes.js";
 import { getVersion } from "./controllers/versionController.js";
 import { notFound, errorHandler } from "./middleware/errorHandler.js";
 import { initSockets } from "./sockets/index.js";
@@ -78,6 +79,7 @@ app.use("/api/upload", uploadRoutes);
 app.use("/api/media", secureMediaRoutes);
 app.use("/api/linkpreview", linkpreviewRoutes);
 app.use("/api/notifications", pushRoutes);
+app.use("/api/inbox", notificationsRoutes);
 
 app.use(notFound);
 app.use(errorHandler);
