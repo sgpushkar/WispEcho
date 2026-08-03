@@ -7,6 +7,27 @@ Versioning follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ---
 
+## [1.2.6] — 2026-08-04
+
+### New
+- **Leave group** — any member can now leave a group directly from Group Settings
+- **Delete group** — owners can permanently delete a group from Group Settings
+- **Saved Messages** — bookmark any message and access it instantly from the sidebar
+- **Notification Center** — in-app inbox with unread badge, mark-read and delete controls
+- **Conversation filters** — All, Favorites, and Archived tabs in the sidebar
+- **Archive & Favorite** — right-click or long-press any chat for quick actions
+
+### Improved
+- Deleted-for-everyone messages now instantly disappear from all participants' screens
+- Group settings footer always visible; Save, Leave, and Delete actions are role-aware
+- Sidebar shows unread notification badge on the bell icon
+
+### Fixed
+- `message:deleted` socket event was missing `conversationId` — deletion no longer silently fails on the client
+- Saved images correctly served via secure proxy (raw Cloudinary URL stripped)
+
+---
+
 ## [1.2.5] — 2026-08-01
 
 ### New
