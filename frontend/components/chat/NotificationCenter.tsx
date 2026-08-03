@@ -94,7 +94,7 @@ export function NotificationCenter({ isOpen, onClose }: Props) {
           animate={{ opacity: 1, y: 0, scale: 1 }}
           exit={{ opacity: 0, y: -8, scale: 0.97 }}
           transition={{ duration: 0.18, ease: "easeOut" }}
-          className="absolute top-12 right-0 z-50 w-80 glass border border-white/10 rounded-2xl shadow-2xl overflow-hidden"
+          className="fixed top-14 left-1/2 -translate-x-1/2 md:absolute md:top-12 md:left-auto md:right-0 md:translate-x-0 z-50 w-[95vw] md:w-80 glass border border-white/10 rounded-2xl shadow-2xl overflow-hidden"
           style={{ maxHeight: "420px" }}
         >
           {/* Header */}

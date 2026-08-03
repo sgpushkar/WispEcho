@@ -204,11 +204,6 @@ export function Sidebar() {
               <NotificationCenter isOpen={notifOpen} onClose={() => setNotifOpen(false)} />
             </div>
 
-            {/* Saved Messages */}
-            <button onClick={() => setSavedOpen(true)} className="icon-btn" title="Saved Messages">
-              <Bookmark size={16} />
-            </button>
-
             <button onClick={() => setFriendsOpen(true)} className="icon-btn relative" title="Friends">
               <Users size={16} />
               {incomingRequestsCount > 0 && (
@@ -219,12 +214,6 @@ export function Sidebar() {
             </button>
             <button onClick={() => setGroupOpen(true)} className="icon-btn" title="New Group">
               <Plus size={16} />
-            </button>
-            <button onClick={() => setSettingsOpen(true)} className="icon-btn" title="Settings">
-              <Settings size={16} />
-            </button>
-            <button onClick={logout} className="icon-btn" title="Logout">
-              <LogOut size={16} />
             </button>
           </div>
           {/* Mobile: compact icons */}
@@ -240,9 +229,6 @@ export function Sidebar() {
               </button>
               <NotificationCenter isOpen={notifOpen} onClose={() => setNotifOpen(false)} />
             </div>
-            <button onClick={() => setSavedOpen(true)} className="icon-btn" title="Saved Messages">
-              <Bookmark size={18} />
-            </button>
             <button onClick={() => setFriendsOpen(true)} className="icon-btn relative" title="Friends">
               <Users size={18} />
               {incomingRequestsCount > 0 && (
@@ -253,9 +239,6 @@ export function Sidebar() {
             </button>
             <button onClick={() => setGroupOpen(true)} className="icon-btn" title="New Group">
               <Plus size={18} />
-            </button>
-            <button onClick={() => setSettingsOpen(true)} className="icon-btn" title="Settings">
-              <Settings size={18} />
             </button>
           </div>
         </div>
@@ -376,10 +359,17 @@ export function Sidebar() {
                 <div className="me-handle truncate">@{user.username}</div>
               </div>
             </Link>
-            {/* Logout only visible on mobile — on desktop it's in the header */}
-            <button onClick={logout} className="icon-btn md:hidden ml-1 shrink-0" title="Logout">
-              <LogOut size={16} />
-            </button>
+            <div className="flex items-center shrink-0">
+              <button onClick={() => setSavedOpen(true)} className="icon-btn" title="Saved Messages">
+                <Bookmark size={16} />
+              </button>
+              <button onClick={() => setSettingsOpen(true)} className="icon-btn" title="Settings">
+                <Settings size={16} />
+              </button>
+              <button onClick={logout} className="icon-btn" title="Logout">
+                <LogOut size={16} />
+              </button>
+            </div>
           </div>
         )}
       </aside>
