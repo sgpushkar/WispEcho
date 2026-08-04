@@ -1,6 +1,7 @@
 "use client";
 
-import { useRef, useEffect } from "react";
+import { useRef, useEffect, useState } from "react";
+import { createPortal } from "react-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { Bell, Check, CheckCheck, Trash2, UserPlus, MessageCircle, AtSign, X } from "lucide-react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
@@ -65,6 +66,11 @@ export function NotificationCenter({ isOpen, onClose }: Props) {
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ["inbox-notifications"] }),
   });
 
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
   // Close on outside click
   useEffect(() => {
     function handleClick(e: MouseEvent) {
@@ -85,7 +91,9 @@ export function NotificationCenter({ isOpen, onClose }: Props) {
     }
   };
 
-  return (
+  if (!mounted) return null;
+
+  return createPortal(
     <AnimatePresence>
       {isOpen && (
         <div className="fixed inset-0 z-[99999] flex items-center justify-center bg-black/60 p-4 backdrop-blur-sm">
@@ -95,7 +103,7 @@ export function NotificationCenter({ isOpen, onClose }: Props) {
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.95, y: 20 }}
             transition={{ duration: 0.18, ease: "easeOut" }}
-            className="glass relative flex h-[80vh] max-h-[600px] w-full max-w-md flex-col overflow-hidden rounded-2xl border border-white/10 shadow-2xl"
+            className="glass-strong bg-[#0f0f11]/80 relative flex h-[80vh] max-h-[600px] w-full max-w-2xl flex-col overflow-hidden rounded-2xl border border-white/10 shadow-2xl"
           >
           {/* Header */}
           <div className="flex items-center justify-between px-4 py-3 border-b border-white/5 shrink-0">
@@ -197,6 +205,7 @@ export function NotificationCenter({ isOpen, onClose }: Props) {
         </motion.div>
       </div>
       )}
-    </AnimatePresence>
+    </AnimatePresence>,
+    document.body
   );
 }
