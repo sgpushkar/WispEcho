@@ -22,7 +22,7 @@ export function MentionSuggestions({ query, users, onSelect, isOpen }: MentionSu
           initial={{ opacity: 0, y: 10, scale: 0.95 }}
           animate={{ opacity: 1, y: 0, scale: 1 }}
           exit={{ opacity: 0, y: 10, scale: 0.95 }}
-          className="absolute bottom-full left-0 mb-2 w-64 glass rounded-xl overflow-hidden shadow-2xl z-50 border border-white/10"
+          className="absolute bottom-full left-0 mb-2 w-64 glass-strong rounded-xl overflow-hidden shadow-2xl z-50 border border-white/10"
         >
           <div className="max-h-48 overflow-y-auto">
             {filteredUsers.map((user) => (

@@ -383,7 +383,7 @@ export function Sidebar() {
             animate={{ opacity: 1, scale: 1 }}
             exit={{ opacity: 0, scale: 0.95 }}
             transition={{ duration: 0.12 }}
-            className="fixed z-[200] glass border border-white/10 rounded-xl shadow-2xl overflow-hidden py-1 min-w-[160px]"
+            className="fixed z-[200] glass-strong border border-white/10 rounded-xl shadow-2xl overflow-hidden py-1 min-w-[160px]"
             style={{
               left: contextMenu.x > 0 ? Math.min(contextMenu.x, window.innerWidth - 180) : 160,
               top: contextMenu.y > 0 ? Math.min(contextMenu.y, window.innerHeight - 120) : 80,
