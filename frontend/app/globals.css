@@ -113,6 +113,8 @@
     -webkit-backdrop-filter: blur(24px);
     border: 1px solid var(--glass-border);
     transition: all 0.18s cubic-bezier(0.2, 0.8, 0.2, 1);
+    transform: translateZ(0);
+    will-change: transform;
   }
 
   .glass-strong {
@@ -123,6 +125,8 @@
     -webkit-backdrop-filter: blur(32px);
     border: 1px solid var(--glass-border-strong);
     transition: all 0.18s cubic-bezier(0.2, 0.8, 0.2, 1);
+    transform: translateZ(0);
+    will-change: transform;
   }
 
   .spec { display: none; }
@@ -154,7 +158,7 @@
   .info-name { font-family: var(--font-space), sans-serif; font-size: 16px; font-weight: 500; }
 
   /* Conversation List item states */
-  .conv { display: flex; align-items: center; gap: 12px; padding: 12px 14px; border-radius: 20px; cursor: pointer; border: 1px solid transparent; transition: all 0.18s cubic-bezier(0.2, 0.8, 0.2, 1); min-height: 64px; }
+  .conv { display: flex; align-items: center; gap: 12px; padding: 12px 14px; border-radius: 20px; cursor: pointer; border: 1px solid transparent; transition: all 0.18s cubic-bezier(0.2, 0.8, 0.2, 1); min-height: 64px; content-visibility: auto; contain-intrinsic-size: 64px; }
   .conv:hover { background: var(--hover-bg); border-color: var(--hover-border); }
   .conv:active { background: var(--active-bg); transform: scale(0.99); }
   .conv.active { background: var(--active-bg); border: 1px solid var(--active-border); }
@@ -223,7 +227,7 @@
     .messages { padding: 24px; gap: 18px; }
   }
 
-  .row { display: flex; width: 100%; }
+  .row { display: flex; width: 100%; content-visibility: auto; }
   .row.mine { justify-content: flex-end; }
   
   .stamp { font-size: 10px; color: var(--ink-faint); margin-top: 6px; padding: 0 4px; opacity: 0.6; }

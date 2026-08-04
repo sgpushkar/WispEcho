@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useState, useRef, memo } from "react";
 import { Search, LogOut, Users, Plus, Settings, Pin, PinOff, Bell, Bookmark, Archive, Star, MoreHorizontal } from "lucide-react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { motion, AnimatePresence } from "framer-motion";
@@ -26,6 +26,93 @@ interface ContextMenuState {
   x: number;
   y: number;
 }
+
+const ConversationItem = memo(({ 
+  conv, 
+  active, 
+  isOnline, 
+  onClick, 
+  onContextMenu, 
+  onTogglePin, 
+  onOpenContextMenu 
+}: {
+  conv: Conversation;
+  active: boolean;
+  isOnline: boolean;
+  onClick: () => void;
+  onContextMenu: (e: React.MouseEvent, id: string) => void;
+  onTogglePin: (e: React.MouseEvent, id: string) => void;
+  onOpenContextMenu: (id: string) => void;
+}) => {
+  const typingUsers = useChatStore((s) => s.typingUsers[conv.id]);
+  const isTyping = typingUsers && typingUsers.size > 0;
+  const hasUnread = false;
+  const name = conv.isGroup ? conv.group?.name : conv.otherUser?.displayName;
+  const avatar = conv.isGroup ? conv.group?.avatarUrl : conv.otherUser?.avatarUrl;
+
+  return (
+    <div
+      onClick={onClick}
+      onContextMenu={(e) => onContextMenu(e, conv.id)}
+      className={`conv ${active ? "active" : ""} ${conv.isFavorite ? "ring-1 ring-yellow-400/20" : ""}`}
+    >
+      <div className="relative shrink-0">
+        <Avatar src={avatar} name={name} className="h-10 w-10 rounded-[14px]" />
+        {isOnline && <span className="dot" />}
+        {conv.isFavorite && (
+          <span className="absolute -top-1 -right-1 text-yellow-400 text-[8px]">★</span>
+        )}
+      </div>
+
+      <div className="conv-meta">
+        <div className="conv-name">{name}</div>
+        <div className="conv-preview">
+          {isTyping ? (
+            <div className="flex items-center gap-1 h-[18px]">
+              <span className="text-[11px] text-accent font-medium mr-1">typing</span>
+              <div className="typing-dot bg-accent" />
+              <div className="typing-dot bg-accent" />
+              <div className="typing-dot bg-accent" />
+            </div>
+          ) : (
+            conv.lastMessage?.content || "say hey 👋"
+          )}
+        </div>
+      </div>
+
+      <div className="flex flex-col items-end gap-1 relative group shrink-0">
+        <div className="conv-time group-hover:opacity-0 transition-opacity">
+          {conv.lastMessage ? formatDistanceToNowStrict(new Date(conv.lastMessage.createdAt), { addSuffix: false }) : ""}
+        </div>
+        <div className="absolute top-0 right-0 opacity-0 group-hover:opacity-100 transition-opacity flex items-center gap-0.5">
+          <button
+            onClick={(e) => onTogglePin(e, conv.id)}
+            className="text-white/50 hover:text-white p-0.5"
+            title={conv.isPinned ? "Unpin" : "Pin"}
+          >
+            {conv.isPinned ? <PinOff size={12} /> : <Pin size={12} />}
+          </button>
+          <button
+            onClick={(e) => { e.stopPropagation(); onOpenContextMenu(conv.id); }}
+            className="text-white/50 hover:text-white p-0.5"
+            title="More options"
+          >
+            <MoreHorizontal size={12} />
+          </button>
+        </div>
+        {hasUnread && <div className="w-2 h-2 rounded-full bg-white mt-1" />}
+      </div>
+    </div>
+  );
+}, (prev, next) => {
+  return prev.conv.id === next.conv.id &&
+    prev.active === next.active &&
+    prev.isOnline === next.isOnline &&
+    prev.conv.isPinned === next.conv.isPinned &&
+    prev.conv.isFavorite === next.conv.isFavorite &&
+    prev.conv.lastMessage?.id === next.conv.lastMessage?.id &&
+    prev.conv.lastMessage?.content === next.conv.lastMessage?.content;
+});
 
 export function Sidebar() {
   const user = useAuthStore((s) => s.user);
@@ -269,74 +356,18 @@ export function Sidebar() {
 
         {/* Conversations List */}
         <div className="conv-list relative z-0">
-          {filtered.map((conv) => {
-            const name = conv.isGroup ? conv.group?.name : conv.otherUser?.displayName;
-            const avatar = conv.isGroup ? conv.group?.avatarUrl : conv.otherUser?.avatarUrl;
-            const isOnline = conv.otherUser ? onlineUsers.has(conv.otherUser.id) : false;
-            const active = conv.id === activeConversationId;
-
-            const typingSet = useChatStore.getState().typingUsers[conv.id];
-            const isTyping = typingSet && typingSet.size > 0;
-            const hasUnread = false;
-
-            return (
-              <motion.div
-                layout
-                transition={{ type: "spring", stiffness: 350, damping: 30 }}
-                key={conv.id}
-                onClick={() => setActiveConversation(conv.id)}
-                onContextMenu={(e) => handleContextMenu(e, conv.id)}
-                className={`conv ${active ? "active" : ""} ${conv.isFavorite ? "ring-1 ring-yellow-400/20" : ""}`}
-              >
-                <div className="relative shrink-0">
-                  <Avatar src={avatar} name={name} className="h-10 w-10 rounded-[14px]" />
-                  {isOnline && <span className="dot" />}
-                  {conv.isFavorite && (
-                    <span className="absolute -top-1 -right-1 text-yellow-400 text-[8px]">★</span>
-                  )}
-                </div>
-
-                <div className="conv-meta">
-                  <div className="conv-name">{name}</div>
-                  <div className="conv-preview">
-                    {isTyping ? (
-                      <div className="flex items-center gap-1 h-[18px]">
-                        <span className="text-[11px] text-accent font-medium mr-1">typing</span>
-                        <div className="typing-dot bg-accent" />
-                        <div className="typing-dot bg-accent" />
-                        <div className="typing-dot bg-accent" />
-                      </div>
-                    ) : (
-                      conv.lastMessage?.content || "say hey 👋"
-                    )}
-                  </div>
-                </div>
-
-                <div className="flex flex-col items-end gap-1 relative group">
-                  <div className="conv-time group-hover:opacity-0 transition-opacity">
-                    {conv.lastMessage ? formatDistanceToNowStrict(new Date(conv.lastMessage.createdAt), { addSuffix: false }) : ""}
-                  </div>
-                  <div className="absolute top-0 right-0 opacity-0 group-hover:opacity-100 transition-opacity flex items-center gap-0.5">
-                    <button
-                      onClick={(e) => handleTogglePin(e, conv.id)}
-                      className="text-white/50 hover:text-white p-0.5"
-                      title={conv.isPinned ? "Unpin" : "Pin"}
-                    >
-                      {conv.isPinned ? <PinOff size={12} /> : <Pin size={12} />}
-                    </button>
-                    <button
-                      onClick={(e) => { e.stopPropagation(); setContextMenu({ conversationId: conv.id, x: 0, y: 0 }); }}
-                      className="text-white/50 hover:text-white p-0.5"
-                      title="More options"
-                    >
-                      <MoreHorizontal size={12} />
-                    </button>
-                  </div>
-                  {hasUnread && <div className="w-2 h-2 rounded-full bg-white mt-1" />}
-                </div>
-              </motion.div>
-            );
-          })}
+          {filtered.map((conv) => (
+            <ConversationItem
+              key={conv.id}
+              conv={conv}
+              active={conv.id === activeConversationId}
+              isOnline={conv.otherUser ? onlineUsers.has(conv.otherUser.id) : false}
+              onClick={() => setActiveConversation(conv.id)}
+              onContextMenu={handleContextMenu}
+              onTogglePin={handleTogglePin}
+              onOpenContextMenu={(id) => setContextMenu({ conversationId: id, x: 0, y: 0 })}
+            />
+          ))}
 
           {filtered.length === 0 && (
             <div className="text-center text-white/30 text-[12px] py-8 px-4">
