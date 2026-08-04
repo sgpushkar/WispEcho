@@ -8,6 +8,7 @@ import { api } from "@/lib/api";
 import { useChatStore } from "@/store/useChatStore";
 import Link from "next/link";
 import { Avatar } from "../ui/Avatar";
+import { Portal } from "../ui/Portal";
 
 interface User {
   id: string;
@@ -88,8 +89,9 @@ export function FriendsModal({ isOpen, onClose }: { isOpen: boolean; onClose: ()
   const searchResults = searchData?.users || [];
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4 backdrop-blur-sm">
-      <motion.div
+    <Portal>
+      <div className="fixed inset-0 z-[99999] flex items-center justify-center bg-black/60 p-4 backdrop-blur-sm">
+        <motion.div
         initial={{ opacity: 0, scale: 0.95, y: 20 }}
         animate={{ opacity: 1, scale: 1, y: 0 }}
         exit={{ opacity: 0, scale: 0.95, y: 20 }}
@@ -237,6 +239,7 @@ export function FriendsModal({ isOpen, onClose }: { isOpen: boolean; onClose: ()
           )}
         </div>
       </motion.div>
-    </div>
+      </div>
+    </Portal>
   );
 }

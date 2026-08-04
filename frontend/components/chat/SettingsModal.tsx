@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { X, Settings, User as UserIcon, Palette, Bell, Lock, Eye, EyeOff, Camera } from "lucide-react";
+import { Portal } from "../ui/Portal";
 import { useMutation } from "@tanstack/react-query";
 import { api } from "@/lib/api";
 import { useAuthStore } from "@/store/useAuthStore";
@@ -211,11 +212,12 @@ export function SettingsModal({ isOpen, onClose }: { isOpen: boolean; onClose: (
   };
 
   return (
-    <div
-      className="fixed inset-0 z-50 flex items-center justify-center p-4"
-      style={{ background: overlayBg, backdropFilter: "blur(12px)" }}
-    >
-      <motion.div
+    <Portal>
+      <div
+        className="fixed inset-0 z-[99999] flex items-center justify-center p-4"
+        style={{ background: overlayBg, backdropFilter: "blur(12px)" }}
+      >
+        <motion.div
         initial={{ opacity: 0, scale: 0.95, y: 20 }}
         animate={{ opacity: 1, scale: 1, y: 0 }}
         exit={{ opacity: 0, scale: 0.95, y: 20 }}
@@ -569,8 +571,9 @@ export function SettingsModal({ isOpen, onClose }: { isOpen: boolean; onClose: (
           <p className="text-center text-[10px] font-semibold tracking-wider uppercase" style={{ color: inkFaint }}>
             WispEcho App v1.2.0
           </p>
-        </div>
-      </motion.div>
-    </div>
+          </div>
+        </motion.div>
+      </div>
+    </Portal>
   );
 }

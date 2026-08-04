@@ -10,6 +10,7 @@ import { useChatStore } from "@/store/useChatStore";
 import { Avatar } from "@/components/ui/Avatar";
 import { formatDistanceToNowStrict } from "date-fns";
 import { useSecureImage } from "@/hooks/useSecureImage";
+import { Portal } from "../ui/Portal";
 
 function SavedMessageImage({ messageId }: { messageId: string }) {
   const { url, loading } = useSecureImage({ messageId });
@@ -71,15 +72,16 @@ export function SavedMessagesModal({ isOpen, onClose }: Props) {
   };
 
   return (
-    <AnimatePresence>
-      {isOpen && (
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          exit={{ opacity: 0 }}
-          className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4 backdrop-blur-sm"
-          onClick={(e) => e.target === e.currentTarget && onClose()}
-        >
+    <Portal>
+      <AnimatePresence>
+        {isOpen && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-[99999] flex items-center justify-center bg-black/60 p-4 backdrop-blur-sm"
+            onClick={(e) => e.target === e.currentTarget && onClose()}
+          >
           <motion.div
             initial={{ opacity: 0, scale: 0.95, y: 20 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
@@ -185,8 +187,9 @@ export function SavedMessagesModal({ isOpen, onClose }: Props) {
               )}
             </div>
           </motion.div>
-        </motion.div>
-      )}
-    </AnimatePresence>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </Portal>
   );
 }

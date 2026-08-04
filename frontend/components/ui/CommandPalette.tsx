@@ -5,6 +5,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Search, Settings, Users, MessageSquare } from "lucide-react";
 import { useChatStore } from "@/store/useChatStore";
 import { useUIStore } from "@/store/useUIStore";
+import { Portal } from "./Portal";
 
 export function CommandPalette() {
   const [isOpen, setIsOpen] = useState(false);
@@ -42,8 +43,9 @@ export function CommandPalette() {
   }).slice(0, 5);
 
   return (
-    <div className="fixed inset-0 z-[100] flex items-start justify-center pt-[15vh]">
-      <motion.div
+    <Portal>
+      <div className="fixed inset-0 z-[100] flex items-start justify-center pt-[15vh]">
+        <motion.div
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
@@ -122,6 +124,7 @@ export function CommandPalette() {
           )}
         </div>
       </motion.div>
-    </div>
+      </div>
+    </Portal>
   );
 }

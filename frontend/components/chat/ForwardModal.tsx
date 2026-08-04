@@ -6,6 +6,7 @@ import { useChatStore } from "@/store/useChatStore";
 import { useUIStore } from "@/store/useUIStore";
 import { api } from "@/lib/api";
 import { useState } from "react";
+import { Portal } from "../ui/Portal";
 
 export function ForwardModal() {
   const { forwardModalOpen, closeForwardModal, messageToForward } = useUIStore();
@@ -31,8 +32,9 @@ export function ForwardModal() {
   }
 
   return (
-    <div className="fixed inset-0 z-[150] flex items-center justify-center px-4">
-      <motion.div
+    <Portal>
+      <div className="fixed inset-0 z-[150] flex items-center justify-center px-4">
+        <motion.div
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
@@ -82,6 +84,7 @@ export function ForwardModal() {
           })}
         </div>
       </motion.div>
-    </div>
+      </div>
+    </Portal>
   );
 }

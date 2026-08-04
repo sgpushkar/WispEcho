@@ -11,6 +11,7 @@ import Link from "next/link";
 import { Avatar } from "../ui/Avatar";
 import { SharedMediaModal } from "./SharedMediaModal";
 import { Image as ImageIcon } from "lucide-react";
+import { Portal } from "../ui/Portal";
 
 export function GroupSettingsModal() {
   const { groupSettingsOpen, setGroupSettingsOpen, activeGroupId } = useUIStore();
@@ -95,8 +96,9 @@ export function GroupSettingsModal() {
   const canEdit = myMemberInfo && ["OWNER", "ADMIN"].includes(myMemberInfo.role);
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4 backdrop-blur-sm">
-      <motion.div
+    <Portal>
+      <div className="fixed inset-0 z-[99999] flex items-center justify-center bg-black/60 p-4 backdrop-blur-sm">
+        <motion.div
         initial={{ opacity: 0, scale: 0.95, y: 20 }}
         animate={{ opacity: 1, scale: 1, y: 0 }}
         exit={{ opacity: 0, scale: 0.95, y: 20 }}
@@ -297,13 +299,14 @@ export function GroupSettingsModal() {
           )}
         </div>
       </motion.div>
-
+      
       {showSharedMedia && groupData?.conversationId && (
         <SharedMediaModal 
           conversationId={groupData.conversationId} 
           onClose={() => setShowSharedMedia(false)} 
         />
       )}
-    </div>
+      </div>
+    </Portal>
   );
 }
