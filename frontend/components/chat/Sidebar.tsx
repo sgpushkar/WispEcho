@@ -179,7 +179,7 @@ export function Sidebar() {
     <>
       <aside className="sidebar glass h-full w-full md:w-[300px]">
         {/* Header / Brand */}
-        <div className="flex items-center justify-between pb-1">
+        <div className="flex items-center justify-between pb-1 relative z-50">
           <div className="flex items-center gap-2">
             <img src="/logo-dark.png" alt="WispEcho" className="h-8 w-auto rounded-[6px] logo-dark" />
             <img src="/logo-light.png" alt="WispEcho" className="h-8 w-auto rounded-[6px] logo-light" />
