@@ -2,7 +2,7 @@
 
 import { useRef, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Bell, Check, CheckCheck, Trash2, UserPlus, MessageCircle, AtSign } from "lucide-react";
+import { Bell, Check, CheckCheck, Trash2, UserPlus, MessageCircle, AtSign, X } from "lucide-react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { api } from "@/lib/api";
 import { useUIStore } from "@/store/useUIStore";
@@ -88,17 +88,17 @@ export function NotificationCenter({ isOpen, onClose }: Props) {
   return (
     <AnimatePresence>
       {isOpen && (
-        <motion.div
-          ref={ref}
-          initial={{ opacity: 0, y: -8, scale: 0.97 }}
-          animate={{ opacity: 1, y: 0, scale: 1 }}
-          exit={{ opacity: 0, y: -8, scale: 0.97 }}
-          transition={{ duration: 0.18, ease: "easeOut" }}
-          className="fixed top-14 left-1/2 -translate-x-1/2 md:absolute md:top-12 md:left-auto md:right-0 md:translate-x-0 z-50 w-[95vw] md:w-80 glass-strong border border-white/10 rounded-2xl shadow-2xl overflow-hidden"
-          style={{ maxHeight: "420px" }}
-        >
+        <div className="fixed inset-0 z-[99999] flex items-center justify-center bg-black/60 p-4 backdrop-blur-sm">
+          <motion.div
+            ref={ref}
+            initial={{ opacity: 0, scale: 0.95, y: 20 }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
+            exit={{ opacity: 0, scale: 0.95, y: 20 }}
+            transition={{ duration: 0.18, ease: "easeOut" }}
+            className="glass relative flex h-[80vh] max-h-[600px] w-full max-w-md flex-col overflow-hidden rounded-2xl border border-white/10 shadow-2xl"
+          >
           {/* Header */}
-          <div className="flex items-center justify-between px-4 py-3 border-b border-white/5">
+          <div className="flex items-center justify-between px-4 py-3 border-b border-white/5 shrink-0">
             <h3 className="text-sm font-semibold text-white flex items-center gap-2">
               <Bell size={14} />
               Notifications
@@ -108,20 +108,25 @@ export function NotificationCenter({ isOpen, onClose }: Props) {
                 </span>
               )}
             </h3>
-            {unreadCount > 0 && (
-              <button
-                onClick={() => markAllRead.mutate()}
-                disabled={markAllRead.isPending}
-                className="text-[11px] text-white/40 hover:text-white flex items-center gap-1 transition"
-              >
-                <CheckCheck size={12} />
-                Mark all read
+            <div className="flex items-center gap-3">
+              {unreadCount > 0 && (
+                <button
+                  onClick={() => markAllRead.mutate()}
+                  disabled={markAllRead.isPending}
+                  className="text-[11px] text-white/40 hover:text-white flex items-center gap-1 transition"
+                >
+                  <CheckCheck size={12} />
+                  Mark all read
+                </button>
+              )}
+              <button onClick={onClose} className="rounded-full p-1 text-white/40 hover:bg-white/5 hover:text-white transition">
+                <X size={16} />
               </button>
-            )}
+            </div>
           </div>
 
           {/* List */}
-          <div className="overflow-y-auto custom-scrollbar" style={{ maxHeight: "360px" }}>
+          <div className="overflow-y-auto custom-scrollbar flex-1 pb-4">
             {isLoading && (
               <div className="p-4 space-y-2">
                 {[...Array(3)].map((_, i) => (
@@ -190,6 +195,7 @@ export function NotificationCenter({ isOpen, onClose }: Props) {
             ))}
           </div>
         </motion.div>
+      </div>
       )}
     </AnimatePresence>
   );
