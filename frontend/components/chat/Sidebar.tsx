@@ -179,24 +179,24 @@ export function Sidebar() {
     <>
       <aside className="sidebar glass h-full w-full md:w-[300px]">
         {/* Header / Brand */}
-        <div className="flex items-center justify-between pb-1 relative z-50">
+        <div className="flex items-center justify-between pb-1 relative z-[9999]">
           <div className="flex items-center gap-2">
             <img src="/logo-dark.png" alt="WispEcho" className="h-8 w-auto rounded-[6px] logo-dark" />
             <img src="/logo-light.png" alt="WispEcho" className="h-8 w-auto rounded-[6px] logo-light" />
             <span className="brand-name text-base font-bold">WispEcho</span>
           </div>
           {/* Desktop action buttons */}
-          <div className="hidden md:flex items-center gap-1">
+          <div className="hidden md:flex items-center gap-1 relative z-[9999]">
             {/* Notification Bell */}
-            <div className="relative" ref={notifRef}>
+            <div className="relative z-[9999]" ref={notifRef}>
               <button
                 onClick={() => setNotifOpen((v) => !v)}
-                className="icon-btn relative"
+                className="icon-btn relative z-[9999]"
                 title="Notifications"
               >
                 <Bell size={16} />
                 {unreadNotifCount > 0 && (
-                  <span className="absolute -top-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full bg-red-500 text-[10px] font-bold text-white shadow-sm ring-2 ring-[#0f0f11]">
+                  <span className="absolute -top-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full bg-red-500 text-[10px] font-bold text-white shadow-sm ring-2 ring-[#0f0f11] z-[9999]">
                     {unreadNotifCount > 9 ? "9+" : unreadNotifCount}
                   </span>
                 )}
@@ -204,47 +204,47 @@ export function Sidebar() {
               <NotificationCenter isOpen={notifOpen} onClose={() => setNotifOpen(false)} />
             </div>
 
-            <button onClick={() => setFriendsOpen(true)} className="icon-btn relative" title="Friends">
+            <button onClick={() => setFriendsOpen(true)} className="icon-btn relative z-[9999]" title="Friends">
               <Users size={16} />
               {incomingRequestsCount > 0 && (
-                <span className="absolute -top-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full bg-red-500 text-[10px] font-bold text-white shadow-sm ring-2 ring-[#0f0f11]">
+                <span className="absolute -top-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full bg-red-500 text-[10px] font-bold text-white shadow-sm ring-2 ring-[#0f0f11] z-[9999]">
                   {incomingRequestsCount > 9 ? "9+" : incomingRequestsCount}
                 </span>
               )}
             </button>
-            <button onClick={() => setGroupOpen(true)} className="icon-btn" title="New Group">
+            <button onClick={() => setGroupOpen(true)} className="icon-btn relative z-[9999]" title="New Group">
               <Plus size={16} />
             </button>
           </div>
           {/* Mobile: compact icons */}
-          <div className="flex md:hidden items-center gap-1">
-            <div className="relative">
-              <button onClick={() => setNotifOpen((v) => !v)} className="icon-btn relative" title="Notifications">
+          <div className="flex md:hidden items-center gap-1 relative z-[9999]">
+            <div className="relative z-[9999]">
+              <button onClick={() => setNotifOpen((v) => !v)} className="icon-btn relative z-[9999]" title="Notifications">
                 <Bell size={18} />
                 {unreadNotifCount > 0 && (
-                  <span className="absolute -top-0.5 -right-0.5 flex h-4 w-4 items-center justify-center rounded-full bg-red-500 text-[10px] font-bold text-white shadow-sm ring-2 ring-[#0f0f11]">
+                  <span className="absolute -top-0.5 -right-0.5 flex h-4 w-4 items-center justify-center rounded-full bg-red-500 text-[10px] font-bold text-white shadow-sm ring-2 ring-[#0f0f11] z-[9999]">
                     {unreadNotifCount > 9 ? "9+" : unreadNotifCount}
                   </span>
                 )}
               </button>
               <NotificationCenter isOpen={notifOpen} onClose={() => setNotifOpen(false)} />
             </div>
-            <button onClick={() => setFriendsOpen(true)} className="icon-btn relative" title="Friends">
+            <button onClick={() => setFriendsOpen(true)} className="icon-btn relative z-[9999]" title="Friends">
               <Users size={18} />
               {incomingRequestsCount > 0 && (
-                <span className="absolute -top-0.5 -right-0.5 flex h-4 w-4 items-center justify-center rounded-full bg-red-500 text-[10px] font-bold text-white shadow-sm ring-2 ring-[#0f0f11]">
+                <span className="absolute -top-0.5 -right-0.5 flex h-4 w-4 items-center justify-center rounded-full bg-red-500 text-[10px] font-bold text-white shadow-sm ring-2 ring-[#0f0f11] z-[9999]">
                   {incomingRequestsCount > 9 ? "9+" : incomingRequestsCount}
                 </span>
               )}
             </button>
-            <button onClick={() => setGroupOpen(true)} className="icon-btn" title="New Group">
+            <button onClick={() => setGroupOpen(true)} className="icon-btn relative z-[9999]" title="New Group">
               <Plus size={18} />
             </button>
           </div>
         </div>
 
         {/* Search */}
-        <div className="search">
+        <div className="search relative z-0">
           <Search size={14} />
           <input
             value={query}
@@ -255,7 +255,7 @@ export function Sidebar() {
         </div>
 
         {/* Filter tabs */}
-        <div className="flex items-center gap-1 px-1 pb-1">
+        <div className="flex items-center gap-1 px-1 pb-1 relative z-0">
           <button className={tabClass("all")} onClick={() => setFilterTab("all")}>
             All
           </button>
@@ -268,7 +268,7 @@ export function Sidebar() {
         </div>
 
         {/* Conversations List */}
-        <div className="conv-list">
+        <div className="conv-list relative z-0">
           {filtered.map((conv) => {
             const name = conv.isGroup ? conv.group?.name : conv.otherUser?.displayName;
             const avatar = conv.isGroup ? conv.group?.avatarUrl : conv.otherUser?.avatarUrl;
