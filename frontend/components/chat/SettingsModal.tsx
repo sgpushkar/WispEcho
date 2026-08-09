@@ -534,23 +534,33 @@ export function SettingsModal({ isOpen, onClose }: { isOpen: boolean; onClose: (
                       Unlock Premium (₹39/mo)
                     </button>
                   ) : (
-                    <div className="flex gap-2">
-                      <button 
-                        onClick={handleClaimPayment}
-                        disabled={isClaiming}
-                        className="flex-1 rounded-xl py-2 text-xs font-bold transition disabled:opacity-50"
-                        style={{ background: "var(--ink)", color: "var(--bg)" }}
-                      >
-                        {isClaiming ? "Submitting..." : "Paid"}
-                      </button>
-                      <button 
-                        onClick={() => setShowPaymentCheck(false)}
-                        disabled={isClaiming}
-                        className="flex-1 rounded-xl py-2 text-xs font-bold transition disabled:opacity-50"
-                        style={{ background: "var(--glass-bg)", border: "1px solid var(--glass-border)", color: "var(--ink)" }}
-                      >
-                        Not Paid
-                      </button>
+                    <div className="flex flex-col items-center gap-3 mt-2">
+                      <div className="p-2 bg-white rounded-xl">
+                        <img 
+                          src={`https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${encodeURIComponent("upi://pay?pa=pushkarmhatre424@okaxis&pn=Pushkar%20Mhatre&am=39.00&cu=INR&tn=GenzChat%20Pro")}`}
+                          alt="UPI QR Code"
+                          className="w-[120px] h-[120px]"
+                        />
+                      </div>
+                      <p className="text-center text-[10px] uppercase font-bold" style={{ color: "#f59e0b" }}>Scan to Pay or tap on mobile</p>
+                      <div className="flex gap-2 w-full mt-1">
+                        <button 
+                          onClick={handleClaimPayment}
+                          disabled={isClaiming}
+                          className="flex-1 rounded-xl py-2 text-xs font-bold transition disabled:opacity-50"
+                          style={{ background: "var(--ink)", color: "var(--bg)" }}
+                        >
+                          {isClaiming ? "Submitting..." : "Paid"}
+                        </button>
+                        <button 
+                          onClick={() => setShowPaymentCheck(false)}
+                          disabled={isClaiming}
+                          className="flex-1 rounded-xl py-2 text-xs font-bold transition disabled:opacity-50"
+                          style={{ background: "var(--glass-bg)", border: "1px solid var(--glass-border)", color: "var(--ink)" }}
+                        >
+                          Not Paid
+                        </button>
+                      </div>
                     </div>
                   )}
                 </div>
