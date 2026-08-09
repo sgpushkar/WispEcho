@@ -120,7 +120,7 @@ export function Sidebar() {
   const { conversations, setConversations, activeConversationId, setActiveConversation, onlineUsers, togglePin, toggleArchive, toggleFavorite } = useChatStore();
   const queryClient = useQueryClient();
 
-  const { friendsOpen, setFriendsOpen, groupOpen, setGroupOpen, settingsOpen, setSettingsOpen, theme } = useUIStore();
+  const { friendsOpen, setFriendsOpen, groupOpen, setGroupOpen, settingsOpen, setSettingsOpen } = useUIStore();
   const [query, setQuery] = useState("");
   const [filterTab, setFilterTab] = useState<FilterTab>("all");
   const [notifOpen, setNotifOpen] = useState(false);

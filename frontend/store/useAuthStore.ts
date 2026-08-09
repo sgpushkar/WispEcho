@@ -14,6 +14,8 @@ export interface User {
   pronouns?: string | null;
   bannerUrl?: string | null;
   isOnline?: boolean;
+  themeId?: string | null;
+  isPro?: boolean;
 }
 
 interface AuthState {

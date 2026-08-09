@@ -2,7 +2,7 @@ import prisma from "../config/db.js";
 
 export async function updateProfile(req, res, next) {
   try {
-    const { username, displayName, bio, pronouns, avatarUrl, bannerUrl, accentColor, status } = req.body;
+    const { username, displayName, bio, pronouns, avatarUrl, bannerUrl, accentColor, status, themeId } = req.body;
     
     if (username) {
       const existingUser = await prisma.user.findFirst({
@@ -18,7 +18,7 @@ export async function updateProfile(req, res, next) {
 
     const user = await prisma.user.update({
       where: { id: req.userId },
-      data: { username, displayName, bio, pronouns, avatarUrl, bannerUrl, accentColor, status },
+      data: { username, displayName, bio, pronouns, avatarUrl, bannerUrl, accentColor, status, themeId },
     });
     res.json({ user });
   } catch (err) {

@@ -4,17 +4,56 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { useState, useEffect } from "react";
 import { useUIStore } from "@/store/useUIStore";
 import { useChatStore } from "@/store/useChatStore";
+import { useAuthStore } from "@/store/useAuthStore";
+import { themes, buildCustomTheme, applyThemeToDOM } from "@/lib/themes";
 
 export function Providers({ children }: { children: React.ReactNode }) {
   const [queryClient] = useState(() => new QueryClient({
     defaultOptions: { queries: { retry: 1, refetchOnWindowFocus: false } },
   }));
-  const setTheme = useUIStore((s) => s.setTheme);
+  const applyTheme = useUIStore((s) => s.applyTheme);
+  const applyCustomTheme = useUIStore((s) => s.applyCustomTheme);
 
   useEffect(() => {
-    const localTheme = (localStorage.getItem("theme") as "light" | "dark") || "dark";
-    setTheme(localTheme);
+    // 1. Check if user has a server-synced themeId
+    const user = useAuthStore.getState().user;
+    const serverThemeId = user?.themeId;
 
+    // 2. Fall back to localStorage
+    const localThemeId = localStorage.getItem("wispecho-theme") || "default";
+    const themeId = serverThemeId || localThemeId;
+
+    // 3. Apply theme
+    if (themeId.startsWith("custom_")) {
+      // Custom theme — try to load from localStorage
+      try {
+        const data = localStorage.getItem("wispecho-custom-theme-data");
+        if (data) {
+          applyCustomTheme(JSON.parse(data));
+        } else {
+          applyTheme("default");
+        }
+      } catch {
+        applyTheme("default");
+      }
+    } else if (themes[themeId]) {
+      applyTheme(themeId);
+    } else {
+      applyTheme("default");
+    }
+
+    // Migrate legacy "theme" localStorage key
+    const legacyTheme = localStorage.getItem("theme");
+    if (legacyTheme && !localStorage.getItem("wispecho-theme")) {
+      if (legacyTheme === "light") {
+        applyTheme("light");
+      } else {
+        applyTheme("default");
+      }
+      localStorage.removeItem("theme");
+    }
+
+    // Capacitor native platform detection
     if (typeof window !== "undefined") {
       import("@capacitor/core").then(({ Capacitor }) => {
         if (Capacitor.isNativePlatform()) {
@@ -64,7 +103,7 @@ export function Providers({ children }: { children: React.ReactNode }) {
         });
       }
     }
-  }, [setTheme]);
+  }, [applyTheme, applyCustomTheme]);
 
   return <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>;
 }

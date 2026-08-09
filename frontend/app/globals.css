@@ -28,6 +28,11 @@
     --composer-border: rgba(255,255,255,0.06);
     --icon-btn-hover: rgba(255,255,255,0.06);
     --send-btn-bg: rgba(255,255,255,0.1);
+
+    /* Effect tokens — controlled by theme engine */
+    --blur: 24px;
+    --panel-radius: 24px;
+    --glass-opacity: 0.04;
   }
 
   .light {
@@ -66,11 +71,16 @@
   :hover::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.15); }
   ::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,0.25); }
 
+  /* Light mode scrollbar */
+  .light ::-webkit-scrollbar-thumb { background: transparent; }
+  .light :hover::-webkit-scrollbar-thumb { background: rgba(0,0,0,0.15); }
+  .light ::-webkit-scrollbar-thumb:hover { background: rgba(0,0,0,0.25); }
+
   html, body {
     min-height: 100%;
     background: var(--bg);
     color: var(--ink);
-    transition: background-color 0.3s ease, color 0.3s ease;
+    transition: background-color 0.4s cubic-bezier(0.4, 0, 0.2, 1), color 0.4s cubic-bezier(0.4, 0, 0.2, 1);
     overflow-x: hidden;
     overscroll-behavior-x: none;
   }
@@ -104,13 +114,13 @@
     background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
   }
 
-  /* ---------- glass primitive ---------- */
+  /* ---------- glass primitive — uses theme effect tokens ---------- */
   .glass {
     position: relative;
     overflow: hidden;
     background: var(--glass-bg);
-    backdrop-filter: blur(24px);
-    -webkit-backdrop-filter: blur(24px);
+    backdrop-filter: blur(var(--blur));
+    -webkit-backdrop-filter: blur(var(--blur));
     border: 1px solid var(--glass-border);
     transition: all 0.18s cubic-bezier(0.2, 0.8, 0.2, 1);
     transform: translateZ(0);
@@ -121,8 +131,8 @@
     position: relative;
     overflow: hidden;
     background: var(--glass-bg-strong);
-    backdrop-filter: blur(32px);
-    -webkit-backdrop-filter: blur(32px);
+    backdrop-filter: blur(calc(var(--blur) + 8px));
+    -webkit-backdrop-filter: blur(calc(var(--blur) + 8px));
     border: 1px solid var(--glass-border-strong);
     transition: all 0.18s cubic-bezier(0.2, 0.8, 0.2, 1);
     transform: translateZ(0);
@@ -176,7 +186,7 @@
 
   .sidebar { border-radius: 0; padding: 12px 16px; padding-top: max(16px, env(safe-area-inset-top)); display: flex; flex-direction: column; gap: 16px; }
   @media (min-width: 768px) {
-    .sidebar { border-radius: 24px; padding: 20px; gap: 24px; }
+    .sidebar { border-radius: var(--panel-radius); padding: 20px; gap: 24px; }
   }
 
   .brand { display: flex; align-items: center; gap: 10px; padding: 0 4px; }
@@ -196,8 +206,8 @@
 
   .conv-list { display: flex; flex-direction: column; gap: 6px; overflow-y: auto; flex: 1; padding-right: 4px; }
   
-  .avatar { position: relative; width: 44px; height: 44px; border-radius: 14px; display: flex; align-items: center; justify-content: center; font-family: var(--font-space), sans-serif; font-weight: 500; font-size: 15px; flex-shrink: 0; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.10); transition: all 0.18s; }
-  .dot { position: absolute; bottom: -2px; right: -2px; width: 11px; height: 11px; border-radius: 50%; background: #4ade80; border: 2.5px solid #0a0a0a; }
+  .avatar { position: relative; width: 44px; height: 44px; border-radius: 14px; display: flex; align-items: center; justify-content: center; font-family: var(--font-space), sans-serif; font-weight: 500; font-size: 15px; flex-shrink: 0; background: var(--glass-bg); border: 1px solid var(--glass-border); transition: all 0.18s; }
+  .dot { position: absolute; bottom: -2px; right: -2px; width: 11px; height: 11px; border-radius: 50%; background: #4ade80; border: 2.5px solid var(--bg); }
 
   .conv-meta { min-width: 0; flex: 1; }
   .conv-name { font-size: 14px; font-weight: 600; letter-spacing: -0.01em; }
@@ -211,7 +221,7 @@
 
   .chat { border-radius: 0; display: flex; flex-direction: column; }
   @media (min-width: 768px) {
-    .chat { border-radius: 24px; }
+    .chat { border-radius: var(--panel-radius); }
   }
 
   .chat-header { display: flex; align-items: center; gap: 12px; padding: 14px 16px; padding-top: max(14px, env(safe-area-inset-top)); border-bottom: 1px solid var(--chat-border); min-height: 60px; }
@@ -240,7 +250,7 @@
     .composer { padding: 0 24px 24px; }
   }
 
-  .composer-glass { display: flex; align-items: flex-end; gap: 12px; padding: 10px 12px 10px 16px; border-radius: 24px; background: var(--composer-bg); border: 1px solid var(--composer-border); transition: all 0.18s cubic-bezier(0.2, 0.8, 0.2, 1); }
+  .composer-glass { display: flex; align-items: flex-end; gap: 12px; padding: 10px 12px 10px 16px; border-radius: var(--panel-radius); background: var(--composer-bg); border: 1px solid var(--composer-border); transition: all 0.18s cubic-bezier(0.2, 0.8, 0.2, 1); }
   .composer-glass:focus-within { background: var(--glass-bg-strong); border-color: var(--glass-border-strong); transform: translateY(-1px); box-shadow: 0 8px 24px rgba(0,0,0,0.2); }
   .composer-glass textarea { flex: 1; background: transparent; border: none; outline: none; color: var(--ink); font-family: var(--font-inter), sans-serif; font-size: 14px; min-height: 22px; max-height: 120px; resize: none; padding-top: 4px; padding-bottom: 4px; }
   .composer-glass textarea::placeholder { color: var(--ink-faint); transition: opacity 0.18s; }
@@ -253,4 +263,13 @@
   .send-btn { width: 36px; height: 36px; border-radius: 50%; background: var(--send-btn-bg); display: flex; align-items: center; justify-content: center; flex-shrink: 0; cursor: pointer; border: 1px solid var(--glass-border); transition: all 0.18s; }
   .send-btn:hover { background: rgba(255,255,255,0.15); border-color: var(--glass-border-strong); transform: scale(1.02); }
   .send-btn:active { transform: scale(0.97); }
+
+  /* ─── Theme transition ─── */
+  .theme-transitioning,
+  .theme-transitioning * {
+    transition: background-color 0.4s cubic-bezier(0.4, 0, 0.2, 1),
+                color 0.4s cubic-bezier(0.4, 0, 0.2, 1),
+                border-color 0.4s cubic-bezier(0.4, 0, 0.2, 1),
+                box-shadow 0.4s cubic-bezier(0.4, 0, 0.2, 1) !important;
+  }
 }

@@ -118,8 +118,12 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             __html: `
               (function() {
                 try {
-                  var theme = localStorage.getItem('theme') || 'dark';
-                  if (theme === 'light') {
+                  var themeId = localStorage.getItem('wispecho-theme') || 'default';
+                  // For preset themes, we just need to set the light class — 
+                  // the CSS vars will be applied by JS on hydration.
+                  // But we prevent FOUC by at least applying the correct class.
+                  var lightThemes = ['light', 'sakura'];
+                  if (lightThemes.indexOf(themeId) !== -1) {
                     document.documentElement.classList.add('light');
                     document.documentElement.classList.remove('dark');
                   } else {

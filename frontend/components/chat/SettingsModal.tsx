@@ -2,21 +2,59 @@
 
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { X, Settings, User as UserIcon, Palette, Bell, Lock, Eye, EyeOff, Camera } from "lucide-react";
+import { X, Settings, User as UserIcon, Palette, Bell, Lock, Eye, EyeOff, Camera, Crown, Check } from "lucide-react";
 import { Portal } from "../ui/Portal";
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQuery } from "@tanstack/react-query";
 import { api } from "@/lib/api";
 import { useAuthStore } from "@/store/useAuthStore";
 import { Avatar } from "../ui/Avatar";
 import { useUIStore } from "@/store/useUIStore";
 import { VersionSettings } from "../ui/VersionSettings";
 import { SessionManager } from "./SessionManager";
+import { themes, THEME_ORDER, type ThemeDefinition } from "@/lib/themes";
+import { ThemeEditor } from "./ThemeEditor";
+
+// ─── Mini Chat Preview for Theme Cards ────────────────────────────────────────
+function ThemePreview({ theme }: { theme: ThemeDefinition }) {
+  return (
+    <div
+      className="rounded-xl overflow-hidden h-[72px] w-full flex flex-col justify-end p-2 gap-1"
+      style={{ background: theme.colors.bg, border: `1px solid ${theme.colors.glassBorder}` }}
+    >
+      {/* Received bubble */}
+      <div className="flex">
+        <div
+          className="rounded-xl rounded-bl-sm px-2.5 py-1 text-[9px] max-w-[65%]"
+          style={{
+            background: theme.colors.bubbleTheirs,
+            border: `1px solid ${theme.colors.bubbleTheirsBorder}`,
+            color: theme.colors.ink,
+          }}
+        >
+          Hey 👋
+        </div>
+      </div>
+      {/* Sent bubble */}
+      <div className="flex justify-end">
+        <div
+          className="rounded-xl rounded-br-sm px-2.5 py-1 text-[9px] max-w-[65%]"
+          style={{
+            background: theme.colors.bubbleMine,
+            border: `1px solid ${theme.colors.bubbleMineBorder}`,
+            color: theme.colors.ink,
+          }}
+        >
+          What&apos;s up? 🔥
+        </div>
+      </div>
+    </div>
+  );
+}
 
 export function SettingsModal({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }) {
   const user = useAuthStore((s) => s.user);
   const setUser = useAuthStore((s) => s.setUser);
-  const { theme: storeTheme } = useUIStore();
-  const isDark = storeTheme === "dark";
+  const { themeId: currentThemeId, applyTheme, getActiveTheme } = useUIStore();
 
   const [activeTab, setActiveTab] = useState<"profile" | "customization" | "preferences" | "devices">("profile");
 
@@ -34,6 +72,7 @@ export function SettingsModal({ isOpen, onClose }: { isOpen: boolean; onClose: (
 
   const [isUploadingAvatar, setIsUploadingAvatar] = useState(false);
   const [isUploadingBanner, setIsUploadingBanner] = useState(false);
+  const [showThemeEditor, setShowThemeEditor] = useState(false);
 
   const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>, type: "avatar" | "banner") => {
     const file = e.target.files?.[0];
@@ -83,9 +122,6 @@ export function SettingsModal({ isOpen, onClose }: { isOpen: boolean; onClose: (
   const [pwError, setPwError] = useState<string | null>(null);
   const [pwSuccess, setPwSuccess] = useState(false);
 
-  const { setTheme: setStoreTheme } = useUIStore();
-  const [themeMode, setThemeMode] = useState<"light" | "dark">("dark");
-
   useEffect(() => {
     if (user && isOpen) {
       setUsername(user.username || "");
@@ -100,11 +136,10 @@ export function SettingsModal({ isOpen, onClose }: { isOpen: boolean; onClose: (
       // Load local settings
       setMuteSounds(localStorage.getItem("mute_sounds") === "true");
       setAmbientGlow(localStorage.getItem("ambient_glow") !== "false");
-      setThemeMode(storeTheme);
       // Fetch hasPassword from /auth/me
       api.get("/auth/me").then((res) => setHasPassword(res.data.hasPassword)).catch(() => {});
     }
-  }, [user, isOpen, storeTheme]);
+  }, [user, isOpen]);
 
   const updateProfile = useMutation({
     mutationFn: async () =>
@@ -117,6 +152,7 @@ export function SettingsModal({ isOpen, onClose }: { isOpen: boolean; onClose: (
         bannerUrl,
         accentColor,
         status,
+        themeId: currentThemeId.startsWith("custom_") ? currentThemeId : currentThemeId,
       }),
     onSuccess: (res) => {
       if (res.data.user) {
@@ -124,7 +160,6 @@ export function SettingsModal({ isOpen, onClose }: { isOpen: boolean; onClose: (
       }
       localStorage.setItem("mute_sounds", muteSounds ? "true" : "false");
       localStorage.setItem("ambient_glow", ambientGlow ? "true" : "false");
-      setStoreTheme(themeMode);
       // Apply ambient glow class to body immediately if toggled
       if (ambientGlow) {
         document.body.classList.add("ambient-glow-enabled");
@@ -174,40 +209,19 @@ export function SettingsModal({ isOpen, onClose }: { isOpen: boolean; onClose: (
     "#ef4444", // Red
   ];
 
-  // Theme-aware style tokens
-  const modalBg = isDark ? "rgba(18,18,22,0.97)" : "rgba(255,255,255,0.97)";
-  const headerBorder = isDark ? "rgba(255,255,255,0.07)" : "rgba(0,0,0,0.08)";
-  const inkColor = isDark ? "#ffffff" : "#000000";
-  const inkDim = isDark ? "rgba(255,255,255,0.7)" : "#333333";
-  const inkFaint = isDark ? "rgba(255,255,255,0.4)" : "#777777";
-  const inputBg = isDark ? "rgba(255,255,255,0.05)" : "rgba(0,0,0,0.04)";
-  const inputBorder = isDark ? "rgba(255,255,255,0.07)" : "rgba(0,0,0,0.1)";
-  const inputFocusBorder = isDark ? "rgba(255,255,255,0.15)" : "rgba(0,0,0,0.2)";
-  const sectionBg = isDark ? "rgba(255,255,255,0.02)" : "rgba(0,0,0,0.02)";
-  const sectionBorder = isDark ? "rgba(255,255,255,0.06)" : "rgba(0,0,0,0.08)";
-  const footerBg = isDark ? "rgba(255,255,255,0.01)" : "rgba(0,0,0,0.02)";
-  const cancelBg = isDark ? "rgba(255,255,255,0.05)" : "rgba(0,0,0,0.05)";
-  const cancelHoverBg = isDark ? "rgba(255,255,255,0.1)" : "rgba(0,0,0,0.1)";
-  const saveBg = isDark ? "#ffffff" : "#111111";
-  const saveText = isDark ? "#0a0a0a" : "#ffffff";
-  const overlayBg = isDark ? "rgba(0,0,0,0.7)" : "rgba(0,0,0,0.4)";
-  const tabActiveBorder = isDark ? "#ffffff" : "#000000";
-  const tabActiveText = isDark ? "#ffffff" : "#000000";
-  const closeHoverBg = isDark ? "rgba(255,255,255,0.07)" : "rgba(0,0,0,0.07)";
-  const toggleActiveBg = isDark ? "rgba(255,255,255,0.3)" : "rgba(0,0,0,0.25)";
-  const toggleInactiveBg = isDark ? "rgba(255,255,255,0.1)" : "rgba(0,0,0,0.1)";
-  const pwSectionBg = isDark ? "rgba(255,255,255,0.02)" : "rgba(0,0,0,0.03)";
-  const pwSectionBorder = isDark ? "rgba(255,255,255,0.05)" : "rgba(0,0,0,0.08)";
+  // CSS-var-aware style tokens (read from theme, not isDark ternaries)
+  const activeTheme = getActiveTheme();
+  const isDarkMode = activeTheme.mode === "dark";
 
   const inputStyle: React.CSSProperties = {
     width: "100%",
     borderRadius: "16px",
-    border: `1px solid ${inputBorder}`,
-    background: inputBg,
+    border: `1px solid var(--glass-border)`,
+    background: "var(--glass-bg)",
     padding: "12px 16px",
     fontSize: "14px",
     outline: "none",
-    color: inkColor,
+    color: "var(--ink)",
     transition: "border-color 0.18s",
   };
 
@@ -215,7 +229,7 @@ export function SettingsModal({ isOpen, onClose }: { isOpen: boolean; onClose: (
     <Portal>
       <div
         className="fixed inset-0 z-[99999] flex items-center justify-center p-4"
-        style={{ background: overlayBg, backdropFilter: "blur(12px)" }}
+        style={{ background: isDarkMode ? "rgba(0,0,0,0.7)" : "rgba(0,0,0,0.4)", backdropFilter: "blur(12px)" }}
       >
         <motion.div
         initial={{ opacity: 0, scale: 0.95, y: 20 }}
@@ -223,25 +237,23 @@ export function SettingsModal({ isOpen, onClose }: { isOpen: boolean; onClose: (
         exit={{ opacity: 0, scale: 0.95, y: 20 }}
         className="relative flex h-[580px] w-full max-w-md flex-col overflow-hidden rounded-3xl"
         style={{
-          background: modalBg,
-          border: `1px solid ${headerBorder}`,
+          background: isDarkMode ? "rgba(18,18,22,0.97)" : "rgba(255,255,255,0.97)",
+          border: `1px solid var(--glass-border)`,
           backdropFilter: "blur(32px)",
         }}
       >
         {/* Header */}
         <div
           className="flex items-center justify-between px-6 py-4"
-          style={{ borderBottom: `1px solid ${headerBorder}` }}
+          style={{ borderBottom: `1px solid var(--glass-border)` }}
         >
-          <h2 className="text-lg font-semibold flex items-center gap-2" style={{ color: inkColor }}>
-            <Settings size={18} style={{ color: inkDim }} /> App Settings
+          <h2 className="text-lg font-semibold flex items-center gap-2" style={{ color: "var(--ink)" }}>
+            <Settings size={18} style={{ color: "var(--ink-dim)" }} /> App Settings
           </h2>
           <button
             onClick={onClose}
-            className="rounded-full p-1.5 transition"
-            style={{ color: inkFaint }}
-            onMouseEnter={(e) => (e.currentTarget.style.background = closeHoverBg)}
-            onMouseLeave={(e) => (e.currentTarget.style.background = "transparent")}
+            className="rounded-full p-1.5 transition hover:bg-[var(--hover-bg)]"
+            style={{ color: "var(--ink-faint)" }}
           >
             <X size={20} />
           </button>
@@ -250,12 +262,12 @@ export function SettingsModal({ isOpen, onClose }: { isOpen: boolean; onClose: (
         {/* Tab Navigation */}
         <div
           className="flex"
-          style={{ borderBottom: `1px solid ${headerBorder}`, background: isDark ? "rgba(255,255,255,0.01)" : "rgba(0,0,0,0.02)" }}
+          style={{ borderBottom: `1px solid var(--glass-border)`, background: "var(--glass-bg)" }}
         >
           {(["profile", "customization", "preferences", "devices"] as const).map((tab) => {
             const labels: Record<string, string> = {
               profile: "Profile",
-              customization: "Appearance",
+              customization: "Themes",
               preferences: "Preferences",
               devices: "Devices",
             };
@@ -266,8 +278,8 @@ export function SettingsModal({ isOpen, onClose }: { isOpen: boolean; onClose: (
                 onClick={() => setActiveTab(tab)}
                 className="flex-1 py-3 text-xs font-semibold uppercase tracking-wider transition"
                 style={{
-                  color: isActive ? tabActiveText : inkFaint,
-                  borderBottom: isActive ? `2px solid ${tabActiveBorder}` : "2px solid transparent",
+                  color: isActive ? "var(--ink)" : "var(--ink-faint)",
+                  borderBottom: isActive ? `2px solid var(--ink)` : "2px solid transparent",
                   background: "transparent",
                 }}
               >
@@ -293,7 +305,7 @@ export function SettingsModal({ isOpen, onClose }: { isOpen: boolean; onClose: (
 
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-1.5">
-                  <label className="text-xs font-semibold uppercase tracking-wider" style={{ color: inkFaint }}>Username</label>
+                  <label className="text-xs font-semibold uppercase tracking-wider" style={{ color: "var(--ink-faint)" }}>Username</label>
                   <input
                     value={username}
                     onChange={(e) => setUsername(e.target.value)}
@@ -302,7 +314,7 @@ export function SettingsModal({ isOpen, onClose }: { isOpen: boolean; onClose: (
                   />
                 </div>
                 <div className="space-y-1.5">
-                  <label className="text-xs font-semibold uppercase tracking-wider" style={{ color: inkFaint }}>Display Name</label>
+                  <label className="text-xs font-semibold uppercase tracking-wider" style={{ color: "var(--ink-faint)" }}>Display Name</label>
                   <input
                     value={displayName}
                     onChange={(e) => setDisplayName(e.target.value)}
@@ -313,7 +325,7 @@ export function SettingsModal({ isOpen, onClose }: { isOpen: boolean; onClose: (
               </div>
 
               <div className="space-y-1.5">
-                <label className="text-xs font-semibold uppercase tracking-wider" style={{ color: inkFaint }}>Avatar URL</label>
+                <label className="text-xs font-semibold uppercase tracking-wider" style={{ color: "var(--ink-faint)" }}>Avatar URL</label>
                 <input
                   value={avatarUrl}
                   onChange={(e) => setAvatarUrl(e.target.value)}
@@ -323,7 +335,7 @@ export function SettingsModal({ isOpen, onClose }: { isOpen: boolean; onClose: (
               </div>
 
               <div className="space-y-1.5">
-                <label className="text-xs font-semibold uppercase tracking-wider" style={{ color: inkFaint }}>Bio</label>
+                <label className="text-xs font-semibold uppercase tracking-wider" style={{ color: "var(--ink-faint)" }}>Bio</label>
                 <textarea
                   value={bio}
                   onChange={(e) => setBio(e.target.value)}
@@ -334,10 +346,10 @@ export function SettingsModal({ isOpen, onClose }: { isOpen: boolean; onClose: (
               </div>
 
               {/* Password section */}
-              <div className="rounded-2xl p-4 space-y-3" style={{ border: `1px solid ${pwSectionBorder}`, background: pwSectionBg }}>
+              <div className="rounded-2xl p-4 space-y-3" style={{ border: `1px solid var(--glass-border)`, background: "var(--glass-bg)" }}>
                 <div className="flex items-center gap-2 mb-1">
-                  <Lock size={14} style={{ color: inkFaint }} />
-                  <span className="text-xs font-semibold uppercase tracking-wider" style={{ color: inkFaint }}>
+                  <Lock size={14} style={{ color: "var(--ink-faint)" }} />
+                  <span className="text-xs font-semibold uppercase tracking-wider" style={{ color: "var(--ink-faint)" }}>
                     {hasPassword ? "Change Password" : "Set Password"}
                   </span>
                 </div>
@@ -366,7 +378,7 @@ export function SettingsModal({ isOpen, onClose }: { isOpen: boolean; onClose: (
                     type="button"
                     onClick={() => setShowPw((v) => !v)}
                     className="absolute right-3 top-1/2 -translate-y-1/2 transition"
-                    style={{ color: inkFaint }}
+                    style={{ color: "var(--ink-faint)" }}
                   >
                     {showPw ? <EyeOff size={14} /> : <Eye size={14} />}
                   </button>
@@ -388,7 +400,7 @@ export function SettingsModal({ isOpen, onClose }: { isOpen: boolean; onClose: (
                   onClick={handlePasswordSubmit}
                   disabled={changePassword.isPending}
                   className="w-full rounded-2xl py-2.5 text-sm font-semibold transition disabled:opacity-50"
-                  style={{ background: inputBg, border: `1px solid ${inputBorder}`, color: inkColor }}
+                  style={{ background: "var(--glass-bg)", border: `1px solid var(--glass-border)`, color: "var(--ink)" }}
                 >
                   {changePassword.isPending ? "Saving..." : hasPassword ? "Update Password" : "Set Password"}
                 </button>
@@ -397,9 +409,97 @@ export function SettingsModal({ isOpen, onClose }: { isOpen: boolean; onClose: (
           )}
 
           {activeTab === "customization" && (
-            <div className="space-y-4">
-              <div className="relative h-24 rounded-2xl overflow-hidden group cursor-pointer mb-2" style={{ background: inputBg, border: `1px solid ${inputBorder}` }}>
-                {bannerUrl ? <img src={bannerUrl} className="w-full h-full object-cover" /> : <div className="w-full h-full flex items-center justify-center" style={{ color: inkFaint }}>No Banner</div>}
+            <div className="space-y-5">
+              {/* ── Theme Store Grid ── */}
+              <div className="space-y-2">
+                <div className="flex items-center justify-between">
+                  <label className="text-xs font-semibold uppercase tracking-wider" style={{ color: "var(--ink-faint)" }}>
+                    Choose Theme
+                  </label>
+                  <button
+                    onClick={() => setShowThemeEditor(true)}
+                    className="text-[10px] font-semibold uppercase tracking-wider px-3 py-1.5 rounded-xl transition"
+                    style={{ background: "var(--glass-bg)", border: `1px solid var(--glass-border)`, color: "var(--ink-dim)" }}
+                  >
+                    🎨 Custom
+                  </button>
+                </div>
+
+                <div className="grid grid-cols-2 gap-3">
+                  {THEME_ORDER.map((id) => {
+                    const theme = themes[id];
+                    if (!theme) return null;
+                    const isSelected = currentThemeId === id;
+
+                    return (
+                      <button
+                        key={id}
+                        type="button"
+                        onClick={() => {
+                          // Add smooth transition class
+                          document.documentElement.classList.add("theme-transitioning");
+                          applyTheme(id);
+                          setTimeout(() => {
+                            document.documentElement.classList.remove("theme-transitioning");
+                          }, 500);
+                        }}
+                        className="relative rounded-2xl p-2.5 text-left transition-all group"
+                        style={{
+                          background: isSelected ? "var(--active-bg)" : "var(--glass-bg)",
+                          border: `1.5px solid ${isSelected ? "var(--ink)" : "var(--glass-border)"}`,
+                        }}
+                      >
+                        {/* Selected indicator */}
+                        {isSelected && (
+                          <div className="absolute top-2 right-2 z-10 w-5 h-5 rounded-full flex items-center justify-center"
+                            style={{ background: "var(--ink)", color: "var(--bg)" }}>
+                            <Check size={12} strokeWidth={3} />
+                          </div>
+                        )}
+
+                        {/* Premium badge */}
+                        {theme.premium && (
+                          <div className="absolute top-2 left-2 z-10 flex items-center gap-0.5 px-1.5 py-0.5 rounded-md text-[8px] font-bold uppercase tracking-wider"
+                            style={{ background: "linear-gradient(135deg, #f59e0b, #d97706)", color: "#000" }}>
+                            <Crown size={8} /> PRO
+                          </div>
+                        )}
+
+                        {/* Theme preview */}
+                        <ThemePreview theme={theme} />
+
+                        {/* Theme name */}
+                        <div className="flex items-center gap-1.5 mt-2 px-0.5">
+                          <span className="text-sm">{theme.emoji}</span>
+                          <span className="text-xs font-semibold" style={{ color: "var(--ink)" }}>
+                            {theme.name}
+                          </span>
+                        </div>
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+
+              {/* Subscription indicator */}
+              {!user?.isPro && (
+                <div className="rounded-2xl p-4" style={{ background: "linear-gradient(135deg, rgba(245,158,11,0.08), rgba(217,119,6,0.04))", border: "1px solid rgba(245,158,11,0.15)" }}>
+                  <div className="flex items-center gap-2 mb-1">
+                    <Crown size={14} style={{ color: "#f59e0b" }} />
+                    <span className="text-xs font-bold uppercase tracking-wider" style={{ color: "#f59e0b" }}>Unlock Pro Themes</span>
+                  </div>
+                  <p className="text-[11px] leading-relaxed" style={{ color: "var(--ink-faint)" }}>
+                    Get access to 7 premium themes, unlimited custom themes, and chat background images.
+                  </p>
+                </div>
+              )}
+
+              {/* Divider */}
+              <div style={{ height: 1, background: "var(--glass-border)" }} />
+
+              {/* Profile customization */}
+              <div className="relative h-24 rounded-2xl overflow-hidden group cursor-pointer mb-2" style={{ background: "var(--glass-bg)", border: `1px solid var(--glass-border)` }}>
+                {bannerUrl ? <img src={bannerUrl} className="w-full h-full object-cover" /> : <div className="w-full h-full flex items-center justify-center" style={{ color: "var(--ink-faint)" }}>No Banner</div>}
                 <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition flex items-center justify-center">
                   {isUploadingBanner ? <div className="w-5 h-5 border-2 border-white/50 border-t-white rounded-full animate-spin" /> : <Camera size={24} className="text-white" />}
                 </div>
@@ -407,7 +507,7 @@ export function SettingsModal({ isOpen, onClose }: { isOpen: boolean; onClose: (
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-1.5">
-                  <label className="text-xs font-semibold uppercase tracking-wider" style={{ color: inkFaint }}>Pronouns</label>
+                  <label className="text-xs font-semibold uppercase tracking-wider" style={{ color: "var(--ink-faint)" }}>Pronouns</label>
                   <input
                     value={pronouns}
                     onChange={(e) => setPronouns(e.target.value)}
@@ -416,7 +516,7 @@ export function SettingsModal({ isOpen, onClose }: { isOpen: boolean; onClose: (
                   />
                 </div>
                 <div className="space-y-1.5">
-                  <label className="text-xs font-semibold uppercase tracking-wider" style={{ color: inkFaint }}>Custom Status</label>
+                  <label className="text-xs font-semibold uppercase tracking-wider" style={{ color: "var(--ink-faint)" }}>Custom Status</label>
                   <input
                     value={status}
                     onChange={(e) => setStatus(e.target.value)}
@@ -427,7 +527,7 @@ export function SettingsModal({ isOpen, onClose }: { isOpen: boolean; onClose: (
               </div>
 
               <div className="space-y-1.5">
-                <label className="text-xs font-semibold uppercase tracking-wider" style={{ color: inkFaint }}>Banner URL</label>
+                <label className="text-xs font-semibold uppercase tracking-wider" style={{ color: "var(--ink-faint)" }}>Banner URL</label>
                 <input
                   value={bannerUrl}
                   onChange={(e) => setBannerUrl(e.target.value)}
@@ -437,7 +537,7 @@ export function SettingsModal({ isOpen, onClose }: { isOpen: boolean; onClose: (
               </div>
 
               <div className="space-y-2">
-                <label className="text-xs font-semibold uppercase tracking-wider" style={{ color: inkFaint }}>Accent Color</label>
+                <label className="text-xs font-semibold uppercase tracking-wider" style={{ color: "var(--ink-faint)" }}>Accent Color</label>
                 <div className="flex gap-3 pt-1">
                   {ACCENT_COLORS.map((c) => (
                     <button
@@ -447,7 +547,7 @@ export function SettingsModal({ isOpen, onClose }: { isOpen: boolean; onClose: (
                       className={`h-7 w-7 rounded-full transition-transform border ${
                         accentColor === c ? "scale-125 shadow-lg" : "hover:scale-110"
                       }`}
-                      style={{ backgroundColor: c, borderColor: accentColor === c ? inkColor : inputBorder }}
+                      style={{ backgroundColor: c, borderColor: accentColor === c ? "var(--ink)" : "var(--glass-border)" }}
                     />
                   ))}
                 </div>
@@ -457,53 +557,18 @@ export function SettingsModal({ isOpen, onClose }: { isOpen: boolean; onClose: (
 
           {activeTab === "preferences" && (
             <div className="space-y-5 pt-2">
-              <div className="flex items-center justify-between rounded-2xl p-4" style={{ border: `1px solid ${sectionBorder}`, background: sectionBg }}>
+              <div className="flex items-center justify-between rounded-2xl p-4" style={{ border: `1px solid var(--glass-border)`, background: "var(--glass-bg)" }}>
                 <div className="flex flex-col gap-0.5">
-                  <span className="text-sm font-semibold flex items-center gap-2" style={{ color: inkDim }}>
-                    <Palette size={16} style={{ color: inkFaint }} /> Theme Mode
+                  <span className="text-sm font-semibold flex items-center gap-2" style={{ color: "var(--ink-dim)" }}>
+                    <Bell size={16} style={{ color: "var(--ink-faint)" }} /> Sound Notifications
                   </span>
-                  <span className="text-xs" style={{ color: inkFaint }}>Select application visual style</span>
-                </div>
-                <div className="flex gap-2">
-                  <button
-                    type="button"
-                    onClick={() => setThemeMode("light")}
-                    className="px-3.5 py-2 text-xs font-semibold rounded-xl transition"
-                    style={{
-                      background: themeMode === "light" ? inkColor : inputBg,
-                      color: themeMode === "light" ? (isDark ? "#000" : "#fff") : inkDim,
-                      border: `1px solid ${themeMode === "light" ? inkColor : inputBorder}`,
-                    }}
-                  >
-                    Light
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setThemeMode("dark")}
-                    className="px-3.5 py-2 text-xs font-semibold rounded-xl transition"
-                    style={{
-                      background: themeMode === "dark" ? inkColor : inputBg,
-                      color: themeMode === "dark" ? (isDark ? "#000" : "#fff") : inkDim,
-                      border: `1px solid ${themeMode === "dark" ? inkColor : inputBorder}`,
-                    }}
-                  >
-                    Dark
-                  </button>
-                </div>
-              </div>
-
-              <div className="flex items-center justify-between rounded-2xl p-4" style={{ border: `1px solid ${sectionBorder}`, background: sectionBg }}>
-                <div className="flex flex-col gap-0.5">
-                  <span className="text-sm font-semibold flex items-center gap-2" style={{ color: inkDim }}>
-                    <Bell size={16} style={{ color: inkFaint }} /> Sound Notifications
-                  </span>
-                  <span className="text-xs" style={{ color: inkFaint }}>Play a subtle ring on receiving messages</span>
+                  <span className="text-xs" style={{ color: "var(--ink-faint)" }}>Play a subtle ring on receiving messages</span>
                 </div>
                 <button
                   type="button"
                   onClick={() => setMuteSounds(!muteSounds)}
                   className="relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none"
-                  style={{ background: !muteSounds ? toggleActiveBg : toggleInactiveBg }}
+                  style={{ background: !muteSounds ? "var(--active-border)" : "var(--glass-border)" }}
                 >
                   <span
                     className="pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out"
@@ -512,18 +577,18 @@ export function SettingsModal({ isOpen, onClose }: { isOpen: boolean; onClose: (
                 </button>
               </div>
 
-              <div className="flex items-center justify-between rounded-2xl p-4" style={{ border: `1px solid ${sectionBorder}`, background: sectionBg }}>
+              <div className="flex items-center justify-between rounded-2xl p-4" style={{ border: `1px solid var(--glass-border)`, background: "var(--glass-bg)" }}>
                 <div className="flex flex-col gap-0.5">
-                  <span className="text-sm font-semibold flex items-center gap-2" style={{ color: inkDim }}>
-                    <Palette size={16} style={{ color: inkFaint }} /> Ambient Glow
+                  <span className="text-sm font-semibold flex items-center gap-2" style={{ color: "var(--ink-dim)" }}>
+                    <Palette size={16} style={{ color: "var(--ink-faint)" }} /> Ambient Glow
                   </span>
-                  <span className="text-xs" style={{ color: inkFaint }}>Enable translucent glass effects</span>
+                  <span className="text-xs" style={{ color: "var(--ink-faint)" }}>Enable translucent glass effects</span>
                 </div>
                 <button
                   type="button"
                   onClick={() => setAmbientGlow(!ambientGlow)}
                   className="relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none"
-                  style={{ background: ambientGlow ? toggleActiveBg : toggleInactiveBg }}
+                  style={{ background: ambientGlow ? "var(--active-border)" : "var(--glass-border)" }}
                 >
                   <span
                     className="pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out"
@@ -533,7 +598,7 @@ export function SettingsModal({ isOpen, onClose }: { isOpen: boolean; onClose: (
               </div>
 
               {/* Version & Update Checks */}
-              <div className="pt-4" style={{ borderTop: `1px solid ${sectionBorder}` }}>
+              <div className="pt-4" style={{ borderTop: `1px solid var(--glass-border)` }}>
                 <VersionSettings />
               </div>
             </div>
@@ -547,15 +612,13 @@ export function SettingsModal({ isOpen, onClose }: { isOpen: boolean; onClose: (
         {/* Footer */}
         <div
           className="p-4 flex flex-col gap-3"
-          style={{ borderTop: `1px solid ${headerBorder}`, background: footerBg }}
+          style={{ borderTop: `1px solid var(--glass-border)`, background: "var(--glass-bg)" }}
         >
           <div className="flex gap-3">
             <button
               onClick={onClose}
               className="flex-1 rounded-2xl px-4 py-3 text-xs font-semibold uppercase tracking-wider transition"
-              style={{ background: cancelBg, border: `1px solid ${inputBorder}`, color: inkDim }}
-              onMouseEnter={(e) => (e.currentTarget.style.background = cancelHoverBg)}
-              onMouseLeave={(e) => (e.currentTarget.style.background = cancelBg)}
+              style={{ background: "var(--glass-bg)", border: `1px solid var(--glass-border)`, color: "var(--ink-dim)" }}
             >
               Cancel
             </button>
@@ -563,17 +626,22 @@ export function SettingsModal({ isOpen, onClose }: { isOpen: boolean; onClose: (
               onClick={() => updateProfile.mutate()}
               disabled={!username || !displayName || updateProfile.isPending}
               className="flex-1 rounded-2xl px-4 py-3 text-xs font-semibold uppercase tracking-wider transition disabled:opacity-50"
-              style={{ background: saveBg, color: saveText }}
+              style={{ background: "var(--ink)", color: "var(--bg)" }}
             >
               {updateProfile.isPending ? "Saving..." : "Save Changes"}
             </button>
           </div>
-          <p className="text-center text-[10px] font-semibold tracking-wider uppercase" style={{ color: inkFaint }}>
+          <p className="text-center text-[10px] font-semibold tracking-wider uppercase" style={{ color: "var(--ink-faint)" }}>
             WispEcho App v1.2.0
           </p>
           </div>
         </motion.div>
       </div>
+
+      {/* Theme Editor Modal */}
+      {showThemeEditor && (
+        <ThemeEditor onClose={() => setShowThemeEditor(false)} />
+      )}
     </Portal>
   );
 }

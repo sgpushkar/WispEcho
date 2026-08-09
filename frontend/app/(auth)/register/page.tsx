@@ -10,7 +10,6 @@ import GoogleSignInButton from "@/components/auth/GoogleSignInButton";
 import { useUIStore } from "@/store/useUIStore";
 
 export default function RegisterPage() {
-  const theme = useUIStore((s) => s.theme);
   const router = useRouter();
   const setAuth = useAuthStore((s) => s.setAuth);
   const [form, setForm] = useState({ email: "", username: "", displayName: "", password: "" });

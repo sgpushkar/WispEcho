@@ -11,7 +11,6 @@ import { useUIStore } from "@/store/useUIStore";
 import { Smartphone } from "lucide-react";
 
 export default function LoginPage() {
-  const theme = useUIStore((s) => s.theme);
   const router = useRouter();
   const setAuth = useAuthStore((s) => s.setAuth);
   const [email, setEmail] = useState("");
