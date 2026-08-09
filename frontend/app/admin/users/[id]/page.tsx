@@ -9,6 +9,11 @@ import {
 import { api } from "@/lib/api";
 import { useAuthStore } from "@/store/useAuthStore";
 
+export function generateStaticParams() {
+  return [];
+}
+
+
 interface UserDetail {
   id: string;
   email: string;
