@@ -86,6 +86,18 @@ export async function claimManualPayment(req, res, next) {
   try {
     const { amount = 39, reference = "" } = req.body;
 
+    // Check if user already has a pending claim
+    const existingPending = await prisma.payment.findFirst({
+      where: {
+        userId: req.userId,
+        status: "PENDING",
+      },
+    });
+
+    if (existingPending) {
+      return res.status(400).json({ error: "You already have a pending payment claim. Please wait for admin verification." });
+    }
+
     const payment = await prisma.payment.create({
       data: {
         userId: req.userId,
