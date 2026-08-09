@@ -15,6 +15,10 @@ router.get("/dashboard", adminController.getDashboardStats);
 router.get("/users", adminController.listUsers);
 router.get("/users/:id", adminController.getUserDetail);
 router.patch("/users/:id/role", requireAdminRoles(["SUPER_ADMIN"]), adminController.updateUserRole);
+router.post("/users/:id/warn", requireAdminRoles(["SUPER_ADMIN", "ADMIN", "MODERATOR"]), adminController.warnUser);
+router.post("/users/:id/suspend", requireAdminRoles(["SUPER_ADMIN", "ADMIN", "MODERATOR"]), adminController.suspendUser);
+router.post("/users/:id/ban", requireAdminRoles(["SUPER_ADMIN", "ADMIN"]), adminController.banUser);
+router.post("/users/:id/delete", requireAdminRoles(["SUPER_ADMIN"]), adminController.deleteUser);
 
 // Subscriptions & Payments
 router.post("/payments/record", adminController.recordPaymentAndGrantPro);

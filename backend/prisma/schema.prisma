@@ -62,6 +62,13 @@ model User {
   isEmailVerified Boolean  @default(false)
   isOnline        Boolean  @default(false)
   lastSeen        DateTime @default(now())
+  
+  isBanned        Boolean  @default(false)
+  bannedUntil     DateTime?
+  banReason       String?
+  warningCount    Int      @default(0)
+  isDeleted       Boolean  @default(false)
+
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
 

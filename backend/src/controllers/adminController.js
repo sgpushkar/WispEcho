@@ -158,3 +158,138 @@ export async function getAuditLogs(req, res, next) {
     next(err);
   }
 }
+
+// --- Moderation ---
+export async function warnUser(req, res, next) {
+  try {
+    const { id } = req.params;
+    const { reason } = req.body;
+    
+    const user = await prisma.user.findUnique({ where: { id } });
+    if (!user) return res.status(404).json({ error: "User not found" });
+
+    let newWarningCount = user.warningCount + 1;
+    let data = { warningCount: newWarningCount };
+
+    // 3 warnings = 7 day suspension
+    if (newWarningCount === 3) {
+      data.bannedUntil = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
+      data.banReason = "Suspended automatically after 3 warnings.";
+    } 
+    // 5 warnings = permanent ban
+    else if (newWarningCount >= 5) {
+      data.isBanned = true;
+      data.banReason = "Banned automatically after 5 warnings.";
+    }
+
+    const updatedUser = await prisma.user.update({
+      where: { id },
+      data,
+    });
+
+    await prisma.adminAuditLog.create({
+      data: {
+        adminId: req.userId,
+        action: "WARN_USER",
+        targetUserId: id,
+        metadata: { reason, newWarningCount, autoSuspended: newWarningCount === 3, autoBanned: newWarningCount >= 5 },
+        ipAddress: req.ip,
+      },
+    });
+
+    res.json({ success: true, user: updatedUser });
+  } catch (err) {
+    next(err);
+  }
+}
+
+export async function suspendUser(req, res, next) {
+  try {
+    const { id } = req.params;
+    const { reason, days } = req.body;
+    
+    const bannedUntil = new Date(Date.now() + Number(days) * 24 * 60 * 60 * 1000);
+
+    const user = await prisma.user.update({
+      where: { id },
+      data: { bannedUntil, banReason: reason },
+    });
+
+    await prisma.adminAuditLog.create({
+      data: {
+        adminId: req.userId,
+        action: "SUSPEND_USER",
+        targetUserId: id,
+        metadata: { reason, days, bannedUntil },
+        ipAddress: req.ip,
+      },
+    });
+
+    res.json({ success: true, user });
+  } catch (err) {
+    next(err);
+  }
+}
+
+export async function banUser(req, res, next) {
+  try {
+    const { id } = req.params;
+    const { reason } = req.body;
+
+    const user = await prisma.user.update({
+      where: { id },
+      data: { isBanned: true, banReason: reason },
+    });
+
+    await prisma.adminAuditLog.create({
+      data: {
+        adminId: req.userId,
+        action: "BAN_USER",
+        targetUserId: id,
+        metadata: { reason },
+        ipAddress: req.ip,
+      },
+    });
+
+    res.json({ success: true, user });
+  } catch (err) {
+    next(err);
+  }
+}
+
+export async function deleteUser(req, res, next) {
+  try {
+    const { id } = req.params;
+    
+    // Soft delete: scrub PII and set isDeleted flag so messages remain intact
+    const user = await prisma.user.update({
+      where: { id },
+      data: {
+        isDeleted: true,
+        displayName: "Deleted User",
+        email: `deleted_${id}@example.com`,
+        username: `deleted_${id}`,
+        password: null,
+        googleId: null,
+        avatarUrl: null,
+        bio: null,
+        isBanned: true, // effectively lock them out
+        banReason: "Account deleted",
+      },
+    });
+
+    await prisma.adminAuditLog.create({
+      data: {
+        adminId: req.userId,
+        action: "DELETE_USER",
+        targetUserId: id,
+        metadata: { softDelete: true },
+        ipAddress: req.ip,
+      },
+    });
+
+    res.json({ success: true, user });
+  } catch (err) {
+    next(err);
+  }
+}

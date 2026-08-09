@@ -20,6 +20,11 @@ interface UserDetail {
   lastSeen: string;
   avatarUrl?: string;
   bio?: string;
+  isBanned: boolean;
+  bannedUntil?: string;
+  banReason?: string;
+  warningCount: number;
+  isDeleted: boolean;
   subscription?: {
     plan: string;
     status: string;
@@ -146,6 +151,77 @@ function RecordPaymentModal({ userId, onClose, onSuccess }: { userId: string; on
   );
 }
 
+function ModerationModal({ userId, action, onClose, onSuccess }: { userId: string; action: "WARN" | "SUSPEND" | "BAN" | "DELETE"; onClose: () => void; onSuccess: () => void }) {
+  const [reason, setReason] = useState("");
+  const [days, setDays] = useState("7");
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
+
+  const handleSubmit = async () => {
+    if (!reason && action !== "DELETE") {
+      setError("Please provide a reason.");
+      return;
+    }
+    setLoading(true);
+    setError("");
+    try {
+      if (action === "WARN") await api.post(`/admin/users/${userId}/warn`, { reason });
+      else if (action === "SUSPEND") await api.post(`/admin/users/${userId}/suspend`, { reason, days: Number(days) });
+      else if (action === "BAN") await api.post(`/admin/users/${userId}/ban`, { reason });
+      else if (action === "DELETE") await api.post(`/admin/users/${userId}/delete`);
+      
+      onSuccess();
+      onClose();
+    } catch (err: any) {
+      setError(err?.response?.data?.error || "Action failed");
+      setLoading(false);
+    }
+  };
+
+  const title = action === "WARN" ? "Warn User" : action === "SUSPEND" ? "Suspend User" : action === "BAN" ? "Permanently Ban User" : "Delete User";
+  const btnLabel = action === "WARN" ? "Send Warning" : action === "SUSPEND" ? "Suspend" : action === "BAN" ? "Ban User" : "Delete User";
+
+  return (
+    <div className="admin-modal-overlay" onClick={onClose}>
+      <div className="admin-modal" onClick={(e) => e.stopPropagation()}>
+        <div className="admin-modal-header">
+          <h3>{title}</h3>
+          <button onClick={onClose} className="close-btn"><XCircle size={18} /></button>
+        </div>
+
+        {action === "SUSPEND" && (
+          <div className="admin-form-group">
+            <label>Suspension Duration (Days)</label>
+            <input type="number" className="admin-input" value={days} onChange={(e) => setDays(e.target.value)} min="1" />
+          </div>
+        )}
+
+        {action !== "DELETE" && (
+          <div className="admin-form-group">
+            <label>Reason</label>
+            <input type="text" className="admin-input" placeholder="Explain the violation..." value={reason} onChange={(e) => setReason(e.target.value)} />
+          </div>
+        )}
+        
+        {action === "DELETE" && (
+          <p style={{ color: "var(--admin-danger)", fontSize: 13, marginBottom: 15 }}>
+            Warning: This action will permanently soft-delete the user, scrambling their personal info and preventing future access.
+          </p>
+        )}
+
+        {error && <p style={{ color: "var(--admin-danger)", fontSize: 13, marginBottom: 8 }}>{error}</p>}
+
+        <div className="admin-modal-footer">
+          <button className="admin-btn admin-btn-secondary" onClick={onClose} disabled={loading}>Cancel</button>
+          <button className={`admin-btn ${action === "WARN" ? "admin-btn-primary" : "admin-btn-danger"}`} onClick={handleSubmit} disabled={loading}>
+            {loading ? "Processing..." : btnLabel}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export default function UserDetailPageClient() {
   const searchParams = useSearchParams();
   const id = searchParams.get("id") as string;
@@ -154,6 +230,7 @@ export default function UserDetailPageClient() {
   const [user, setUser] = useState<UserDetail | null>(null);
   const [loading, setLoading] = useState(true);
   const [paymentModal, setPaymentModal] = useState(false);
+  const [modModal, setModModal] = useState<"WARN" | "SUSPEND" | "BAN" | "DELETE" | null>(null);
   const [revoking, setRevoking] = useState(false);
   const [toast, setToast] = useState<{ msg: string; type: "success" | "error" } | null>(null);
 
@@ -215,6 +292,15 @@ export default function UserDetailPageClient() {
           userId={id}
           onClose={() => setPaymentModal(false)}
           onSuccess={() => { fetchUser(); showToast("Payment recorded & Pro granted!", "success"); }}
+        />
+      )}
+
+      {modModal && (
+        <ModerationModal
+          userId={id}
+          action={modModal}
+          onClose={() => setModModal(null)}
+          onSuccess={() => { fetchUser(); showToast(`Action ${modModal} applied successfully!`, "success"); }}
         />
       )}
 
@@ -306,7 +392,48 @@ export default function UserDetailPageClient() {
                   ))}
                 </div>
               ) : (
-                <p style={{ color: "var(--admin-text-muted)", fontSize: 13 }}>No subscription — Free plan</p>
+                <p className="admin-empty">No active subscription</p>
+              )}
+            </div>
+          </div>
+
+          {/* Moderation Card */}
+          <div className="admin-card" style={{ marginTop: 16 }}>
+            <div className="admin-card-header">
+              <span className="admin-card-title">Moderation Actions</span>
+              <span className="admin-badge gray">{user.warningCount} Warnings</span>
+            </div>
+            <div style={{ padding: 16 }}>
+              {user.isDeleted ? (
+                <p className="admin-empty" style={{ color: "var(--admin-danger)" }}>User is soft-deleted.</p>
+              ) : user.isBanned ? (
+                <p className="admin-empty" style={{ color: "var(--admin-danger)" }}>User is permanently banned. ({user.banReason})</p>
+              ) : (
+                <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+                  {user.bannedUntil && new Date(user.bannedUntil) > new Date() && (
+                    <p style={{ color: "var(--admin-warning)", fontSize: 13, marginBottom: 8 }}>
+                      Currently Suspended until {new Date(user.bannedUntil).toLocaleString()}
+                    </p>
+                  )}
+                  <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+                    <button className="admin-btn admin-btn-secondary admin-btn-sm" onClick={() => setModModal("WARN")}>
+                      Send Warning
+                    </button>
+                    <button className="admin-btn admin-btn-secondary admin-btn-sm" onClick={() => setModModal("SUSPEND")} style={{ color: "var(--admin-warning)" }}>
+                      Suspend
+                    </button>
+                    {(adminUser?.role === "SUPER_ADMIN" || adminUser?.role === "ADMIN") && (
+                      <button className="admin-btn admin-btn-danger admin-btn-sm" onClick={() => setModModal("BAN")}>
+                        Permaban
+                      </button>
+                    )}
+                    {adminUser?.role === "SUPER_ADMIN" && (
+                      <button className="admin-btn admin-btn-danger admin-btn-sm" onClick={() => setModModal("DELETE")} style={{ opacity: 0.8 }}>
+                        Delete User
+                      </button>
+                    )}
+                  </div>
+                </div>
               )}
             </div>
           </div>

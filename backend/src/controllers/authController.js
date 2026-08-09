@@ -82,6 +82,13 @@ export async function login(req, res, next) {
     const match = await bcrypt.compare(data.password, user.password);
     if (!match) return res.status(401).json({ error: "Invalid credentials" });
 
+    if (user.isBanned) {
+      return res.status(403).json({ error: `Account banned: ${user.banReason || 'Violations of terms of service.'}` });
+    }
+    if (user.bannedUntil && new Date(user.bannedUntil) > new Date()) {
+      return res.status(403).json({ error: `Account suspended until ${new Date(user.bannedUntil).toLocaleString()}: ${user.banReason || 'Violations.'}` });
+    }
+
     await prisma.user.update({
       where: { id: user.id },
       data: { isOnline: true, lastSeen: new Date() },
@@ -138,6 +145,13 @@ export async function googleLogin(req, res, next) {
           data: { googleId: payload.sub, isEmailVerified: true },
         });
       }
+    }
+
+    if (user.isBanned) {
+      return res.status(403).json({ error: `Account banned: ${user.banReason || 'Violations of terms of service.'}` });
+    }
+    if (user.bannedUntil && new Date(user.bannedUntil) > new Date()) {
+      return res.status(403).json({ error: `Account suspended until ${new Date(user.bannedUntil).toLocaleString()}: ${user.banReason || 'Violations.'}` });
     }
 
     const accessToken = signAccessToken(user.id);

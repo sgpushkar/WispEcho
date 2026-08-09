@@ -431,12 +431,17 @@ export function SettingsModal({ isOpen, onClose }: { isOpen: boolean; onClose: (
                     const theme = themes[id];
                     if (!theme) return null;
                     const isSelected = currentThemeId === id;
+                    const isLocked = theme.premium && !(user?.role === "SUPER_ADMIN" || user?.isPro);
 
                     return (
                       <button
                         key={id}
                         type="button"
                         onClick={() => {
+                          if (isLocked) {
+                            alert("This is a Pro theme! You need a Pro subscription or Super Admin privileges.");
+                            return;
+                          }
                           // Add smooth transition class
                           document.documentElement.classList.add("theme-transitioning");
                           applyTheme(id);
@@ -444,7 +449,7 @@ export function SettingsModal({ isOpen, onClose }: { isOpen: boolean; onClose: (
                             document.documentElement.classList.remove("theme-transitioning");
                           }, 500);
                         }}
-                        className="relative rounded-2xl p-2.5 text-left transition-all group"
+                        className={`relative rounded-2xl p-2.5 text-left transition-all group ${isLocked ? 'opacity-50 cursor-not-allowed' : ''}`}
                         style={{
                           background: isSelected ? "var(--active-bg)" : "var(--glass-bg)",
                           border: `1.5px solid ${isSelected ? "var(--ink)" : "var(--glass-border)"}`,
@@ -458,11 +463,11 @@ export function SettingsModal({ isOpen, onClose }: { isOpen: boolean; onClose: (
                           </div>
                         )}
 
-                        {/* Premium badge */}
+                        {/* Premium badge or Lock */}
                         {theme.premium && (
                           <div className="absolute top-2 left-2 z-10 flex items-center gap-0.5 px-1.5 py-0.5 rounded-md text-[8px] font-bold uppercase tracking-wider"
-                            style={{ background: "linear-gradient(135deg, #f59e0b, #d97706)", color: "#000" }}>
-                            <Crown size={8} /> PRO
+                            style={{ background: isLocked ? "var(--glass-bg)" : "linear-gradient(135deg, #f59e0b, #d97706)", color: isLocked ? "var(--ink-faint)" : "#000", border: isLocked ? "1px solid var(--glass-border)" : "none" }}>
+                            {isLocked ? <Lock size={8} /> : <Crown size={8} />} {isLocked ? 'LOCKED' : 'PRO'}
                           </div>
                         )}
 
@@ -483,7 +488,7 @@ export function SettingsModal({ isOpen, onClose }: { isOpen: boolean; onClose: (
               </div>
 
               {/* Subscription indicator */}
-              {!user?.isPro && (
+              {!user?.isPro && user?.role !== "SUPER_ADMIN" && (
                 <div className="rounded-2xl p-4" style={{ background: "linear-gradient(135deg, rgba(245,158,11,0.08), rgba(217,119,6,0.04))", border: "1px solid rgba(245,158,11,0.15)" }}>
                   <div className="flex items-center gap-2 mb-1">
                     <Crown size={14} style={{ color: "#f59e0b" }} />
