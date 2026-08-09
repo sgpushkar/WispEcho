@@ -92,7 +92,7 @@ export function SettingsModal({ isOpen, onClose }: { isOpen: boolean; onClose: (
   const handleClaimPayment = async () => {
     setIsClaiming(true);
     try {
-      await api.post("/subscriptions/claim-payment", { amount: 39 });
+      await api.post("/subscription/claim-payment", { amount: 39 });
       alert("Payment claim submitted! Admin will verify and grant Pro access soon.");
       setShowPaymentCheck(false);
     } catch (err: any) {
