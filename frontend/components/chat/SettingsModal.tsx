@@ -614,6 +614,15 @@ export function SettingsModal({ isOpen, onClose }: { isOpen: boolean; onClose: (
           className="p-4 flex flex-col gap-3"
           style={{ borderTop: `1px solid var(--glass-border)`, background: "var(--glass-bg)" }}
         >
+          {user?.role && ["SUPER_ADMIN", "ADMIN", "MODERATOR", "SUPPORT"].includes(user.role) && (
+            <a
+              href="/admin"
+              className="flex items-center justify-center gap-2 rounded-2xl px-4 py-2.5 text-xs font-bold uppercase tracking-wider transition hover:bg-[rgba(124,58,237,0.3)]"
+              style={{ background: "rgba(124, 58, 237, 0.15)", border: "1px solid rgba(124, 58, 237, 0.35)", color: "#a78bfa" }}
+            >
+              <Lock size={12} /> Launch Admin Panel
+            </a>
+          )}
           <div className="flex gap-3">
             <button
               onClick={onClose}
@@ -632,7 +641,7 @@ export function SettingsModal({ isOpen, onClose }: { isOpen: boolean; onClose: (
             </button>
           </div>
           <p className="text-center text-[10px] font-semibold tracking-wider uppercase" style={{ color: "var(--ink-faint)" }}>
-            WispEcho App v1.2.0
+            WispEcho App v1.3.0
           </p>
           </div>
         </motion.div>
