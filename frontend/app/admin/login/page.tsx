@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
 import { adminApi } from "@/lib/adminApi";
@@ -11,11 +11,18 @@ import "@/app/admin.css";
 export default function AdminLoginPage() {
   const router = useRouter();
   const setAuth = useAdminAuthStore((s) => s.setAuth);
+  const { user, isAuthenticated } = useAdminAuthStore();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    if (isAuthenticated && user?.role && ["SUPER_ADMIN", "ADMIN", "MODERATOR", "SUPPORT"].includes(user.role)) {
+      router.replace("/admin");
+    }
+  }, [isAuthenticated, user, router]);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
