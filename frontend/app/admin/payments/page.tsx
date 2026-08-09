@@ -2,7 +2,7 @@
 
 import { useEffect, useState, useCallback } from "react";
 import { Plus, IndianRupee, Crown, Search, Users } from "lucide-react";
-import { api } from "@/lib/api";
+import { adminApi as api } from "@/lib/adminApi";
 
 interface Payment {
   id: string;

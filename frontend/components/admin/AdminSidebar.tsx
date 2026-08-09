@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { useAuthStore } from "@/store/useAuthStore";
+import { useAdminAuthStore } from "@/store/useAdminAuthStore";
 import {
   LayoutDashboard,
   Users,
@@ -24,11 +24,11 @@ const navItems = [
 export function AdminSidebar() {
   const pathname = usePathname();
   const router = useRouter();
-  const { user, logout } = useAuthStore();
+  const { user, logout } = useAdminAuthStore();
 
   const handleLogout = async () => {
     logout();
-    router.replace("/login");
+    router.replace("/admin/login");
   };
 
   return (

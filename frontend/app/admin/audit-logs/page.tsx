@@ -2,7 +2,7 @@
 
 import { useEffect, useState, useCallback } from "react";
 import { ScrollText } from "lucide-react";
-import { api } from "@/lib/api";
+import { adminApi as api } from "@/lib/adminApi";
 
 interface AuditLog {
   id: string;

@@ -3,7 +3,7 @@
 import { useEffect, useState, useCallback } from "react";
 import Link from "next/link";
 import { Search, Crown, UserCheck, ExternalLink } from "lucide-react";
-import { api } from "@/lib/api";
+import { adminApi as api } from "@/lib/adminApi";
 
 interface UserRow {
   id: string;

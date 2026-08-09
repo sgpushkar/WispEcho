@@ -6,8 +6,8 @@ import {
   Crown, ShieldCheck, ArrowLeft, IndianRupee, 
   XCircle, Plus, Activity, CreditCard,
 } from "lucide-react";
-import { api } from "@/lib/api";
-import { useAuthStore } from "@/store/useAuthStore";
+import { adminApi as api } from "@/lib/adminApi";
+import { useAdminAuthStore } from "@/store/useAdminAuthStore";
 
 interface UserDetail {
   id: string;
@@ -149,7 +149,7 @@ function RecordPaymentModal({ userId, onClose, onSuccess }: { userId: string; on
 export default function UserDetailPageClient() {
   const { id } = useParams<{ id: string }>();
   const router = useRouter();
-  const { user: adminUser } = useAuthStore();
+  const { user: adminUser } = useAdminAuthStore();
   const [user, setUser] = useState<UserDetail | null>(null);
   const [loading, setLoading] = useState(true);
   const [paymentModal, setPaymentModal] = useState(false);

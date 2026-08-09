@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { Users, Crown, IndianRupee, Activity, TrendingUp } from "lucide-react";
-import { api } from "@/lib/api";
+import { adminApi as api } from "@/lib/adminApi";
 
 interface Stats {
   totalUsers: number;
