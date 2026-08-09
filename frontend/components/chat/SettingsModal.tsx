@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { X, Settings, User as UserIcon, Palette, Bell, Lock, Eye, EyeOff, Camera, Crown, Check } from "lucide-react";
@@ -615,13 +616,13 @@ export function SettingsModal({ isOpen, onClose }: { isOpen: boolean; onClose: (
           style={{ borderTop: `1px solid var(--glass-border)`, background: "var(--glass-bg)" }}
         >
           {user?.role && ["SUPER_ADMIN", "ADMIN", "MODERATOR", "SUPPORT"].includes(user.role) && (
-            <a
+            <Link
               href="/admin"
               className="flex items-center justify-center gap-2 rounded-2xl px-4 py-2.5 text-xs font-bold uppercase tracking-wider transition hover:bg-[rgba(124,58,237,0.3)]"
               style={{ background: "rgba(124, 58, 237, 0.15)", border: "1px solid rgba(124, 58, 237, 0.35)", color: "#a78bfa" }}
             >
               <Lock size={12} /> Launch Admin Panel
-            </a>
+            </Link>
           )}
           <div className="flex gap-3">
             <button
