@@ -74,6 +74,13 @@ export function SettingsModal({ isOpen, onClose }: { isOpen: boolean; onClose: (
   const [isUploadingAvatar, setIsUploadingAvatar] = useState(false);
   const [isUploadingBanner, setIsUploadingBanner] = useState(false);
   const [showThemeEditor, setShowThemeEditor] = useState(false);
+  
+  const [toast, setToast] = useState<{ msg: string; type: "success" | "error" } | null>(null);
+  
+  const showToast = (msg: string, type: "success" | "error") => {
+    setToast({ msg, type });
+    setTimeout(() => setToast(null), 3000);
+  };
 
   const [showPaymentCheck, setShowPaymentCheck] = useState(false);
   const [isClaiming, setIsClaiming] = useState(false);
@@ -93,10 +100,10 @@ export function SettingsModal({ isOpen, onClose }: { isOpen: boolean; onClose: (
     setIsClaiming(true);
     try {
       await api.post("/subscription/claim-payment", { amount: 39 });
-      alert("Payment claim submitted! Admin will verify and grant Pro access soon.");
+      showToast("Payment claim submitted! Admin will verify and grant Pro access soon.", "success");
       setShowPaymentCheck(false);
     } catch (err: any) {
-      alert(err.response?.data?.error || "Failed to submit claim");
+      showToast(err.response?.data?.error || "Failed to submit claim", "error");
     } finally {
       setIsClaiming(false);
     }
@@ -270,6 +277,16 @@ export function SettingsModal({ isOpen, onClose }: { isOpen: boolean; onClose: (
           backdropFilter: "blur(32px)",
         }}
       >
+        {toast && (
+          <div className="absolute top-4 left-1/2 -translate-x-1/2 z-[999] px-4 py-2 rounded-full text-xs font-semibold shadow-xl"
+               style={{ 
+                 background: toast.type === "success" ? "var(--accent-success, #10b981)" : "var(--accent-danger, #ef4444)", 
+                 color: "#fff",
+                 animation: "fade-in 0.2s ease-out" 
+               }}>
+            {toast.msg}
+          </div>
+        )}
         {/* Header */}
         <div
           className="flex items-center justify-between px-6 py-4"
@@ -466,7 +483,7 @@ export function SettingsModal({ isOpen, onClose }: { isOpen: boolean; onClose: (
                         type="button"
                         onClick={() => {
                           if (isLocked) {
-                            alert("This is a Pro theme! You need a Pro subscription or Super Admin privileges.");
+                            showToast("This is a Pro theme! You need a Pro subscription or Super Admin privileges.", "error");
                             return;
                           }
                           // Add smooth transition class
