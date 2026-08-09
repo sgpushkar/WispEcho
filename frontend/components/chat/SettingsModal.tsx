@@ -75,6 +75,33 @@ export function SettingsModal({ isOpen, onClose }: { isOpen: boolean; onClose: (
   const [isUploadingBanner, setIsUploadingBanner] = useState(false);
   const [showThemeEditor, setShowThemeEditor] = useState(false);
 
+  const [showPaymentCheck, setShowPaymentCheck] = useState(false);
+  const [isClaiming, setIsClaiming] = useState(false);
+
+  const handleUnlockPremium = () => {
+    // redirect to UPI intent
+    const upiUrl = "upi://pay?pa=pushkarmhatre424@okaxis&pn=Pushkar%20Mhatre&am=39.00&cu=INR&tn=GenzChat%20Pro";
+    window.location.href = upiUrl;
+    
+    // Check payment status after short delay
+    setTimeout(() => {
+      setShowPaymentCheck(true);
+    }, 4000);
+  };
+
+  const handleClaimPayment = async () => {
+    setIsClaiming(true);
+    try {
+      await api.post("/subscriptions/claim-payment", { amount: 39 });
+      alert("Payment claim submitted! Admin will verify and grant Pro access soon.");
+      setShowPaymentCheck(false);
+    } catch (err: any) {
+      alert(err.response?.data?.error || "Failed to submit claim");
+    } finally {
+      setIsClaiming(false);
+    }
+  };
+
   const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>, type: "avatar" | "banner") => {
     const file = e.target.files?.[0];
     if (!file) return;
@@ -494,9 +521,38 @@ export function SettingsModal({ isOpen, onClose }: { isOpen: boolean; onClose: (
                     <Crown size={14} style={{ color: "#f59e0b" }} />
                     <span className="text-xs font-bold uppercase tracking-wider" style={{ color: "#f59e0b" }}>Unlock Pro Themes</span>
                   </div>
-                  <p className="text-[11px] leading-relaxed" style={{ color: "var(--ink-faint)" }}>
+                  <p className="text-[11px] leading-relaxed mb-3" style={{ color: "var(--ink-faint)" }}>
                     Get access to 7 premium themes, unlimited custom themes, and chat background images.
                   </p>
+                  
+                  {!showPaymentCheck ? (
+                    <button 
+                      onClick={handleUnlockPremium}
+                      className="w-full rounded-xl py-2 text-xs font-bold uppercase tracking-wider transition hover:opacity-90"
+                      style={{ background: "#f59e0b", color: "#000" }}
+                    >
+                      Unlock Premium (₹39/mo)
+                    </button>
+                  ) : (
+                    <div className="flex gap-2">
+                      <button 
+                        onClick={handleClaimPayment}
+                        disabled={isClaiming}
+                        className="flex-1 rounded-xl py-2 text-xs font-bold transition disabled:opacity-50"
+                        style={{ background: "var(--ink)", color: "var(--bg)" }}
+                      >
+                        {isClaiming ? "Submitting..." : "Paid"}
+                      </button>
+                      <button 
+                        onClick={() => setShowPaymentCheck(false)}
+                        disabled={isClaiming}
+                        className="flex-1 rounded-xl py-2 text-xs font-bold transition disabled:opacity-50"
+                        style={{ background: "var(--glass-bg)", border: "1px solid var(--glass-border)", color: "var(--ink)" }}
+                      >
+                        Not Paid
+                      </button>
+                    </div>
+                  )}
                 </div>
               )}
 

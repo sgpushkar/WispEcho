@@ -9,6 +9,7 @@ interface Stats {
   totalUsers: number;
   activeProUsers: number;
   totalRevenueINR: number;
+  pendingPayments?: { id: string; userId: string; amount: number; createdAt: string; user: { username: string; displayName: string } }[];
 }
 
 export default function AdminDashboardPage() {
@@ -77,6 +78,46 @@ export default function AdminDashboardPage() {
               </div>
             </div>
           ))}
+        </div>
+      )}
+
+      {stats?.pendingPayments && stats.pendingPayments.length > 0 && (
+        <div className="admin-card" style={{ marginBottom: 24, border: "1px solid var(--admin-warning)" }}>
+          <div className="admin-card-header">
+            <span className="admin-card-title">Action Required: Pending Payment Claims</span>
+            <span className="admin-badge gray">{stats.pendingPayments.length} claims</span>
+          </div>
+          <div className="admin-table-container">
+            <table className="admin-table">
+              <thead>
+                <tr>
+                  <th>User</th>
+                  <th>Amount</th>
+                  <th>Claimed At</th>
+                  <th style={{ textAlign: "right" }}>Action</th>
+                </tr>
+              </thead>
+              <tbody>
+                {stats.pendingPayments.map((p) => (
+                  <tr key={p.id}>
+                    <td>
+                      <div className="flex items-center gap-2">
+                        <span className="font-medium text-[13px]">{p.user.displayName}</span>
+                        <span className="text-[11px] text-gray-500">@{p.user.username}</span>
+                      </div>
+                    </td>
+                    <td>₹{p.amount}</td>
+                    <td>{new Date(p.createdAt).toLocaleString()}</td>
+                    <td style={{ textAlign: "right" }}>
+                      <Link href={`/admin/users/detail?id=${p.userId}`} className="admin-btn admin-btn-primary admin-btn-sm inline-flex">
+                        Verify & Grant
+                      </Link>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         </div>
       )}
 

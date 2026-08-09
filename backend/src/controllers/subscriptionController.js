@@ -80,3 +80,26 @@ export async function cancelSubscription(req, res, next) {
     next(err);
   }
 }
+
+// User claims to have manually paid via UPI
+export async function claimManualPayment(req, res, next) {
+  try {
+    const { amount = 39, reference = "" } = req.body;
+
+    const payment = await prisma.payment.create({
+      data: {
+        userId: req.userId,
+        amount: amount,
+        currency: "INR",
+        method: "UPI",
+        status: "PENDING",
+        reference: reference,
+        notes: "Claimed manual UPI payment via app",
+      },
+    });
+
+    res.json({ success: true, payment });
+  } catch (err) {
+    next(err);
+  }
+}

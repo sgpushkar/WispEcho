@@ -8,5 +8,6 @@ router.use(requireAuth);
 router.get("/", subscriptionController.getSubscription);
 router.post("/activate", subscriptionController.activatePro);
 router.post("/cancel", subscriptionController.cancelSubscription);
+router.post("/claim-payment", subscriptionController.claimManualPayment);
 
 export default router;

@@ -16,10 +16,18 @@ export async function getDashboardStats(req, res, next) {
       _sum: { amount: true },
     });
 
+    const pendingPayments = await prisma.payment.findMany({
+      where: { status: "PENDING" },
+      include: { user: { select: { username: true, displayName: true } } },
+      orderBy: { createdAt: "desc" },
+      take: 10,
+    });
+
     res.json({
       totalUsers,
       activeProUsers,
       totalRevenueINR: totalPayments._sum.amount || 0,
+      pendingPayments,
     });
   } catch (err) {
     next(err);
