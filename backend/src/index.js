@@ -23,10 +23,12 @@ import pushRoutes from "./routes/push.routes.js";
 import notificationsRoutes from "./routes/notifications.routes.js";
 import themeRoutes from "./routes/theme.routes.js";
 import subscriptionRoutes from "./routes/subscription.routes.js";
+import adminRoutes from "./routes/admin.routes.js";
 import { getVersion } from "./controllers/versionController.js";
 import { notFound, errorHandler } from "./middleware/errorHandler.js";
 import { initSockets } from "./sockets/index.js";
 import { redisAdapter } from "./config/redis.js";
+import "./jobs/cron.js"; // Subscription expiry cron
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -84,6 +86,7 @@ app.use("/api/notifications", pushRoutes);
 app.use("/api/inbox", notificationsRoutes);
 app.use("/api/themes", themeRoutes);
 app.use("/api/subscription", subscriptionRoutes);
+app.use("/api/admin", adminRoutes);
 
 app.use(notFound);
 app.use(errorHandler);

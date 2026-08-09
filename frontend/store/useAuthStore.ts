@@ -16,6 +16,7 @@ export interface User {
   isOnline?: boolean;
   themeId?: string | null;
   isPro?: boolean;
+  role?: "USER" | "SUPER_ADMIN" | "ADMIN" | "MODERATOR" | "SUPPORT";
 }
 
 interface AuthState {

@@ -35,6 +35,14 @@ enum MessageStatus {
   READ
 }
 
+enum AdminRole {
+  USER
+  SUPER_ADMIN
+  ADMIN
+  MODERATOR
+  SUPPORT
+}
+
 model User {
   id              String   @id @default(uuid())
   email           String   @unique
@@ -50,6 +58,7 @@ model User {
   status          String?  @default("")
   themeId         String?  @default("default")
   isPro           Boolean  @default(false)
+  role            AdminRole @default(USER)
   isEmailVerified Boolean  @default(false)
   isOnline        Boolean  @default(false)
   lastSeen        DateTime @default(now())
@@ -69,18 +78,89 @@ model User {
   pushSubscriptions      PushSubscription[]
   subscription           Subscription?
   customThemes           CustomTheme[]
+  
+  payments               Payment[]
+  reportsMade            Report[]         @relation("Reporter")
+  reportsReceived        Report[]         @relation("Reported")
+  auditLogs              AdminAuditLog[]  @relation("AuditLogs")
 }
 
 model Subscription {
   id        String   @id @default(uuid())
   userId    String   @unique
-  plan      String   @default("free") // "free" | "pro" | "pro_yearly"
-  status    String   @default("active") // "active" | "cancelled" | "expired"
+  plan      String   @default("FREE") 
+  status    String   @default("ACTIVE") // ACTIVE, EXPIRED, CANCELLED, REVOKED, PENDING, PAUSED
+  source    String   @default("ADMIN") // ADMIN, UPI_MANUAL, RAZORPAY, PROMOTION, TRIAL, GIFT
+  startsAt  DateTime @default(now())
   expiresAt DateTime?
+  cancelAtPeriodEnd Boolean @default(false)
+  provider  String   @default("NONE") // MANUAL, RAZORPAY, NONE
+  providerSubscriptionId String?
+  paymentId String?  @unique
+  grantedByAdminId String?
+  notes     String?
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  payment Payment? @relation(fields: [paymentId], references: [id])
+}
+
+model Payment {
+  id        String   @id @default(uuid())
+  userId    String
+  amount    Float
+  currency  String   @default("INR")
+  method    String   // UPI, BANK_TRANSFER, CASH, RAZORPAY, OTHER
+  status    String   // PENDING, PAID, FAILED, REFUNDED, CANCELLED
+  reference String?
+  subscriptionId String?
+  verifiedByAdminId String?
+  paidAt    DateTime?
+  notes     String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  subscription Subscription? // No @relation here to prevent cyclic constraint issues, mapped via Subscription.paymentId
+}
+
+model AdminAuditLog {
+  id        String   @id @default(uuid())
+  adminId   String
+  action    String
+  targetUserId String?
+  targetResourceId String?
+  metadata  Json?
+  ipAddress String?
+  userAgent String?
+  createdAt DateTime @default(now())
+
+  admin User @relation("AuditLogs", fields: [adminId], references: [id], onDelete: Cascade)
+}
+
+model PlatformSetting {
+  id        String   @id @default(uuid())
+  key       String   @unique
+  value     Json
+  updatedBy String?
+  updatedAt DateTime @updatedAt
+}
+
+model Report {
+  id           String   @id @default(uuid())
+  reporterId   String
+  reportedId   String
+  contentType  String // USER, MESSAGE, GROUP
+  contentId    String? 
+  reason       String
+  status       String   @default("OPEN") // OPEN, REVIEWING, RESOLVED, DISMISSED
+  assignedToId String?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  reporter     User @relation("Reporter", fields: [reporterId], references: [id], onDelete: Cascade)
+  reported     User @relation("Reported", fields: [reportedId], references: [id], onDelete: Cascade)
 }
 
 model CustomTheme {
