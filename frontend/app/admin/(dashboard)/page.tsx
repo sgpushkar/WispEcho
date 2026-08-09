@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import Link from "next/link";
 import { Users, Crown, IndianRupee, Activity, TrendingUp } from "lucide-react";
 import { adminApi as api } from "@/lib/adminApi";
 
@@ -84,15 +85,15 @@ export default function AdminDashboardPage() {
           <span className="admin-card-title">Quick Actions</span>
         </div>
         <div style={{ padding: 20, display: "flex", gap: 12, flexWrap: "wrap" }}>
-          <a href="/admin/users" className="admin-btn admin-btn-primary">
+          <Link href="/admin/users" className="admin-btn admin-btn-primary">
             <Users size={15} /> Manage Users
-          </a>
-          <a href="/admin/payments" className="admin-btn admin-btn-secondary">
+          </Link>
+          <Link href="/admin/payments" className="admin-btn admin-btn-secondary">
             <IndianRupee size={15} /> Record Payment
-          </a>
-          <a href="/admin/audit-logs" className="admin-btn admin-btn-secondary">
+          </Link>
+          <Link href="/admin/audit-logs" className="admin-btn admin-btn-secondary">
             <Activity size={15} /> Audit Logs
-          </a>
+          </Link>
         </div>
       </div>
     </div>

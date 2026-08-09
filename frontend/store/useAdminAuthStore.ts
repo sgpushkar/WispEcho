@@ -40,7 +40,12 @@ export const useAdminAuthStore = create<AdminAuthState>()(
     }),
     {
       name: "wispecho-admin-auth",
-      partialize: (state) => ({ user: state.user, accessToken: state.accessToken, refreshToken: state.refreshToken }),
+      partialize: (state) => ({ 
+        user: state.user, 
+        accessToken: state.accessToken, 
+        refreshToken: state.refreshToken,
+        isAuthenticated: state.isAuthenticated 
+      }),
     }
   )
 );
