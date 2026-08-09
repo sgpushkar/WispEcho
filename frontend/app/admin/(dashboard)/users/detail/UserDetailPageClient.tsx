@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useParams, useRouter } from "next/navigation";
+import { useSearchParams, useRouter } from "next/navigation";
 import {
   Crown, ShieldCheck, ArrowLeft, IndianRupee, 
   XCircle, Plus, Activity, CreditCard,
@@ -147,7 +147,8 @@ function RecordPaymentModal({ userId, onClose, onSuccess }: { userId: string; on
 }
 
 export default function UserDetailPageClient() {
-  const { id } = useParams<{ id: string }>();
+  const searchParams = useSearchParams();
+  const id = searchParams.get("id") as string;
   const router = useRouter();
   const { user: adminUser } = useAdminAuthStore();
   const [user, setUser] = useState<UserDetail | null>(null);

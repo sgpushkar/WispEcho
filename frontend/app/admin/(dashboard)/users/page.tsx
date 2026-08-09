@@ -132,7 +132,7 @@ export default function AdminUsersPage() {
                       {new Date(u.lastSeen).toLocaleDateString()}
                     </td>
                     <td>
-                      <Link href={`/admin/users/${u.id}`} className="admin-btn admin-btn-secondary admin-btn-sm">
+                      <Link href={`/admin/users/detail?id=${u.id}`} className="admin-btn admin-btn-secondary admin-btn-sm">
                         <ExternalLink size={12} /> View
                       </Link>
                     </td>
