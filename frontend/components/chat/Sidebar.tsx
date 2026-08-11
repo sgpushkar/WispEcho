@@ -164,19 +164,6 @@ export function Sidebar() {
   useEffect(() => {
     if (data) {
       setConversations(data);
-      // Preload messages for all conversations in the background
-      data.forEach((conv) => {
-        const existingMessages = useChatStore.getState().messages[conv.id];
-        if (!existingMessages || existingMessages.length === 0) {
-          api.get(`/messages/conversations/${conv.id}/messages`)
-            .then((res) => {
-              useChatStore.getState().setMessages(conv.id, res.data.messages);
-            })
-            .catch((err) => {
-              console.error(`Failed to preload messages for conversation ${conv.id}:`, err);
-            });
-        }
-      });
     }
   }, [data, setConversations]);
 
