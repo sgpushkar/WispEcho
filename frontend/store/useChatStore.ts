@@ -1,4 +1,5 @@
 import { create } from "zustand";
+import { persist } from "zustand/middleware";
 
 export type MessageStatus = "sending" | "sent" | "delivered" | "read" | "failed";
 
@@ -72,7 +73,9 @@ interface ChatState {
   setMessageStatus: (conversationId: string, messageIdOrTempId: string, status: MessageStatus) => void;
 }
 
-export const useChatStore = create<ChatState>((set, get) => ({
+export const useChatStore = create<ChatState>()(
+  persist(
+    (set, get) => ({
   conversations: [],
   activeConversationId: null,
   messages: {},
@@ -310,4 +313,14 @@ export const useChatStore = create<ChatState>((set, get) => ({
         }
       };
     }),
-}));
+}),
+{
+  name: "wispecho-chat",
+  partialize: (state) => ({
+    conversations: state.conversations,
+    messages: state.messages,
+    activeConversationId: state.activeConversationId,
+  }),
+}
+)
+);
