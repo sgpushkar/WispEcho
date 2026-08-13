@@ -576,3 +576,19 @@ export async function markViewOnce(req, res, next) {
     next(err);
   }
 }
+
+export async function updateParticipantSettings(req, res, next) {
+  try {
+    const { conversationId } = req.params;
+    const { chatBg } = req.body;
+
+    const participant = await prisma.conversationParticipant.update({
+      where: { conversationId_userId: { conversationId, userId: req.userId } },
+      data: { chatBg },
+    });
+
+    res.json({ participant });
+  } catch (err) {
+    next(err);
+  }
+}
