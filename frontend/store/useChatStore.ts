@@ -1,5 +1,6 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
+import { useEffect, useState } from "react";
 
 export type MessageStatus = "sending" | "sent" | "delivered" | "read" | "failed";
 
@@ -316,11 +317,34 @@ export const useChatStore = create<ChatState>()(
 }),
 {
   name: "wispecho-chat",
-  partialize: (state) => ({
-    conversations: state.conversations,
-    messages: state.messages,
-    activeConversationId: state.activeConversationId,
-  }),
+  partialize: (state) => {
+    // Keep only last 20 messages per conversation to avoid 5MB localStorage limit
+    const limitedMessages: Record<string, Message[]> = {};
+    for (const [convId, msgs] of Object.entries(state.messages)) {
+      limitedMessages[convId] = msgs.slice(-20);
+    }
+    return {
+      conversations: state.conversations,
+      messages: limitedMessages,
+      activeConversationId: state.activeConversationId,
+    };
+  },
 }
 )
 );
+
+/**
+ * Returns true once zustand's persist middleware has finished
+ * rehydrating state from localStorage.
+ */
+export function useChatHasHydrated() {
+  const [hydrated, setHydrated] = useState(false);
+
+  useEffect(() => {
+    const unsub = useChatStore.persist.onFinishHydration(() => setHydrated(true));
+    if (useChatStore.persist.hasHydrated()) setHydrated(true);
+    return unsub;
+  }, []);
+
+  return hydrated;
+}

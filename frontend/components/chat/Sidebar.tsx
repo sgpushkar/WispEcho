@@ -6,7 +6,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { motion, AnimatePresence } from "framer-motion";
 import { api } from "@/lib/api";
 import { useAuthStore } from "@/store/useAuthStore";
-import { useChatStore, Conversation } from "@/store/useChatStore";
+import { useChatStore, Conversation, useChatHasHydrated } from "@/store/useChatStore";
 import { useUIStore } from "@/store/useUIStore";
 import { formatDistanceToNowStrict } from "date-fns";
 import { FriendsModal } from "../friends/FriendsModal";
@@ -129,8 +129,7 @@ export function Sidebar() {
   const contextMenuRef = useRef<HTMLDivElement>(null);
   const notifRef = useRef<HTMLDivElement>(null);
 
-  const [isClient, setIsClient] = useState(false);
-  useEffect(() => { setIsClient(true); }, []);
+  const isClient = useChatHasHydrated();
 
   const isNewUser = useAuthStore((s) => s.isNewUser);
   const setIsNewUser = useAuthStore((s) => s.setIsNewUser);

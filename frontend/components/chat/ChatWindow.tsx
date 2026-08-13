@@ -5,7 +5,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Send, Image as ImageIcon, ArrowLeft, Mic, X } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { api } from "@/lib/api";
-import { useChatStore, Message } from "@/store/useChatStore";
+import { useChatStore, Message, useChatHasHydrated } from "@/store/useChatStore";
 import { useAuthStore } from "@/store/useAuthStore";
 import { getSocket } from "@/lib/socket";
 import { MessageBubble } from "./MessageBubble";
@@ -60,8 +60,7 @@ export function ChatWindow() {
   const { enqueue } = useOfflineQueue();
   const isOffline = useChatStore((s) => s.isOffline);
 
-  const [isClient, setIsClient] = useState(false);
-  useEffect(() => { setIsClient(true); }, []);
+  const isClient = useChatHasHydrated();
 
   const conversation = conversations.find((c) => c.id === activeConversationId);
   const conversationMessages = isClient ? (activeConversationId ? messages[activeConversationId] || [] : []) : [];
