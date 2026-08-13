@@ -22,12 +22,14 @@ import { MentionSuggestions } from "./MentionSuggestions";
 import { SharedMediaModal } from "./SharedMediaModal";
 import { useVoiceRecorder } from "@/hooks/useVoiceRecorder";
 import { VoiceRecorder } from "./VoiceRecorder";
+import { WallpaperPickerModal } from "./WallpaperPickerModal";
+import { ChatBackground } from "@/lib/themes";
 
 export function ChatWindow() {
   const router = useRouter();
-  const { setGroupSettingsOpen } = useUIStore();
+  const { setGroupSettingsOpen, applyCustomTheme } = useUIStore();
   const accessToken = useAuthStore((s) => s.accessToken)!;
-  const { activeConversationId, setActiveConversation, conversations, messages, setMessages, typingUsers, onlineUsers, addMessage } = useChatStore();
+  const { activeConversationId, setActiveConversation, conversations, messages, setMessages, typingUsers, onlineUsers, addMessage, updateParticipantChatBg } = useChatStore();
   
   const [draft, setDraft] = useState("");
   const [replyToMessage, setReplyToMessage] = useState<Message | null>(null);
@@ -36,6 +38,7 @@ export function ChatWindow() {
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
   const [mentionQuery, setMentionQuery] = useState<string | null>(null);
   const [showSharedMedia, setShowSharedMedia] = useState(false);
+  const [showWallpaperPicker, setShowWallpaperPicker] = useState(false);
 
   const {
     isRecording,
@@ -109,6 +112,43 @@ export function ChatWindow() {
       setDraft(editingMessage.content || "");
     }
   }, [editingMessage]);
+
+  const currentUserId = useAuthStore.getState().user?.id;
+  const conversationBg = conversation?.participants?.find((p) => p.userId === currentUserId || p.user.id === currentUserId)?.chatBg;
+
+  useEffect(() => {
+    if (conversationBg) {
+      document.documentElement.style.setProperty("--chat-bg-type", conversationBg.type);
+      document.documentElement.style.setProperty("--chat-bg-value", conversationBg.value);
+    } else {
+      const globalTheme = useUIStore.getState().theme;
+      if (globalTheme.chatBackground) {
+        document.documentElement.style.setProperty("--chat-bg-type", globalTheme.chatBackground.type);
+        document.documentElement.style.setProperty("--chat-bg-value", globalTheme.chatBackground.value);
+      } else {
+        document.documentElement.style.removeProperty("--chat-bg-type");
+        document.documentElement.style.removeProperty("--chat-bg-value");
+      }
+    }
+  }, [conversationBg, activeConversationId]);
+
+  const handleApplyGlobal = (bg: ChatBackground | null) => {
+    const globalTheme = useUIStore.getState().theme;
+    applyCustomTheme({ ...globalTheme, id: globalTheme.id || "default", name: globalTheme.name || "Custom", chatBg: bg });
+    setShowWallpaperPicker(false);
+  };
+
+  const handleApplyIndividual = async (bg: ChatBackground | null) => {
+    if (!activeConversationId || !currentUserId) return;
+    try {
+      await api.patch(`/messages/conversations/${activeConversationId}/participant`, { chatBg: bg });
+      updateParticipantChatBg(activeConversationId, currentUserId, bg);
+      setShowWallpaperPicker(false);
+    } catch (error) {
+      console.error(error);
+      alert("Failed to update chat background");
+    }
+  };
 
   useEffect(() => {
     function handleEsc(e: KeyboardEvent) {
@@ -258,6 +298,29 @@ export function ChatWindow() {
   }
 
   // --- Image Upload Handlers ---
+
+  const longPressTimer = useRef<NodeJS.Timeout | null>(null);
+
+  const handleBgContextMenu = (e: React.MouseEvent) => {
+    // Check if clicked exactly on the background, not on a child bubble
+    if ((e.target as HTMLElement).closest('.bubble-container') || (e.target as HTMLElement).closest('.row')) return;
+    e.preventDefault();
+    setShowWallpaperPicker(true);
+  };
+
+  const handlePointerDownBg = (e: React.PointerEvent) => {
+    if ((e.target as HTMLElement).closest('.bubble-container') || (e.target as HTMLElement).closest('.row')) return;
+    if (e.pointerType === "mouse" && e.button !== 0) return; // Right click handled by contextMenu
+    
+    if (longPressTimer.current) clearTimeout(longPressTimer.current);
+    longPressTimer.current = setTimeout(() => {
+      setShowWallpaperPicker(true);
+    }, 600);
+  };
+
+  const cancelLongPress = () => {
+    if (longPressTimer.current) clearTimeout(longPressTimer.current);
+  };
 
   const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files.length > 0) {
@@ -482,7 +545,15 @@ export function ChatWindow() {
         </div>
       </div>
 
-      <div className="messages" ref={containerRef}>
+      <div
+        className="messages"
+        ref={containerRef}
+        onContextMenu={handleBgContextMenu}
+        onPointerDown={handlePointerDownBg}
+        onPointerUp={cancelLongPress}
+        onPointerLeave={cancelLongPress}
+        onPointerCancel={cancelLongPress}
+      >
         <div style={{ paddingTop, paddingBottom }}>
           <AnimatePresence initial={false}>
             {visibleItems.map((msg) => (
@@ -683,6 +754,16 @@ export function ChatWindow() {
         onCancel={cancelRecording}
         onSend={handleSendVoiceNote}
       />
+
+      <AnimatePresence>
+        {showWallpaperPicker && (
+          <WallpaperPickerModal
+            onClose={() => setShowWallpaperPicker(false)}
+            onApplyGlobal={handleApplyGlobal}
+            onApplyIndividual={handleApplyIndividual}
+          />
+        )}
+      </AnimatePresence>
     </main>
   );
 }
