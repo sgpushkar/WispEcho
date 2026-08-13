@@ -489,6 +489,7 @@ export function ChatWindow() {
               <MessageBubble 
                 key={msg.id} 
                 message={msg} 
+                isGroup={conversation?.isGroup}
                 onReply={setReplyToMessage} 
                 onEdit={setEditingMessage}
               />
