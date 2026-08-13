@@ -381,11 +381,11 @@ export default function LandingPage() {
         </motion.div>
 
         {/* Footer */}
-        <footer className="pt-6 border-t border-white/5 w-full flex flex-col items-center space-y-2 text-[11px] text-white/30">
+        <footer className="pt-6 border-t border-white/5 w-full flex flex-col md:flex-row items-center justify-between gap-4 text-[11px] text-white/30">
           <p>© 2026 WispEcho · Built for the next generation</p>
-          <div className="flex gap-4">
-            <Link href="/login" className="hover:text-white/60 transition">Sign In</Link>
-            <Link href="/register" className="hover:text-white/60 transition">Register</Link>
+          <div className="flex flex-wrap justify-center gap-4">
+            <Link href="/privacy" className="hover:text-white/60 transition">Privacy Policy</Link>
+            <Link href="/terms" className="hover:text-white/60 transition">Terms of Service</Link>
             <Link href="/download" className="hover:text-white/60 transition">Download APK</Link>
           </div>
         </footer>
