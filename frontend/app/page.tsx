@@ -104,10 +104,10 @@ export default function LandingPage() {
   }
 
   return (
-    <div className="flex min-h-[100dvh] flex-col items-center justify-start p-6 text-white selection:bg-white/20 selection:text-white bg-[#0a0a0a]">
+    <div className="flex min-h-[100dvh] flex-col items-center justify-start text-white selection:bg-white/20 selection:text-white bg-[#0a0a0a]">
 
       {/* Top Navbar */}
-      <nav className="w-full max-w-xl flex items-center justify-between py-4">
+      <nav className="w-full max-w-6xl mx-auto flex items-center justify-between py-6 px-6 lg:px-8">
         <div className="flex items-center gap-2.5">
           <img src="/logo.png" alt="WispEcho Logo" className="h-8 w-8 rounded-[12px] shadow-[0_0_20px_rgba(255,255,255,0.15)] border border-white/10" />
           <span className="font-extrabold font-space tracking-tight text-lg">WispEcho</span>
@@ -143,88 +143,82 @@ export default function LandingPage() {
         </div>
       </nav>
 
-      <div className="w-full max-w-xl flex flex-col items-center text-center space-y-8 py-8">
+      <div className="w-full max-w-6xl mx-auto flex flex-col items-center space-y-20 py-12 md:py-20 px-6 lg:px-8">
 
-        {/* Brand Hero Header */}
-        <motion.div
-          initial={{ opacity: 0, y: -20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6, ease: "easeOut" }}
-          className="flex flex-col items-center space-y-4"
-        >
-          <div className="flex items-center gap-2 bg-white/5 rounded-full px-4 py-1.5 border border-white/5 text-[11px] font-medium text-white/80 backdrop-blur-md">
-            <Sparkles size={11} className="text-accent" />
-            <span>Next-Gen Encrypted Messaging</span>
-          </div>
+        {/* Hero Section Grid */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 lg:gap-12 items-center w-full">
+          {/* Brand Hero Header */}
+          <motion.div
+            initial={{ opacity: 0, y: -20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, ease: "easeOut" }}
+            className="flex flex-col items-center lg:items-start space-y-6 text-center lg:text-left"
+          >
+            <div className="flex items-center gap-2 bg-white/5 rounded-full px-4 py-1.5 border border-white/5 text-[11px] font-medium text-white/80 backdrop-blur-md">
+              <Sparkles size={11} className="text-accent" />
+              <span>Next-Gen Encrypted Messaging</span>
+            </div>
 
-          <div className="space-y-2">
-            <h1 className="text-4xl sm:text-5xl font-extrabold tracking-tight font-space bg-gradient-to-r from-white via-white to-white/40 bg-clip-text text-transparent leading-tight">
-              WispEcho
-            </h1>
-            <p className="text-sm text-white/50 max-w-md mx-auto leading-relaxed">
-              Real-time messaging, but make it premium. View Once media, instant notifications, and sleek glassmorphic UI.
-            </p>
-          </div>
-        </motion.div>
+            <div className="space-y-4">
+              <h1 className="text-5xl sm:text-6xl lg:text-7xl font-extrabold tracking-tight font-space bg-gradient-to-r from-white via-white to-white/40 bg-clip-text text-transparent leading-tight">
+                WispEcho
+              </h1>
+              <p className="text-base sm:text-lg text-white/50 max-w-md mx-auto lg:mx-0 leading-relaxed">
+                Real-time messaging, but make it premium. View Once media, instant notifications, and sleek glassmorphic UI.
+              </p>
+            </div>
 
-        {/* Hero Card with Actions */}
-        <motion.div
-          initial={{ opacity: 0, scale: 0.95 }}
-          animate={{ opacity: 1, scale: 1 }}
-          transition={{ duration: 0.6, delay: 0.1, ease: "easeOut" }}
-          className="glass w-full rounded-[32px] p-6 border border-white/10 flex flex-col items-center text-center space-y-6"
-        >
-          <div className="w-full space-y-3">
-            <Link href="/register">
-              <motion.div
-                whileHover={{ scale: 1.02, filter: "brightness(1.1)" }}
-                whileTap={{ scale: 0.98 }}
-                className="w-full flex items-center justify-center gap-3 rounded-2xl bg-white text-black py-4 font-bold text-sm tracking-wide shadow-lg hover:shadow-white/5 transition duration-300 cursor-pointer"
-              >
-                <Globe size={18} />
-                <span>START ON WEB — FREE</span>
-              </motion.div>
-            </Link>
+            {/* CTA Buttons */}
+            <div className="flex flex-col sm:flex-row gap-4 w-full max-w-md lg:max-w-none pt-4">
+              <Link href="/register" className="w-full sm:w-auto flex-1">
+                <motion.div
+                  whileHover={{ scale: 1.02, filter: "brightness(1.1)" }}
+                  whileTap={{ scale: 0.98 }}
+                  className="w-full flex items-center justify-center gap-3 rounded-2xl bg-white text-black py-4 px-6 font-bold text-sm tracking-wide shadow-lg hover:shadow-white/5 transition duration-300 cursor-pointer"
+                >
+                  <Globe size={18} />
+                  <span>START ON WEB</span>
+                </motion.div>
+              </Link>
+              <Link href="/download" className="w-full sm:w-auto flex-1">
+                <motion.div
+                  whileHover={{ scale: 1.02 }}
+                  whileTap={{ scale: 0.98 }}
+                  className="w-full flex items-center justify-center gap-3 rounded-2xl bg-white/5 border border-white/10 text-white py-4 px-6 font-semibold text-sm tracking-wide hover:bg-white/10 transition duration-300 cursor-pointer"
+                >
+                  <Smartphone size={18} />
+                  <span>ANDROID APP</span>
+                </motion.div>
+              </Link>
+            </div>
 
-            <Link href="/download">
-              <motion.div
-                whileHover={{ scale: 1.02 }}
-                whileTap={{ scale: 0.98 }}
-                className="w-full flex items-center justify-center gap-3 rounded-2xl bg-white/5 border border-white/10 text-white py-4 font-semibold text-sm tracking-wide hover:bg-white/10 transition duration-300 cursor-pointer"
-              >
-                <Smartphone size={18} />
-                <span>DOWNLOAD ANDROID APP (APK)</span>
-              </motion.div>
-            </Link>
-          </div>
-
-          {/* Quick Info Grid */}
-          <div className="grid grid-cols-2 gap-3 w-full text-left pt-2 border-t border-white/5">
-            <div className="flex items-center gap-2.5 p-3 rounded-xl bg-white/5 border border-white/5">
-              <Zap size={16} className="text-white/60 shrink-0" />
-              <div className="flex flex-col">
-                <span className="text-[10px] text-white/40 uppercase font-medium">Speed</span>
-                <span className="text-[11px] font-bold">WebSocket Instant</span>
+            {/* Quick Info Grid */}
+            <div className="grid grid-cols-2 gap-4 w-full text-left pt-6 border-t border-white/5">
+              <div className="flex items-center gap-3 p-4 rounded-2xl bg-white/5 border border-white/5">
+                <Zap size={20} className="text-white/60 shrink-0" />
+                <div className="flex flex-col">
+                  <span className="text-[10px] text-white/40 uppercase font-medium">Speed</span>
+                  <span className="text-xs font-bold">WebSocket Instant</span>
+                </div>
+              </div>
+              <div className="flex items-center gap-3 p-4 rounded-2xl bg-white/5 border border-white/5">
+                <Shield size={20} className="text-white/60 shrink-0" />
+                <div className="flex flex-col">
+                  <span className="text-[10px] text-white/40 uppercase font-medium">Privacy</span>
+                  <span className="text-xs font-bold">Zero Ads & Trackers</span>
+                </div>
               </div>
             </div>
-            <div className="flex items-center gap-2.5 p-3 rounded-xl bg-white/5 border border-white/5">
-              <Shield size={16} className="text-white/60 shrink-0" />
-              <div className="flex flex-col">
-                <span className="text-[10px] text-white/40 uppercase font-medium">Privacy</span>
-                <span className="text-[11px] font-bold">View Once & Zero Ads</span>
-              </div>
-            </div>
-          </div>
-        </motion.div>
+          </motion.div>
 
-        {/* Live Interactive Chat Mockup Card */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          transition={{ duration: 0.6 }}
-          className="glass w-full rounded-[32px] p-6 border border-white/10 text-left space-y-4"
-        >
+          {/* Live Interactive Chat Mockup Card */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.6 }}
+            className="glass w-full max-w-md mx-auto lg:max-w-none rounded-[32px] p-6 sm:p-8 border border-white/10 text-left space-y-4 relative overflow-hidden"
+          >
           <div className="flex items-center justify-between pb-3 border-b border-white/5">
             <div className="flex items-center gap-3">
               <div className="h-9 w-9 rounded-full bg-gradient-to-br from-violet-500 to-indigo-500 flex items-center justify-center text-xs font-bold text-white">A</div>
@@ -274,6 +268,7 @@ export default function LandingPage() {
             </div>
           </div>
         </motion.div>
+        </div>
 
         {/* Features Card */}
         <motion.div
@@ -284,10 +279,10 @@ export default function LandingPage() {
         >
           <div className="space-y-1">
             <h2 className="text-lg font-bold font-space text-white">Features</h2>
-            <p className="text-xs text-white/40">Everything built for modern conversations</p>
+            <p className="text-sm text-white/40">Everything built for modern conversations</p>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 pt-4">
             {features.map((f) => (
               <div key={f.title} className="p-3.5 rounded-2xl bg-white/5 border border-white/5 flex items-start gap-3 hover:bg-white/[0.08] transition">
                 <f.icon size={18} className="text-white/70 shrink-0 mt-0.5" />
@@ -309,13 +304,13 @@ export default function LandingPage() {
         >
           <div className="space-y-1">
             <h2 className="text-lg font-bold font-space text-white">How It Works</h2>
-            <p className="text-xs text-white/40">Up and running in under 30 seconds</p>
+            <p className="text-sm text-white/40">Up and running in under 30 seconds</p>
           </div>
 
-          <div className="space-y-3 pt-2">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 pt-4">
             {steps.map((s) => (
-              <div key={s.n} className="p-4 rounded-2xl bg-white/5 border border-white/5 flex items-center gap-4">
-                <span className="text-xs font-black text-white/30 font-space">{s.n}</span>
+              <div key={s.n} className="p-6 rounded-[24px] bg-white/5 border border-white/5 flex flex-col gap-4">
+                <span className="text-3xl font-black text-white/20 font-space">{s.n}</span>
                 <div>
                   <h3 className="text-xs font-bold text-white">{s.title}</h3>
                   <p className="text-[11px] text-white/40 leading-relaxed">{s.desc}</p>
@@ -334,10 +329,10 @@ export default function LandingPage() {
         >
           <div className="space-y-1">
             <h2 className="text-lg font-bold font-space text-white">Why WispEcho?</h2>
-            <p className="text-xs text-white/40">Designed for smooth, simple, private messaging</p>
+            <p className="text-sm text-white/40">Designed for smooth, simple, private messaging</p>
           </div>
 
-          <div className="space-y-2 pt-2">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 pt-4">
             {[
               "100% free with zero ads or hidden paywalls",
               "View Once self-destructing photo sharing",
@@ -362,10 +357,10 @@ export default function LandingPage() {
         >
           <div className="space-y-1">
             <h2 className="text-lg font-bold font-space text-white">Frequently Asked Questions</h2>
-            <p className="text-xs text-white/40">Quick answers to common questions</p>
+            <p className="text-sm text-white/40">Quick answers to common questions</p>
           </div>
 
-          <div className="space-y-3 pt-2">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 pt-4">
             <FaqItem
               question="Is WispEcho free to use?"
               answer="Yes! WispEcho is 100% free with no subscription tiers or ads."
