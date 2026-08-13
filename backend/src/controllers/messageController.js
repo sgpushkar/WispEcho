@@ -93,8 +93,6 @@ export async function getOrCreateDirectConversation(req, res, next) {
 export async function getMessages(req, res, next) {
   try {
     const { conversationId } = req.params;
-    const cursor = req.query.cursor?.toString();
-    const take = 30;
 
     const isParticipant = await prisma.conversationParticipant.findUnique({
       where: { conversationId_userId: { conversationId, userId: req.userId } },
@@ -107,8 +105,6 @@ export async function getMessages(req, res, next) {
         NOT: { deletedByIds: { has: req.userId } }
       },
       orderBy: { createdAt: "desc" },
-      take,
-      ...(cursor && { cursor: { id: cursor }, skip: 1 }),
       include: {
         sender: { select: { id: true, username: true, displayName: true, avatarUrl: true } },
         reactions: true,
@@ -125,7 +121,7 @@ export async function getMessages(req, res, next) {
       return msg;
     });
 
-    res.json({ messages: sanitized.reverse(), nextCursor: messages.length === take ? messages[0]?.id : null });
+    res.json({ messages: sanitized.reverse() });
   } catch (err) {
     next(err);
   }
