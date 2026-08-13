@@ -60,8 +60,11 @@ export function ChatWindow() {
   const { enqueue } = useOfflineQueue();
   const isOffline = useChatStore((s) => s.isOffline);
 
+  const [isClient, setIsClient] = useState(false);
+  useEffect(() => { setIsClient(true); }, []);
+
   const conversation = conversations.find((c) => c.id === activeConversationId);
-  const conversationMessages = activeConversationId ? messages[activeConversationId] || [] : [];
+  const conversationMessages = isClient ? (activeConversationId ? messages[activeConversationId] || [] : []) : [];
   const typingInThisChat = activeConversationId
     ? Array.from(typingUsers[activeConversationId] || [])
     : [];

@@ -129,6 +129,9 @@ export function Sidebar() {
   const contextMenuRef = useRef<HTMLDivElement>(null);
   const notifRef = useRef<HTMLDivElement>(null);
 
+  const [isClient, setIsClient] = useState(false);
+  useEffect(() => { setIsClient(true); }, []);
+
   const isNewUser = useAuthStore((s) => s.isNewUser);
   const setIsNewUser = useAuthStore((s) => s.setIsNewUser);
 
@@ -222,7 +225,8 @@ export function Sidebar() {
   };
 
   // Filter conversations based on tab
-  const filtered = conversations
+  const displayConversations = isClient ? conversations : [];
+  const filtered = displayConversations
     .filter((c) => {
       if (filterTab === "favorites") return c.isFavorite;
       if (filterTab === "archived") return c.isArchived;
