@@ -40,7 +40,7 @@ const mockMessages = [
 function FaqItem({ question, answer }: { question: string; answer: string }) {
   const [open, setOpen] = useState(false);
   return (
-    <div className="glass rounded-2xl border border-white/10 overflow-hidden">
+    <div className="bg-white/5 backdrop-blur-2xl rounded-2xl border border-white/10 overflow-hidden">
       <button
         onClick={() => setOpen(!open)}
         className="flex w-full items-center justify-between p-5 text-left text-sm font-semibold text-white/90 hover:text-white transition"
@@ -118,7 +118,7 @@ export default function LandingPage() {
               <motion.div
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
-                className="glass flex items-center gap-2 rounded-full px-4 py-2 text-xs font-semibold text-white hover:bg-white/10 transition border border-white/10 cursor-pointer"
+                className="bg-white/5 backdrop-blur-2xl flex items-center gap-2 rounded-full px-4 py-2 text-xs font-semibold text-white hover:bg-white/10 transition border border-white/10 cursor-pointer"
               >
                 <span>Open App</span>
                 <ArrowRight size={14} />
@@ -133,7 +133,7 @@ export default function LandingPage() {
                 <motion.div
                   whileHover={{ scale: 1.05 }}
                   whileTap={{ scale: 0.95 }}
-                  className="glass flex items-center gap-1.5 rounded-full px-4 py-2 text-xs font-semibold text-white bg-white/10 hover:bg-white/20 transition border border-white/10 cursor-pointer"
+                  className="bg-white/5 backdrop-blur-2xl flex items-center gap-1.5 rounded-full px-4 py-2 text-xs font-semibold text-white bg-white/10 hover:bg-white/20 transition border border-white/10 cursor-pointer"
                 >
                   <span>Get Started</span>
                 </motion.div>
@@ -217,7 +217,7 @@ export default function LandingPage() {
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
             transition={{ duration: 0.6 }}
-            className="glass w-full max-w-md mx-auto lg:max-w-none rounded-[32px] p-6 sm:p-8 border border-white/10 text-left space-y-4 relative overflow-hidden"
+            className="bg-white/5 backdrop-blur-2xl w-full max-w-md mx-auto lg:max-w-none rounded-[32px] p-6 sm:p-8 border border-white/10 text-left space-y-4 relative overflow-hidden"
           >
             <div className="flex items-center justify-between pb-3 border-b border-white/5">
               <div className="flex items-center gap-3">
@@ -275,7 +275,7 @@ export default function LandingPage() {
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
-          className="glass w-full rounded-[32px] p-6 border border-white/10 space-y-4 text-left"
+          className="bg-white/5 backdrop-blur-2xl w-full rounded-[32px] p-6 border border-white/10 space-y-4 text-left"
         >
           <div className="space-y-1">
             <h2 className="text-lg font-bold font-space text-white">Features</h2>
@@ -300,7 +300,7 @@ export default function LandingPage() {
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
-          className="glass w-full rounded-[32px] p-6 border border-white/10 space-y-4 text-left"
+          className="bg-white/5 backdrop-blur-2xl w-full rounded-[32px] p-6 border border-white/10 space-y-4 text-left"
         >
           <div className="space-y-1">
             <h2 className="text-lg font-bold font-space text-white">How It Works</h2>
@@ -325,7 +325,7 @@ export default function LandingPage() {
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
-          className="glass w-full rounded-[32px] p-6 border border-white/10 space-y-4 text-left"
+          className="bg-white/5 backdrop-blur-2xl w-full rounded-[32px] p-6 border border-white/10 space-y-4 text-left"
         >
           <div className="space-y-1">
             <h2 className="text-lg font-bold font-space text-white">Why WispEcho?</h2>
@@ -353,7 +353,7 @@ export default function LandingPage() {
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
-          className="glass w-full rounded-[32px] p-6 border border-white/10 space-y-4 text-left"
+          className="bg-white/5 backdrop-blur-2xl w-full rounded-[32px] p-6 border border-white/10 space-y-4 text-left"
         >
           <div className="space-y-1">
             <h2 className="text-lg font-bold font-space text-white">Frequently Asked Questions</h2>

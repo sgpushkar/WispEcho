@@ -74,7 +74,7 @@ export default function DownloadPage() {
           <motion.div
             whileHover={{ scale: 1.05, x: -3 }}
             whileTap={{ scale: 0.95 }}
-            className="glass flex items-center gap-2 rounded-full px-4 py-2 text-xs font-medium text-white/70 hover:text-white hover:bg-white/10 transition border border-white/5 cursor-pointer"
+            className="bg-white/5 backdrop-blur-2xl flex items-center gap-2 rounded-full px-4 py-2 text-xs font-medium text-white/70 hover:text-white hover:bg-white/10 transition border border-white/5 cursor-pointer"
           >
             <ArrowLeft size={14} />
             <span>Open Web App</span>
@@ -106,7 +106,7 @@ export default function DownloadPage() {
           initial={{ opacity: 0, scale: 0.95 }}
           animate={{ opacity: 1, scale: 1 }}
           transition={{ duration: 0.6, delay: 0.1, ease: "easeOut" }}
-          className="glass w-full rounded-[32px] p-6 border border-white/10 flex flex-col items-center text-center space-y-6"
+          className="bg-white/5 backdrop-blur-2xl w-full rounded-[32px] p-6 border border-white/10 flex flex-col items-center text-center space-y-6"
         >
           <div className="flex items-center gap-2 bg-white/5 rounded-full px-4 py-1.5 border border-white/5 text-[11px] font-medium text-white/80">
             <Sparkles size={11} className="text-accent" />
@@ -168,7 +168,7 @@ export default function DownloadPage() {
             <div className="space-y-3">
               {/* New Features */}
               {latestChanges.new?.length > 0 && (
-                <div className="glass p-5 rounded-2xl border border-white/5 space-y-3">
+                <div className="bg-white/5 backdrop-blur-2xl p-5 rounded-2xl border border-white/5 space-y-3">
                   <div className="flex items-center gap-2">
                     <Sparkles size={13} className="text-violet-400" />
                     <span className="text-[10px] font-bold uppercase tracking-widest text-violet-400">New</span>
@@ -183,7 +183,7 @@ export default function DownloadPage() {
 
               {/* Improved */}
               {latestChanges.improved?.length > 0 && (
-                <div className="glass p-5 rounded-2xl border border-white/5 space-y-3">
+                <div className="bg-white/5 backdrop-blur-2xl p-5 rounded-2xl border border-white/5 space-y-3">
                   <div className="flex items-center gap-2">
                     <ArrowUpCircle size={13} className="text-blue-400" />
                     <span className="text-[10px] font-bold uppercase tracking-widest text-blue-400">Improved</span>
@@ -198,7 +198,7 @@ export default function DownloadPage() {
 
               {/* Fixed */}
               {latestChanges.fixed?.length > 0 && (
-                <div className="glass p-5 rounded-2xl border border-white/5 space-y-3">
+                <div className="bg-white/5 backdrop-blur-2xl p-5 rounded-2xl border border-white/5 space-y-3">
                   <div className="flex items-center gap-2">
                     <span className="text-green-400 text-[13px]">✓</span>
                     <span className="text-[10px] font-bold uppercase tracking-widest text-green-400">Fixed</span>
@@ -220,7 +220,7 @@ export default function DownloadPage() {
                 { title: "Fluid Performance", desc: "Silky smooth glassmorphism with optimized virtual scrolling." },
                 { title: "Custom Themes", desc: "Ultra-premium dark and light mode system aesthetics." },
               ].map((note, index) => (
-                <div key={index} className="glass p-5 rounded-2xl border border-white/5 flex flex-col space-y-1 hover:border-white/10 transition-colors">
+                <div key={index} className="bg-white/5 backdrop-blur-2xl p-5 rounded-2xl border border-white/5 flex flex-col space-y-1 hover:border-white/10 transition-colors">
                   <h3 className="text-sm font-semibold text-white">{note.title}</h3>
                   <p className="text-xs text-white/40 leading-relaxed">{note.desc}</p>
                 </div>
@@ -235,7 +235,7 @@ export default function DownloadPage() {
                 Previous Versions
               </h2>
               {data.changelog.slice(1).map((entry, idx) => (
-                <div key={idx} className="glass p-4 rounded-2xl border border-white/5 space-y-2">
+                <div key={idx} className="bg-white/5 backdrop-blur-2xl p-4 rounded-2xl border border-white/5 space-y-2">
                   <div className="flex items-center justify-between">
                     <span className="text-xs font-bold text-white/70">v{entry.version}</span>
                     <span className="text-[10px] text-white/30">{formatDate(entry.date)}</span>
