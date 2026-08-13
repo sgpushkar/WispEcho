@@ -241,6 +241,7 @@ model ConversationParticipant {
   isPinned       Boolean  @default(false)
   isArchived     Boolean  @default(false)
   isFavorite     Boolean  @default(false)
+  chatBg         Json?
   lastReadAt     DateTime @default(now())
   joinedAt       DateTime @default(now())
 
