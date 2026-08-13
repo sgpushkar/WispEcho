@@ -68,7 +68,7 @@ export default function DownloadPage() {
   };
 
   return (
-    <div className="flex min-h-[100dvh] flex-col items-center justify-center p-6 text-white selection:bg-white/20 selection:text-white">
+    <div className="flex min-h-[100dvh] flex-col items-center justify-center p-6 text-white bg-black selection:bg-white/20 selection:text-white">
       <div className="absolute top-6 left-6 z-50">
         <Link href="/chat">
           <motion.div

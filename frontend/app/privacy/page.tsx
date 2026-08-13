@@ -6,7 +6,7 @@ import { motion } from "framer-motion";
 
 export default function PrivacyPolicy() {
   return (
-    <div className="flex min-h-[100dvh] flex-col items-center justify-start p-6 text-white bg-[#0a0a0a]">
+    <div className="flex min-h-[100dvh] flex-col items-center justify-start p-6 text-white bg-black">
       <div className="w-full max-w-3xl space-y-8 py-12">
         <Link href="/" className="inline-flex items-center gap-2 text-sm text-white/50 hover:text-white transition">
           <ArrowLeft size={16} />

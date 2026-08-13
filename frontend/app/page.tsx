@@ -97,14 +97,14 @@ export default function LandingPage() {
 
   if (!showLanding) {
     return (
-      <div className="flex min-h-[100dvh] items-center justify-center bg-[#0a0a0a]">
+      <div className="flex min-h-[100dvh] items-center justify-center bg-black">
         <div className="h-8 w-8 animate-spin rounded-full border-2 border-white/30 border-t-white" />
       </div>
     );
   }
 
   return (
-    <div className="flex min-h-[100dvh] flex-col items-center justify-start text-white selection:bg-white/20 selection:text-white bg-[#0a0a0a]">
+    <div className="flex min-h-[100dvh] flex-col items-center justify-start text-white selection:bg-white/20 selection:text-white bg-black">
 
       {/* Top Navbar */}
       <nav className="w-full max-w-6xl mx-auto flex items-center justify-between py-6 px-6 lg:px-8">
@@ -219,24 +219,24 @@ export default function LandingPage() {
             transition={{ duration: 0.6 }}
             className="glass w-full max-w-md mx-auto lg:max-w-none rounded-[32px] p-6 sm:p-8 border border-white/10 text-left space-y-4 relative overflow-hidden"
           >
-          <div className="flex items-center justify-between pb-3 border-b border-white/5">
-            <div className="flex items-center gap-3">
-              <div className="h-9 w-9 rounded-full bg-gradient-to-br from-violet-500 to-indigo-500 flex items-center justify-center text-xs font-bold text-white">A</div>
-              <div>
-                <p className="text-xs font-bold text-white">Alex</p>
-                <p className="text-[10px] text-green-400 flex items-center gap-1">
-                  <span className="h-1.5 w-1.5 rounded-full bg-green-400 inline-block animate-pulse" />
-                  online
-                </p>
+            <div className="flex items-center justify-between pb-3 border-b border-white/5">
+              <div className="flex items-center gap-3">
+                <div className="h-9 w-9 rounded-full bg-gradient-to-br from-violet-500 to-indigo-500 flex items-center justify-center text-xs font-bold text-white">A</div>
+                <div>
+                  <p className="text-xs font-bold text-white">Alex</p>
+                  <p className="text-[10px] text-green-400 flex items-center gap-1">
+                    <span className="h-1.5 w-1.5 rounded-full bg-green-400 inline-block animate-pulse" />
+                    online
+                  </p>
+                </div>
+              </div>
+              <div className="flex gap-3 text-white/20">
+                <Phone size={15} />
+                <Video size={15} />
               </div>
             </div>
-            <div className="flex gap-3 text-white/20">
-              <Phone size={15} />
-              <Video size={15} />
-            </div>
-          </div>
 
-          <div className="space-y-2.5 min-h-[180px]">
+            <div className="space-y-2.5 min-h-[180px]">
             {mockMessages.slice(0, visibleMsg).map((msg, i) => (
               <motion.div
                 key={i}
