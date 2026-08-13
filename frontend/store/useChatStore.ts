@@ -28,7 +28,11 @@ export interface Conversation {
   id: string;
   isGroup: boolean;
   group?: { id: string; name: string; avatarUrl?: string | null; conversationId?: string } | null;
-  participants?: { user: { id: string; username: string; displayName: string; avatarUrl?: string | null } }[];
+  participants?: { 
+    user: { id: string; username: string; displayName: string; avatarUrl?: string | null };
+    chatBg?: any;
+    userId: string;
+  }[];
   otherUser?: {
     id: string;
     username: string;
@@ -64,6 +68,7 @@ interface ChatState {
   toggleArchive: (conversationId: string) => void;
   toggleFavorite: (conversationId: string) => void;
   removeConversation: (conversationId: string) => void;
+  updateParticipantChatBg: (conversationId: string, userId: string, chatBg: any) => void;
   addReaction: (reaction: { id: string; emoji: string; userId: string; messageId: string; conversationId?: string }) => void;
   removeReaction: (payload: { messageId: string; userId: string; emoji: string; conversationId?: string }) => void;
   setTyping: (conversationId: string, userId: string, isTyping: boolean) => void;
@@ -195,6 +200,19 @@ export const useChatStore = create<ChatState>()(
       ),
       activeConversationId:
         state.activeConversationId === conversationId ? null : state.activeConversationId,
+    })),
+
+  updateParticipantChatBg: (conversationId, userId, chatBg) =>
+    set((state) => ({
+      conversations: state.conversations.map((c) => {
+        if (c.id === conversationId && c.participants) {
+          const newParticipants = c.participants.map(p => 
+            (p.userId === userId || p.user.id === userId) ? { ...p, chatBg } : p
+          );
+          return { ...c, participants: newParticipants };
+        }
+        return c;
+      })
     })),
 
   addReaction: (reaction) =>
