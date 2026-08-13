@@ -121,7 +121,7 @@ export function ChatWindow() {
       document.documentElement.style.setProperty("--chat-bg-type", conversationBg.type);
       document.documentElement.style.setProperty("--chat-bg-value", conversationBg.value);
     } else {
-      const globalTheme = useUIStore.getState().theme;
+      const globalTheme = useUIStore.getState().getActiveTheme();
       if (globalTheme.chatBackground) {
         document.documentElement.style.setProperty("--chat-bg-type", globalTheme.chatBackground.type);
         document.documentElement.style.setProperty("--chat-bg-value", globalTheme.chatBackground.value);
@@ -133,7 +133,7 @@ export function ChatWindow() {
   }, [conversationBg, activeConversationId]);
 
   const handleApplyGlobal = (bg: ChatBackground | null) => {
-    const globalTheme = useUIStore.getState().theme;
+    const globalTheme = useUIStore.getState().getActiveTheme();
     applyCustomTheme({ ...globalTheme, id: globalTheme.id || "default", name: globalTheme.name || "Custom", chatBg: bg });
     setShowWallpaperPicker(false);
   };
