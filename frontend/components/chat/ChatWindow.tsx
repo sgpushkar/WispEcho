@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Send, Image as ImageIcon, ArrowLeft, Mic, X } from "lucide-react";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { api } from "@/lib/api";
 import { useChatStore, Message, useChatHasHydrated } from "@/store/useChatStore";
 import { useAuthStore } from "@/store/useAuthStore";
@@ -85,30 +85,26 @@ export function ChatWindow() {
   const deleteMessageMutation = useMutation({
     mutationFn: async ({ messageId, forEveryone }: { messageId: string; forEveryone: boolean }) =>
       api.delete(`/messages/${messageId}${forEveryone ? "?forEveryone=true" : ""}`),
+    onMutate: ({ messageId }) => {
+      const currentMessages = useChatStore.getState().messages[activeConversationId!] || [];
+      const index = currentMessages.findIndex((m) => m.id === messageId);
+      const previousMessage = currentMessages[index];
+      setMessages(activeConversationId!, currentMessages.filter((m) => m.id !== messageId));
+      return { previousMessage, index };
+    },
     onError: (_err, variables, context: any) => {
       alert("Failed to delete message");
       if (context?.previousMessage) {
-        setMessages(activeConversationId!, (prev) => {
-          const newMessages = [...prev];
-          newMessages.splice(context.index, 0, context.previousMessage);
-          return newMessages.sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime());
-        });
+        const currentMessages = useChatStore.getState().messages[activeConversationId!] || [];
+        const newMessages = [...currentMessages];
+        newMessages.splice(context.index, 0, context.previousMessage);
+        setMessages(activeConversationId!, newMessages.sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime()));
       }
     },
   });
 
   const handleDeleteMessage = (messageId: string, forEveryone: boolean) => {
-    const messages = getMessages(activeConversationId!) || [];
-    const index = messages.findIndex((m) => m.id === messageId);
-    const previousMessage = messages[index];
-
-    deleteMessageMutation.mutate(
-      { messageId, forEveryone },
-      {
-        onMutate: () => ({ previousMessage, index }),
-      }
-    );
-    setMessages(activeConversationId!, (prev) => prev.filter((m) => m.id !== messageId));
+    deleteMessageMutation.mutate({ messageId, forEveryone });
   };
 
   useEffect(() => {
