@@ -65,6 +65,20 @@ export async function getOrCreateDirectConversation(req, res, next) {
   try {
     const { userId: otherUserId } = req.params;
 
+    const friendship = await prisma.friendship.findFirst({
+      where: {
+        status: "ACCEPTED",
+        OR: [
+          { requesterId: req.userId, addresseeId: otherUserId },
+          { requesterId: otherUserId, addresseeId: req.userId },
+        ],
+      },
+    });
+
+    if (!friendship) {
+      return res.status(403).json({ error: "Cannot message this user. You are not friends or are blocked." });
+    }
+
     const existing = await prisma.conversation.findFirst({
       where: {
         isGroup: false,
@@ -151,7 +165,15 @@ export async function getSharedMedia(req, res, next) {
       }
     });
 
-    res.json({ media: messages });
+    // Strip raw Cloudinary URLs from IMAGE messages
+    const sanitized = messages.map((msg) => {
+      if (msg.type === "IMAGE") {
+        return { ...msg, mediaUrl: null };
+      }
+      return msg;
+    });
+
+    res.json({ media: sanitized });
   } catch (err) {
     next(err);
   }
@@ -173,6 +195,20 @@ export async function sendMessage(req, res, next) {
         },
       });
       if (!conv) {
+        const friendship = await prisma.friendship.findFirst({
+          where: {
+            status: "ACCEPTED",
+            OR: [
+              { requesterId: req.userId, addresseeId: data.recipientId },
+              { requesterId: data.recipientId, addresseeId: req.userId },
+            ],
+          },
+        });
+
+        if (!friendship) {
+          return res.status(403).json({ error: "Cannot message this user. You are not friends or are blocked." });
+        }
+
         conv = await prisma.conversation.create({
           data: {
             isGroup: false,
