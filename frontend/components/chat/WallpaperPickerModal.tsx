@@ -69,10 +69,26 @@ export function WallpaperPickerModal({ onClose, onApplyGlobal, onApplyIndividual
     if (!file) return;
     try {
       setIsUploadingBg(true);
+      const sigRes = await api.get("/upload/signature");
+      const { signature, timestamp, cloudName, apiKey, folder, resourceType } = sigRes.data;
+
       const formData = new FormData();
       formData.append("file", file);
-      const res = await api.post("/upload/image", formData);
-      setChatBgValue(res.data.secure_url);
+      formData.append("api_key", apiKey);
+      formData.append("timestamp", timestamp.toString());
+      formData.append("signature", signature);
+      formData.append("folder", folder);
+
+      const endpoint = resourceType === "video" ? "video" : "image";
+      const uploadRes = await fetch(`https://api.cloudinary.com/v1_1/${cloudName}/${endpoint}/upload`, {
+        method: "POST",
+        body: formData,
+      });
+
+      if (!uploadRes.ok) throw new Error("Upload failed");
+
+      const response = await uploadRes.json();
+      setChatBgValue(response.secure_url);
     } catch (error) {
       console.error(error);
       alert("Failed to upload background");
