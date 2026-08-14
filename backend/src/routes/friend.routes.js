@@ -10,5 +10,6 @@ router.get("/requests", friendController.listPendingRequests);
 router.post("/requests", friendController.sendFriendRequest);
 router.patch("/requests/:friendshipId", friendController.respondFriendRequest);
 router.post("/block", friendController.blockUser);
+router.post("/unblock", friendController.unblockUser);
 
 export default router;
