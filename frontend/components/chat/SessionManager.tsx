@@ -11,6 +11,7 @@ interface Session {
 
 export function SessionManager() {
   const [sessions, setSessions] = useState<Session[]>([]);
+  const [currentSessionId, setCurrentSessionId] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -21,6 +22,7 @@ export function SessionManager() {
     try {
       const res = await api.get("/auth/sessions");
       setSessions(res.data.sessions);
+      setCurrentSessionId(res.data.currentSessionId);
     } catch (err) {
       console.error("Failed to fetch sessions", err);
     } finally {
@@ -73,9 +75,10 @@ export function SessionManager() {
       </div>
 
       <div className="space-y-2 max-h-[300px] overflow-y-auto pr-1">
-        {sessions.map((session, idx) => {
+        {sessions.map((session) => {
           const { browser, os } = parseUA(session.userAgent);
           const isMobile = os === "Android" || os === "iOS";
+          const isCurrent = session.id === currentSessionId;
           
           return (
             <div
@@ -88,7 +91,7 @@ export function SessionManager() {
                 </div>
                 <div className="flex flex-col">
                   <span className="text-white text-sm font-medium">
-                    {browser} on {os} {idx === 0 && <span className="text-[10px] bg-accent/20 text-accent px-1.5 py-0.5 rounded-full ml-1 font-semibold uppercase tracking-wider">Current</span>}
+                    {browser} on {os} {isCurrent && <span className="text-[10px] bg-accent/20 text-accent px-1.5 py-0.5 rounded-full ml-1 font-semibold uppercase tracking-wider">Current</span>}
                   </span>
                   <span className="text-white/40 text-xs mt-0.5">
                     IP: {session.ip || "Unknown"} • {new Date(session.createdAt).toLocaleDateString()}
@@ -96,7 +99,7 @@ export function SessionManager() {
                 </div>
               </div>
 
-              {idx !== 0 && (
+              {!isCurrent && (
                 <button
                   onClick={() => terminateSession(session.id)}
                   className="p-2 text-white/40 hover:text-red-400 hover:bg-red-500/10 rounded-full transition"
