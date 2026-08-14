@@ -47,16 +47,33 @@ export async function inviteMembers(req, res, next) {
 
     const group = await prisma.group.findUnique({ where: { id: groupId } });
 
+    const blocks = await prisma.friendship.findMany({
+      where: {
+        status: "BLOCKED",
+        OR: [
+          { requesterId: req.userId, addresseeId: { in: userIds } },
+          { requesterId: { in: userIds }, addresseeId: req.userId },
+        ],
+      },
+    });
+    
+    const blockedUserIds = new Set(blocks.flatMap(b => [b.requesterId, b.addresseeId]));
+    const validUserIds = userIds.filter(id => !blockedUserIds.has(id));
+
+    if (validUserIds.length === 0) {
+      return res.status(403).json({ error: "Cannot invite these users due to block settings" });
+    }
+
     await prisma.groupMember.createMany({
-      data: userIds.map((userId) => ({ groupId, userId })),
+      data: validUserIds.map((userId) => ({ groupId, userId })),
       skipDuplicates: true,
     });
     await prisma.conversationParticipant.createMany({
-      data: userIds.map((userId) => ({ conversationId: group.conversationId, userId })),
+      data: validUserIds.map((userId) => ({ conversationId: group.conversationId, userId })),
       skipDuplicates: true,
     });
 
-    emitToConversation(group.conversationId, "group:membersAdded", { groupId, userIds });
+    emitToConversation(group.conversationId, "group:membersAdded", { groupId, userIds: validUserIds });
     res.json({ success: true });
   } catch (err) {
     next(err);
