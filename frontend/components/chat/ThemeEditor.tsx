@@ -214,11 +214,13 @@ export function ThemeEditor({ onClose }: { onClose: () => void }) {
   // Delete custom theme
   const deleteMutation = useMutation({
     mutationFn: async (id: string) => api.delete(`/themes/${id}`),
-    onSuccess: () => {
+    onSuccess: (_, deletedId) => {
       queryClient.invalidateQueries({ queryKey: ["customThemes"] });
       // Revert to default if the deleted theme was active
-      const { applyTheme } = useUIStore.getState();
-      applyTheme("default");
+      const { applyTheme, themeId } = useUIStore.getState();
+      if (themeId === deletedId) {
+        applyTheme("default");
+      }
     },
   });
 
