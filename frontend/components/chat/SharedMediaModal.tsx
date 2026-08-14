@@ -4,6 +4,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { api } from "@/lib/api";
 import { ProgressiveImage } from "../ui/ProgressiveImage";
 import { FullscreenImageViewer } from "../ui/FullscreenImageViewer";
+import { useSecureImage } from "@/hooks/useSecureImage";
 
 interface SharedMediaModalProps {
   conversationId: string;
@@ -15,6 +16,47 @@ interface SharedMediaItem {
   mediaUrl: string;
   type: string;
   createdAt: string;
+}
+
+function SecureSharedMediaItem({ item, onClick }: { item: SharedMediaItem; onClick: (url: string) => void }) {
+  const isImage = item.type === "IMAGE";
+  const { url, loading } = useSecureImage({ messageId: item.id, enabled: isImage });
+  const displayUrl = url || item.mediaUrl;
+
+  return (
+    <div
+      className="aspect-square rounded-xl overflow-hidden bg-black/20 cursor-pointer relative group"
+      onClick={() => {
+        if (isImage && displayUrl) onClick(displayUrl);
+      }}
+    >
+      {isImage ? (
+        loading ? (
+          <div className="w-full h-full flex items-center justify-center bg-black/40 text-white/50">
+             <div className="w-6 h-6 rounded-full border-2 border-white/20 border-t-accent animate-spin" />
+          </div>
+        ) : displayUrl ? (
+          <ProgressiveImage
+            src={displayUrl}
+            alt="Shared media"
+            className="w-full h-full object-cover group-hover:scale-110 transition duration-500"
+          />
+        ) : (
+          <div className="w-full h-full flex items-center justify-center bg-black/40 text-white/50">
+             <ImageIcon size={24} />
+          </div>
+        )
+      ) : item.type === "VIDEO" ? (
+        <div className="w-full h-full flex items-center justify-center bg-black/40 text-white/50 group-hover:text-white transition">
+          <Video size={24} />
+        </div>
+      ) : (
+        <div className="w-full h-full flex items-center justify-center bg-black/40 text-white/50 group-hover:text-white transition">
+          <FileText size={24} />
+        </div>
+      )}
+    </div>
+  );
 }
 
 export function SharedMediaModal({ conversationId, onClose }: SharedMediaModalProps) {
@@ -68,29 +110,11 @@ export function SharedMediaModal({ conversationId, onClose }: SharedMediaModalPr
             ) : (
               <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-2">
                 {media.map((item) => (
-                  <div
-                    key={item.id}
-                    className="aspect-square rounded-xl overflow-hidden bg-black/20 cursor-pointer relative group"
-                    onClick={() => {
-                      if (item.type === "IMAGE") setSelectedImage(item.mediaUrl);
-                    }}
-                  >
-                    {item.type === "IMAGE" ? (
-                      <ProgressiveImage
-                        src={item.mediaUrl}
-                        alt="Shared media"
-                        className="w-full h-full object-cover group-hover:scale-110 transition duration-500"
-                      />
-                    ) : item.type === "VIDEO" ? (
-                      <div className="w-full h-full flex items-center justify-center bg-black/40 text-white/50 group-hover:text-white transition">
-                        <Video size={24} />
-                      </div>
-                    ) : (
-                      <div className="w-full h-full flex items-center justify-center bg-black/40 text-white/50 group-hover:text-white transition">
-                        <FileText size={24} />
-                      </div>
-                    )}
-                  </div>
+                  <SecureSharedMediaItem 
+                    key={item.id} 
+                    item={item} 
+                    onClick={(url) => setSelectedImage(url)} 
+                  />
                 ))}
               </div>
             )}
