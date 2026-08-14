@@ -55,6 +55,7 @@ export function ChatWindow() {
   const typingTimeout = useRef<NodeJS.Timeout | null>(null);
   const lastTypedEmitted = useRef(0);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
 
   // Image Upload State
   const [isDragging, setIsDragging] = useState(false);
@@ -64,11 +65,12 @@ export function ChatWindow() {
   const isOffline = useChatStore((s) => s.isOffline);
 
   const isClient = useChatHasHydrated();
+  const currentUserId = useAuthStore((s) => s.user?.id);
 
   const conversation = conversations.find((c) => c.id === activeConversationId);
   const conversationMessages = isClient ? (activeConversationId ? messages[activeConversationId] || [] : []) : [];
   const typingInThisChat = activeConversationId
-    ? Array.from(typingUsers[activeConversationId] || [])
+    ? Array.from(typingUsers[activeConversationId] || []).filter(id => id !== currentUserId)
     : [];
 
   const { data } = useQuery({
@@ -79,6 +81,35 @@ export function ChatWindow() {
   });
 
   const { containerRef, visibleItems, paddingTop, paddingBottom, isAtBottom } = useVirtualScroll({ items: conversationMessages });
+
+  const deleteMessageMutation = useMutation({
+    mutationFn: async ({ messageId, forEveryone }: { messageId: string; forEveryone: boolean }) =>
+      api.delete(`/messages/${messageId}${forEveryone ? "?forEveryone=true" : ""}`),
+    onError: (_err, variables, context: any) => {
+      alert("Failed to delete message");
+      if (context?.previousMessage) {
+        setMessages(activeConversationId!, (prev) => {
+          const newMessages = [...prev];
+          newMessages.splice(context.index, 0, context.previousMessage);
+          return newMessages.sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime());
+        });
+      }
+    },
+  });
+
+  const handleDeleteMessage = (messageId: string, forEveryone: boolean) => {
+    const messages = getMessages(activeConversationId!) || [];
+    const index = messages.findIndex((m) => m.id === messageId);
+    const previousMessage = messages[index];
+
+    deleteMessageMutation.mutate(
+      { messageId, forEveryone },
+      {
+        onMutate: () => ({ previousMessage, index }),
+      }
+    );
+    setMessages(activeConversationId!, (prev) => prev.filter((m) => m.id !== messageId));
+  };
 
   useEffect(() => {
     if (data && activeConversationId) setMessages(activeConversationId, data);
@@ -105,6 +136,13 @@ export function ChatWindow() {
     const socket = getSocket(accessToken);
     socket.emit("conversation:join", activeConversationId);
     api.post(`/messages/conversations/${activeConversationId}/read`);
+
+    // Prevent transient state leaking when switching conversations
+    setReplyToMessage(null);
+    setEditingMessage(null);
+    setDraft("");
+    setMentionQuery(null);
+    if (textareaRef.current) textareaRef.current.style.height = "auto";
   }, [activeConversationId]);
 
   useEffect(() => {
@@ -112,8 +150,6 @@ export function ChatWindow() {
       setDraft(editingMessage.content || "");
     }
   }, [editingMessage]);
-
-  const currentUserId = useAuthStore.getState().user?.id;
   const conversationBg = conversation?.participants?.find((p) => p.userId === currentUserId || p.user.id === currentUserId)?.chatBg;
 
   useEffect(() => {
@@ -156,6 +192,7 @@ export function ChatWindow() {
         setReplyToMessage(null);
         setEditingMessage(null);
         setDraft("");
+        if (textareaRef.current) textareaRef.current.style.height = "auto";
       }
     }
     window.addEventListener("keydown", handleEsc);
@@ -175,7 +212,7 @@ export function ChatWindow() {
     if (typingTimeout.current) clearTimeout(typingTimeout.current);
     typingTimeout.current = setTimeout(() => {
       socket.emit("typing:stop", { conversationId: activeConversationId });
-    }, 1500);
+    }, 2000);
   }
 
   const uploadAudio = async (blob: Blob): Promise<string> => {
@@ -225,9 +262,17 @@ export function ChatWindow() {
     setIsSending(true);
 
     if (editingMessage && type === "TEXT") {
+      // Optimistic update for snappy UX
+      useChatStore.getState().updateMessage({
+        id: editingMessage.id,
+        conversationId: activeConversationId,
+        content,
+        isEdited: true
+      });
       await api.patch(`/messages/${editingMessage.id}`, { content });
       setEditingMessage(null);
       setDraft("");
+      if (textareaRef.current) textareaRef.current.style.height = "auto";
       setShowEmojiPicker(false);
       setTimeout(() => {
         setIsSending(false);
@@ -239,6 +284,7 @@ export function ChatWindow() {
       if (type === "TEXT") {
         setReplyToMessage(null);
         setDraft("");
+        if (textareaRef.current) textareaRef.current.style.height = "auto";
       }
       
       const tempId = crypto.randomUUID();
@@ -643,6 +689,7 @@ export function ChatWindow() {
             <ImageIcon size={18} />
           </motion.div>
           <textarea
+            ref={textareaRef}
             value={draft}
             rows={1}
             onPaste={handlePaste}
@@ -695,6 +742,16 @@ export function ChatWindow() {
                   const newDraft = draft.slice(0, lastAtPos) + `@${username} ` + draft.slice(lastAtPos + (mentionQuery?.length || 0) + 1);
                   setDraft(newDraft);
                   setMentionQuery(null);
+                  if (textareaRef.current) {
+                    textareaRef.current.focus();
+                    textareaRef.current.style.height = "auto";
+                    // Need setTimeout for the value to update before scrollHeight calculation
+                    setTimeout(() => {
+                      if (textareaRef.current) {
+                        textareaRef.current.style.height = `${textareaRef.current.scrollHeight}px`;
+                      }
+                    }, 0);
+                  }
                 }}
               />
             )}
