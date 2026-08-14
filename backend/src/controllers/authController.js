@@ -331,6 +331,13 @@ function sanitizeUser(user) {
 
 export async function getSessions(req, res, next) {
   try {
+    const currentToken = req.cookies.refreshToken;
+    let currentSessionId = null;
+    if (currentToken) {
+      const current = await prisma.refreshToken.findUnique({ where: { token: currentToken } });
+      if (current) currentSessionId = current.id;
+    }
+
     const sessions = await prisma.refreshToken.findMany({
       where: { userId: req.userId },
       select: {
@@ -341,7 +348,7 @@ export async function getSessions(req, res, next) {
       },
       orderBy: { createdAt: "desc" }
     });
-    res.json({ sessions });
+    res.json({ sessions, currentSessionId });
   } catch (err) {
     next(err);
   }
