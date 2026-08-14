@@ -187,7 +187,7 @@ export function SettingsModal({ isOpen, onClose }: { isOpen: boolean; onClose: (
         bannerUrl,
         accentColor,
         status,
-        themeId: currentThemeId.startsWith("custom_") ? currentThemeId : currentThemeId,
+        themeId: currentThemeId,
       }),
     onSuccess: (res) => {
       if (res.data.user) {
