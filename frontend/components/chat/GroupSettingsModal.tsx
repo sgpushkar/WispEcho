@@ -7,6 +7,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { api } from "@/lib/api";
 import { useAuthStore } from "@/store/useAuthStore";
 import { useUIStore } from "@/store/useUIStore";
+import { useChatStore } from "@/store/useChatStore";
 import Link from "next/link";
 import { Avatar } from "../ui/Avatar";
 import { SharedMediaModal } from "./SharedMediaModal";
@@ -76,6 +77,10 @@ export function GroupSettingsModal() {
     mutationFn: async () => api.post(`/groups/${activeGroupId}/leave`),
     onSuccess: () => {
       setGroupSettingsOpen(false);
+      const { activeConversationId, setActiveConversation } = useChatStore.getState();
+      if (activeConversationId === groupData?.conversationId) {
+        setActiveConversation(null);
+      }
       // Socket group:memberLeft will remove conversation from store
     },
     onError: (err: any) => alert(err.response?.data?.error || "Error leaving group"),
@@ -85,6 +90,10 @@ export function GroupSettingsModal() {
     mutationFn: async () => api.delete(`/groups/${activeGroupId}`),
     onSuccess: () => {
       setGroupSettingsOpen(false);
+      const { activeConversationId, setActiveConversation } = useChatStore.getState();
+      if (activeConversationId === groupData?.conversationId) {
+        setActiveConversation(null);
+      }
       // Socket group:deleted will remove conversation from store
     },
     onError: (err: any) => alert(err.response?.data?.error || "Error deleting group"),
