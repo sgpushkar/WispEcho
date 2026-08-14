@@ -27,6 +27,18 @@ export function AdminSidebar() {
   const { user, logout } = useAdminAuthStore();
 
   const handleLogout = async () => {
+    try {
+      await fetch(process.env.NEXT_PUBLIC_API_URL + "/auth/logout", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${useAdminAuthStore.getState().accessToken}`,
+        },
+        body: JSON.stringify({ refreshToken: useAdminAuthStore.getState().refreshToken }),
+      });
+    } catch (e) {
+      console.error("Logout error", e);
+    }
     logout();
     router.replace("/admin/login");
   };
