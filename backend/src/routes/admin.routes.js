@@ -21,7 +21,7 @@ router.post("/users/:id/ban", requireAdminRoles(["SUPER_ADMIN", "ADMIN"]), admin
 router.post("/users/:id/delete", requireAdminRoles(["SUPER_ADMIN"]), adminController.deleteUser);
 
 // Subscriptions & Payments
-router.post("/payments/record", adminController.recordPaymentAndGrantPro);
+router.post("/payments/record", requireAdminRoles(["SUPER_ADMIN", "ADMIN"]), adminController.recordPaymentAndGrantPro);
 router.post("/users/:id/revoke", adminController.revokeUserPro);
 
 // Audit Logs
