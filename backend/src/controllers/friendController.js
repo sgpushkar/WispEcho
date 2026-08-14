@@ -139,6 +139,28 @@ export async function blockUser(req, res, next) {
   }
 }
 
+export async function unblockUser(req, res, next) {
+  try {
+    const { userId } = req.body;
+    const existing = await prisma.friendship.findFirst({
+      where: {
+        status: "BLOCKED",
+        requesterId: req.userId,
+        addresseeId: userId,
+      },
+    });
+
+    if (existing) {
+      await prisma.friendship.delete({
+        where: { id: existing.id },
+      });
+    }
+    res.json({ success: true });
+  } catch (err) {
+    next(err);
+  }
+}
+
 export async function listFriends(req, res, next) {
   try {
     const friendships = await prisma.friendship.findMany({
