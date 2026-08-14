@@ -44,9 +44,14 @@ const ConversationItem = memo(({
   onTogglePin: (e: React.MouseEvent, id: string) => void;
   onOpenContextMenu: (id: string) => void;
 }) => {
+  const currentUserId = useAuthStore((s) => s.user?.id);
   const typingUsers = useChatStore((s) => s.typingUsers[conv.id]);
-  const isTyping = typingUsers && typingUsers.size > 0;
-  const hasUnread = false;
+  const isTyping = typingUsers && Array.from(typingUsers).some(id => id !== currentUserId);
+  const hasUnread = conv.lastMessage
+    ? conv.lastMessage.senderId !== currentUserId &&
+      conv.lastMessage.status !== "read" &&
+      !conv.lastMessage.viewedByIds?.includes(currentUserId || "")
+    : false;
   const name = conv.isGroup ? conv.group?.name : conv.otherUser?.displayName;
   const avatar = conv.isGroup ? conv.group?.avatarUrl : conv.otherUser?.avatarUrl;
 
@@ -111,7 +116,9 @@ const ConversationItem = memo(({
     prev.conv.isPinned === next.conv.isPinned &&
     prev.conv.isFavorite === next.conv.isFavorite &&
     prev.conv.lastMessage?.id === next.conv.lastMessage?.id &&
-    prev.conv.lastMessage?.content === next.conv.lastMessage?.content;
+    prev.conv.lastMessage?.content === next.conv.lastMessage?.content &&
+    prev.conv.lastMessage?.status === next.conv.lastMessage?.status &&
+    prev.conv.lastMessage?.viewedByIds?.length === next.conv.lastMessage?.viewedByIds?.length;
 });
 
 export function Sidebar() {
@@ -267,6 +274,7 @@ export function Sidebar() {
             {/* Notification Bell */}
             <div className="relative z-[9999]" ref={notifRef}>
               <button
+                onMouseDown={(e) => e.stopPropagation()}
                 onClick={() => setNotifOpen((v) => !v)}
                 className="icon-btn relative z-[9999]"
                 title="Notifications"
@@ -296,7 +304,12 @@ export function Sidebar() {
           {/* Mobile: compact icons */}
           <div className="flex md:hidden items-center gap-1 relative z-[9999]">
             <div className="relative z-[9999]">
-              <button onClick={() => setNotifOpen((v) => !v)} className="icon-btn relative z-[9999]" title="Notifications">
+              <button 
+                onMouseDown={(e) => e.stopPropagation()}
+                onClick={() => setNotifOpen((v) => !v)} 
+                className="icon-btn relative z-[9999]" 
+                title="Notifications"
+              >
                 <Bell size={18} />
                 {unreadNotifCount > 0 && (
                   <span className="absolute -top-0.5 -right-0.5 flex h-4 w-4 items-center justify-center rounded-full bg-red-500 text-[10px] font-bold text-white shadow-sm ring-2 ring-[#0f0f11] z-[9999]">
@@ -387,7 +400,18 @@ export function Sidebar() {
               <button onClick={() => setSettingsOpen(true)} className="icon-btn" title="Settings">
                 <Settings size={16} />
               </button>
-              <button onClick={logout} className="icon-btn" title="Logout">
+              <button 
+                onClick={async () => {
+                  try {
+                    await api.post("/auth/logout", { refreshToken: useAuthStore.getState().refreshToken });
+                  } catch(e) {
+                    console.error("Logout error", e);
+                  }
+                  logout();
+                }} 
+                className="icon-btn" 
+                title="Logout"
+              >
                 <LogOut size={16} />
               </button>
             </div>
