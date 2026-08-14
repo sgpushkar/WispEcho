@@ -86,7 +86,8 @@ export const MessageBubble = memo(function MessageBubble({ message, isGroup, onR
   }
 
   // Extract first URL for link preview
-  const firstUrl = message.type === "TEXT" && message.content ? message.content.match(/(https?:\/\/[^\s]+)/)?.[0] : null;
+  const rawUrlMatch = message.type === "TEXT" && message.content ? message.content.match(/(https?:\/\/[^\s]+)/) : null;
+  const firstUrl = rawUrlMatch ? rawUrlMatch[0].replace(/[.,;:?!"')\]]+$/, "") : null;
 
   async function deleteMessage(m: Message, forEveryone: boolean) {
     if (!activeConversationId) return;
@@ -417,7 +418,7 @@ export const MessageBubble = memo(function MessageBubble({ message, isGroup, onR
     prev.message.isEdited === next.message.isEdited &&
     prev.message.isPinned === next.message.isPinned &&
     prev.message.viewedByIds?.length === next.message.viewedByIds?.length &&
-    prev.message.reactions?.length === next.message.reactions?.length &&
+    JSON.stringify(prev.message.reactions) === JSON.stringify(next.message.reactions) &&
     prev.pendingUpload?.status === next.pendingUpload?.status &&
     prev.pendingUpload?.progress === next.pendingUpload?.progress
   );
