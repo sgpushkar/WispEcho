@@ -234,7 +234,14 @@ export function WallpaperPickerModal({ onClose, onApplyGlobal, onApplyIndividual
 
         <div className="p-6 border-t border-[var(--glass-border)] shrink-0 flex justify-end gap-3" style={{ background: "var(--glass-bg)" }}>
           <button onClick={onClose} className="px-6 py-2.5 rounded-xl text-xs font-bold transition hover:bg-[var(--glass-border)]" style={{ color: "var(--ink-faint)" }}>Cancel</button>
-          <button onClick={handleApply} className="px-6 py-2.5 rounded-xl text-xs font-bold shadow-lg transition hover:scale-105 active:scale-95" style={{ background: "var(--active-bg)", color: "var(--ink)" }}>Apply Wallpaper</button>
+          <button 
+            onClick={handleApply} 
+            disabled={chatBgType === "image" && !chatBgValue}
+            className="px-6 py-2.5 rounded-xl text-xs font-bold shadow-lg transition hover:scale-105 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100" 
+            style={{ background: "var(--active-bg)", color: "var(--ink)" }}
+          >
+            Apply Wallpaper
+          </button>
         </div>
       </motion.div>
     </div>
