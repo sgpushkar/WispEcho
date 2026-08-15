@@ -8,7 +8,9 @@ export async function listNotifications(req, res, next) {
       orderBy: { createdAt: "desc" },
       take: 50,
     });
-    const unreadCount = notifications.filter((n) => !n.isRead).length;
+    const unreadCount = await prisma.notification.count({
+      where: { userId: req.userId, isRead: false }
+    });
     res.json({ notifications, unreadCount });
   } catch (err) {
     next(err);
