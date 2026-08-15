@@ -151,13 +151,21 @@ export function ChatWindow() {
   useEffect(() => {
     if (conversationBg) {
       document.documentElement.style.setProperty("--chat-bg-type", conversationBg.type);
-      const val = conversationBg.type === 'image' && !conversationBg.value.startsWith('url(') ? `url(${conversationBg.value})` : conversationBg.value;
+      let val = conversationBg.value;
+      if (conversationBg.type === 'image') {
+        val = val.startsWith('url(') ? val : `url(${val})`;
+        val = `linear-gradient(var(--bg-overlay, rgba(0,0,0,0.5)), var(--bg-overlay, rgba(0,0,0,0.5))), ${val}`;
+      }
       document.documentElement.style.setProperty("--chat-bg-value", val);
     } else {
       const globalTheme = useUIStore.getState().getActiveTheme();
       if (globalTheme.chatBackground) {
         document.documentElement.style.setProperty("--chat-bg-type", globalTheme.chatBackground.type);
-        const val = globalTheme.chatBackground.type === 'image' && !globalTheme.chatBackground.value.startsWith('url(') ? `url(${globalTheme.chatBackground.value})` : globalTheme.chatBackground.value;
+        let val = globalTheme.chatBackground.value;
+        if (globalTheme.chatBackground.type === 'image') {
+          val = val.startsWith('url(') ? val : `url(${val})`;
+          val = `linear-gradient(var(--bg-overlay, rgba(0,0,0,0.5)), var(--bg-overlay, rgba(0,0,0,0.5))), ${val}`;
+        }
         document.documentElement.style.setProperty("--chat-bg-value", val);
       } else {
         document.documentElement.style.removeProperty("--chat-bg-type");
