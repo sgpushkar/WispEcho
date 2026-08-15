@@ -456,7 +456,8 @@ export function applyThemeToDOM(theme: ThemeDefinition) {
   // Apply chat background
   if (theme.chatBackground) {
     root.style.setProperty("--chat-bg-type", theme.chatBackground.type);
-    root.style.setProperty("--chat-bg-value", theme.chatBackground.value);
+    const val = theme.chatBackground.type === 'image' && !theme.chatBackground.value.startsWith('url(') ? `url(${theme.chatBackground.value})` : theme.chatBackground.value;
+    root.style.setProperty("--chat-bg-value", val);
   } else {
     root.style.removeProperty("--chat-bg-type");
     root.style.removeProperty("--chat-bg-value");
