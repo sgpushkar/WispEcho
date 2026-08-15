@@ -61,45 +61,83 @@ export async function listConversations(req, res, next) {
   }
 }
 
-export async function getOrCreateDirectConversation(req, res, next) {
+const conversationCreationLocks = new Set();
+
+async function getOrCreateDirect(userIdA, userIdB) {
+  const lockKey = [userIdA, userIdB].sort().join("-");
+  
+  if (conversationCreationLocks.has(lockKey)) {
+    for (let i = 0; i < 20; i++) {
+      await new Promise(r => setTimeout(r, 50));
+      if (!conversationCreationLocks.has(lockKey)) break;
+    }
+  }
+
+  let conv = await prisma.conversation.findFirst({
+    where: {
+      isGroup: false,
+      AND: [
+        { participants: { some: { userId: userIdA } } },
+        { participants: { some: { userId: userIdB } } },
+      ],
+    },
+  });
+
+  if (conv) return conv;
+
+  conversationCreationLocks.add(lockKey);
   try {
-    const { userId: otherUserId } = req.params;
+    // re-check after acquiring lock
+    conv = await prisma.conversation.findFirst({
+      where: {
+        isGroup: false,
+        AND: [
+          { participants: { some: { userId: userIdA } } },
+          { participants: { some: { userId: userIdB } } },
+        ],
+      },
+    });
+
+    if (conv) return conv;
 
     const friendship = await prisma.friendship.findFirst({
       where: {
         status: "ACCEPTED",
         OR: [
-          { requesterId: req.userId, addresseeId: otherUserId },
-          { requesterId: otherUserId, addresseeId: req.userId },
+          { requesterId: userIdA, addresseeId: userIdB },
+          { requesterId: userIdB, addresseeId: userIdA },
         ],
       },
     });
 
     if (!friendship) {
-      return res.status(403).json({ error: "Cannot message this user. You are not friends or are blocked." });
+      const err = new Error("Cannot message this user. You are not friends or are blocked.");
+      err.status = 403;
+      throw err;
     }
 
-    const existing = await prisma.conversation.findFirst({
-      where: {
-        isGroup: false,
-        AND: [
-          { participants: { some: { userId: req.userId } } },
-          { participants: { some: { userId: otherUserId } } },
-        ],
-      },
-    });
-    if (existing) return res.json({ conversation: existing });
-
-    const conversation = await prisma.conversation.create({
+    conv = await prisma.conversation.create({
       data: {
         isGroup: false,
         participants: {
-          create: [{ userId: req.userId }, { userId: otherUserId }],
+          create: [{ userId: userIdA }, { userId: userIdB }],
         },
       },
     });
+
+    return conv;
+  } finally {
+    conversationCreationLocks.delete(lockKey);
+  }
+}
+
+export async function getOrCreateDirectConversation(req, res, next) {
+  try {
+    const { userId: otherUserId } = req.params;
+    const conversation = await getOrCreateDirect(req.userId, otherUserId);
     res.status(201).json({ conversation });
   } catch (err) {
+    if (err.status) return res.status(err.status).json({ error: err.message });
     next(err);
   }
 }
@@ -185,38 +223,13 @@ export async function sendMessage(req, res, next) {
     let conversationId = data.conversationId;
 
     if (!conversationId && data.recipientId) {
-      let conv = await prisma.conversation.findFirst({
-        where: {
-          isGroup: false,
-          AND: [
-            { participants: { some: { userId: req.userId } } },
-            { participants: { some: { userId: data.recipientId } } },
-          ],
-        },
-      });
-      if (!conv) {
-        const friendship = await prisma.friendship.findFirst({
-          where: {
-            status: "ACCEPTED",
-            OR: [
-              { requesterId: req.userId, addresseeId: data.recipientId },
-              { requesterId: data.recipientId, addresseeId: req.userId },
-            ],
-          },
-        });
-
-        if (!friendship) {
-          return res.status(403).json({ error: "Cannot message this user. You are not friends or are blocked." });
-        }
-
-        conv = await prisma.conversation.create({
-          data: {
-            isGroup: false,
-            participants: { create: [{ userId: req.userId }, { userId: data.recipientId }] },
-          },
-        });
+      try {
+        const conv = await getOrCreateDirect(req.userId, data.recipientId);
+        conversationId = conv.id;
+      } catch (err) {
+        if (err.status) return res.status(err.status).json({ error: err.message });
+        throw err;
       }
-      conversationId = conv.id;
     }
 
     if (!conversationId) return res.status(400).json({ error: "conversationId or recipientId required" });
@@ -288,17 +301,24 @@ export async function sendMessage(req, res, next) {
     // ── Background Web Push to offline participants ──
     const conversation = await prisma.conversation.findUnique({
       where: { id: conversationId },
-      include: { participants: { select: { userId: true } } }
+      include: { 
+        participants: { select: { userId: true } },
+        group: { select: { name: true } }
+      }
     });
 
     if (conversation) {
       for (const p of conversation.participants) {
         if (p.userId !== req.userId) {
+          const title = conversation.isGroup && conversation.group
+            ? `New message from ${message.sender.displayName} in ${conversation.group.name}`
+            : `New message from ${message.sender.displayName}`;
+            
           const pushData = {
             type: "NEW_MESSAGE",
             conversationId,
             messageId: message.id,
-            title: `New message from ${message.sender.displayName}`,
+            title,
             body: data.content || (data.type === "IMAGE" ? "📷 Sent a photo" : "🎤 Sent a voice note"),
             actions: [
               { action: "reply", title: "Reply" },
@@ -587,9 +607,6 @@ export async function markViewOnce(req, res, next) {
         data: {
           viewedByIds: { push: req.userId },
           viewOnceOpenedAt: existing.viewOnceOpenedAt ?? new Date(),
-          // Null out the public URL so it can no longer be fetched directly
-          // (mediaPublicId is kept for audit but the signed URL endpoint will reject)
-          mediaUrl: null,
         },
       });
       
