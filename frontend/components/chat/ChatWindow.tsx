@@ -27,7 +27,7 @@ import { ChatBackground } from "@/lib/themes";
 
 export function ChatWindow() {
   const router = useRouter();
-  const { setGroupSettingsOpen, applyCustomTheme } = useUIStore();
+  const { setGroupSettingsOpen, applyCustomTheme, themeId: activeThemeId } = useUIStore();
   const accessToken = useAuthStore((s) => s.accessToken)!;
   const { activeConversationId, setActiveConversation, conversations, messages, setMessages, typingUsers, onlineUsers, addMessage, updateParticipantChatBg } = useChatStore();
   
@@ -151,18 +151,20 @@ export function ChatWindow() {
   useEffect(() => {
     if (conversationBg) {
       document.documentElement.style.setProperty("--chat-bg-type", conversationBg.type);
-      document.documentElement.style.setProperty("--chat-bg-value", conversationBg.value);
+      const val = conversationBg.type === 'image' && !conversationBg.value.startsWith('url(') ? `url(${conversationBg.value})` : conversationBg.value;
+      document.documentElement.style.setProperty("--chat-bg-value", val);
     } else {
       const globalTheme = useUIStore.getState().getActiveTheme();
       if (globalTheme.chatBackground) {
         document.documentElement.style.setProperty("--chat-bg-type", globalTheme.chatBackground.type);
-        document.documentElement.style.setProperty("--chat-bg-value", globalTheme.chatBackground.value);
+        const val = globalTheme.chatBackground.type === 'image' && !globalTheme.chatBackground.value.startsWith('url(') ? `url(${globalTheme.chatBackground.value})` : globalTheme.chatBackground.value;
+        document.documentElement.style.setProperty("--chat-bg-value", val);
       } else {
         document.documentElement.style.removeProperty("--chat-bg-type");
         document.documentElement.style.removeProperty("--chat-bg-value");
       }
     }
-  }, [conversationBg, activeConversationId]);
+  }, [conversationBg, activeConversationId, activeThemeId]);
 
   const handleApplyGlobal = (bg: ChatBackground | null) => {
     const globalTheme = useUIStore.getState().getActiveTheme();
