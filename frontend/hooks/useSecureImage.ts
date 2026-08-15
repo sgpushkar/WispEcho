@@ -33,10 +33,12 @@ export function useSecureImage({
   const [error, setError] = useState<string | null>(null);
   const mountedRef = useRef(true);
   const objectUrlRef = useRef<string | null>(null);
+  const fetchIdRef = useRef(0);
 
   const fetchAndCreateObjectUrl = useCallback(async () => {
     if (!messageId || !enabled || alreadyViewed) return;
 
+    const currentFetchId = ++fetchIdRef.current;
     setLoading(true);
     setError(null);
 
@@ -54,7 +56,7 @@ export function useSecureImage({
         cache: isViewOnce ? "no-store" : "default",
       });
 
-      if (!mountedRef.current) return;
+      if (!mountedRef.current || currentFetchId !== fetchIdRef.current) return;
 
       if (response.status === 403) {
         setError("already_viewed");
@@ -71,7 +73,7 @@ export function useSecureImage({
       // Convert response bytes to a local blob URL
       // This means the image never touches the browser's HTTP cache as a Cloudinary URL
       const blob = await response.blob();
-      if (!mountedRef.current) return;
+      if (!mountedRef.current || currentFetchId !== fetchIdRef.current) return;
 
       // Revoke previous object URL before creating a new one
       if (objectUrlRef.current) {
@@ -83,7 +85,7 @@ export function useSecureImage({
       setUrl(objectUrl);
       setLoading(false);
     } catch (err: any) {
-      if (!mountedRef.current) return;
+      if (!mountedRef.current || currentFetchId !== fetchIdRef.current) return;
       setError("failed");
       setLoading(false);
     }
