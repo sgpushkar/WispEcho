@@ -9,6 +9,7 @@ import { api } from "@/lib/api";
 import { useUIStore } from "@/store/useUIStore";
 import { formatDistanceToNowStrict } from "date-fns";
 import { Avatar } from "@/components/ui/Avatar";
+import { useChatStore } from "@/store/useChatStore";
 
 interface InboxNotification {
   id: string;
@@ -42,6 +43,7 @@ export function NotificationCenter({ isOpen, onClose }: Props) {
   const ref = useRef<HTMLDivElement>(null);
   const queryClient = useQueryClient();
   const { setFriendsOpen } = useUIStore();
+  const setActiveConversation = useChatStore((s) => s.setActiveConversation);
 
   const { data, isLoading } = useQuery({
     queryKey: ["inbox-notifications"],
@@ -87,6 +89,9 @@ export function NotificationCenter({ isOpen, onClose }: Props) {
     if (!n.isRead) markRead.mutate(n.id);
     if (n.type === "FRIEND_REQUEST") {
       setFriendsOpen(true);
+      onClose();
+    } else if (n.payload?.conversationId) {
+      setActiveConversation(n.payload.conversationId);
       onClose();
     }
   };
