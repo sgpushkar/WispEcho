@@ -105,7 +105,7 @@ export async function proxyMediaImage(req, res, next) {
         res.set("Content-Length", cloudRes.headers["content-length"]);
       }
 
-      res.status(200);
+      res.status(cloudRes.statusCode || 200);
       cloudRes.pipe(res);
     });
 
