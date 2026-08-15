@@ -109,16 +109,7 @@ export function LiquidBackground({ children }: { children: React.ReactNode }) {
   return (
     <>
       <div className="fixed inset-0 z-0 pointer-events-none">
-        {/* Custom chat background layer (driven by CSS vars) */}
-        <div 
-          className="absolute inset-0 transition-all duration-400 theme-transitioning"
-          style={{
-             background: 'var(--chat-bg-value, transparent)', 
-             backgroundImage: 'var(--chat-bg-value, none)',
-             backgroundSize: 'cover',
-             backgroundPosition: 'center',
-          }} 
-        />
+
         {/* Soft radial vignette & top left lighting - only visible in dark mode */}
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_20%_0%,rgba(255,255,255,0.06),transparent_60%)] hidden dark:block" />
         <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,transparent_30%,rgba(0,0,0,0.6)_100%)] hidden dark:block" />
