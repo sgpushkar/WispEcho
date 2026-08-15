@@ -32,7 +32,7 @@ export default function DownloadPage() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const baseUrl = process.env.NEXT_PUBLIC_SOCKET_URL || "";
+    const baseUrl = process.env.NEXT_PUBLIC_SOCKET_URL || "https://wispecho.onrender.com";
     const url = baseUrl ? `${baseUrl}/version.json?t=${Date.now()}` : `/version.json?t=${Date.now()}`;
 
     fetch(url)
