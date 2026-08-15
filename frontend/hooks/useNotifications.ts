@@ -16,6 +16,8 @@ const urlBase64ToUint8Array = (base64String: string) => {
 
 export function useNotifications() {
   useEffect(() => {
+    let listenerPromise: Promise<any> | null = null;
+
     async function setupNotifications() {
       try {
         if (Capacitor.isNativePlatform()) {
@@ -46,7 +48,7 @@ export function useNotifications() {
           });
 
           // Listen for action clicks (Reply/React)
-          LocalNotifications.addListener("localNotificationActionPerformed", async (notificationAction) => {
+          listenerPromise = LocalNotifications.addListener("localNotificationActionPerformed", async (notificationAction) => {
             const { actionId, inputValue, notification } = notificationAction;
             const data = notification.extra;
             
@@ -64,6 +66,7 @@ export function useNotifications() {
               }).catch(console.error);
             }
           });
+          await listenerPromise;
 
         } else if (typeof window !== "undefined" && "serviceWorker" in navigator && "PushManager" in window) {
           const permission = await Notification.requestPermission();
@@ -98,8 +101,8 @@ export function useNotifications() {
     setupNotifications();
 
     return () => {
-      if (Capacitor.isNativePlatform()) {
-        LocalNotifications.removeAllListeners();
+      if (Capacitor.isNativePlatform() && listenerPromise) {
+        listenerPromise.then((handle: any) => handle.remove());
       }
     };
   }, []);
