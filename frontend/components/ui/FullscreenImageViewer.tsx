@@ -4,6 +4,7 @@ import { useState, useEffect, useRef, useCallback } from "react";
 import { X, ZoomIn, ZoomOut, Download, Eye, ShieldAlert } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { TransformWrapper, TransformComponent } from "react-zoom-pan-pinch";
+import { Capacitor } from "@capacitor/core";
 
 interface FullscreenImageViewerProps {
   url: string;
@@ -40,15 +41,48 @@ export function FullscreenImageViewer({
   }, [onClose]);
 
   // ─── Download (non view-once only) ──────────────────────────────────────────
-  const handleDownload = () => {
+  const handleDownload = async () => {
     if (isViewOnce) return; // silently block
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = "image.jpg";
-    a.target = "_blank";
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
+    
+    if (Capacitor.isNativePlatform()) {
+      try {
+        const { Filesystem, Directory } = await import("@capacitor/filesystem");
+        
+        // Fetch the blob to convert to base64
+        const response = await fetch(url);
+        const blob = await response.blob();
+        
+        const base64 = await new Promise<string>((resolve, reject) => {
+          const reader = new FileReader();
+          reader.onload = () => resolve(reader.result as string);
+          reader.onerror = reject;
+          reader.readAsDataURL(blob);
+        });
+
+        // Strip the data URL prefix (e.g., "data:image/jpeg;base64,")
+        const base64Data = base64.split(",")[1];
+        const fileName = `WispEcho_${Date.now()}.jpg`;
+        
+        await Filesystem.writeFile({
+          path: fileName,
+          data: base64Data,
+          directory: Directory.Documents,
+        });
+        
+        alert("Image saved to Documents");
+      } catch (err) {
+        console.error("Failed to download image native:", err);
+        alert("Failed to save image");
+      }
+    } else {
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `WispEcho_${Date.now()}.jpg`;
+      a.target = "_blank";
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+    }
   };
 
   // ─── Canvas rendering for view-once ─────────────────────────────────────────
