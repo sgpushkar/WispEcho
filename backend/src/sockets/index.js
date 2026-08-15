@@ -86,12 +86,22 @@ export function initSockets(io) {
       sockets?.delete(socket.id);
 
       if (!sockets || sockets.size === 0) {
-        userSocketMap.delete(userId);
-        await prisma.user.update({
-          where: { id: userId },
-          data: { isOnline: false, lastSeen: new Date() },
-        });
-        broadcastPresence(userId, false);
+        // Wait briefly to see if they reconnect (e.g. page refresh)
+        setTimeout(async () => {
+          const currentSockets = userSocketMap.get(userId);
+          if (!currentSockets || currentSockets.size === 0) {
+            userSocketMap.delete(userId);
+            try {
+              await prisma.user.update({
+                where: { id: userId },
+                data: { isOnline: false, lastSeen: new Date() },
+              });
+              broadcastPresence(userId, false);
+            } catch (err) {
+              console.error("Failed to update presence", err);
+            }
+          }
+        }, 2000);
       }
     });
   });
