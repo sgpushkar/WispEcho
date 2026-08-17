@@ -69,8 +69,18 @@ export function initSockets(io) {
       }
     }
 
-    socket.on("conversation:join", (conversationId) => {
-      socket.join(`conversation:${conversationId}`);
+    // Bug #3 fix: verify the user is actually a participant before joining the room
+    socket.on("conversation:join", async (conversationId) => {
+      try {
+        const participant = await prisma.conversationParticipant.findUnique({
+          where: { conversationId_userId: { conversationId, userId } },
+        });
+        if (participant) {
+          socket.join(`conversation:${conversationId}`);
+        }
+      } catch (err) {
+        console.error("conversation:join error", err);
+      }
     });
 
     socket.on("typing:start", ({ conversationId }) => {
@@ -107,8 +117,37 @@ export function initSockets(io) {
   });
 }
 
-function broadcastPresence(userId, isOnline) {
-  ioInstance?.emit("presence:update", { userId, isOnline, lastSeen: new Date() });
+/**
+ * Bug #6 fix: instead of broadcasting to ALL sockets (privacy violation),
+ * emit presence only to sockets of users who share a conversation with this user.
+ */
+async function broadcastPresence(userId, isOnline) {
+  try {
+    // Find all users who share at least one conversation with this user
+    const sharedParticipants = await prisma.conversationParticipant.findMany({
+      where: {
+        conversationId: {
+          in: (
+            await prisma.conversationParticipant.findMany({
+              where: { userId },
+              select: { conversationId: true },
+            })
+          ).map((p) => p.conversationId),
+        },
+        userId: { not: userId },
+      },
+      select: { userId: true },
+    });
+
+    const contactIds = [...new Set(sharedParticipants.map((p) => p.userId))];
+    const payload = { userId, isOnline, lastSeen: new Date() };
+
+    for (const contactId of contactIds) {
+      notifyUser(contactId, "presence:update", payload);
+    }
+  } catch (err) {
+    console.error("broadcastPresence error", err);
+  }
 }
 
 export function emitToConversation(conversationId, event, payload) {
