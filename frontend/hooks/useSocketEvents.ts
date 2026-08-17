@@ -130,6 +130,53 @@ export function useSocketEvents() {
       useChatStore.getState().removeConversation(conversationId);
     });
 
+    // Feature v2 Socket Events
+    socket.on("poll:updated", ({ pollId, poll }) => {
+      // Just invalidate the query since poll rendering components fetch poll by ID
+      queryClient.invalidateQueries({ queryKey: ["poll", pollId] });
+      queryClient.invalidateQueries({ queryKey: ["messages", activeConvRef.current] });
+    });
+
+    socket.on("message:pinned", ({ conversationId }) => {
+      queryClient.invalidateQueries({ queryKey: ["pinnedMessages", conversationId] });
+    });
+
+    socket.on("message:unpinned", ({ conversationId }) => {
+      queryClient.invalidateQueries({ queryKey: ["pinnedMessages", conversationId] });
+    });
+
+    socket.on("group:joinRequest", ({ groupId }) => {
+      queryClient.invalidateQueries({ queryKey: ["groupJoinRequests", groupId] });
+      if ("Notification" in window && Notification.permission === "granted") {
+        new Notification("New Group Join Request", {
+          body: "Someone requested to join your group",
+          icon: "/logo.png"
+        });
+      }
+    });
+
+    socket.on("group:eventCreated", ({ event }) => {
+      queryClient.invalidateQueries({ queryKey: ["groupEvents", event.groupId] });
+    });
+
+    socket.on("group:eventDeleted", ({ eventId }) => {
+      queryClient.invalidateQueries({ queryKey: ["groupEvents"] });
+    });
+
+    socket.on("conversation:disappearUpdated", ({ conversationId }) => {
+      queryClient.invalidateQueries({ queryKey: ["conversations"] });
+    });
+
+    socket.on("notification:broadcast", (payload) => {
+      playNotificationSound();
+      if ("Notification" in window && Notification.permission === "granted") {
+        new Notification(payload.title || "Admin Broadcast", {
+          body: payload.body,
+          icon: "/logo.png"
+        });
+      }
+    });
+
     socket.on("connect", () => {
       useChatStore.getState().setOffline(false);
       // Invalidate queries to trigger background sync of conversations/messages
@@ -157,6 +204,16 @@ export function useSocketEvents() {
       socket.off("group:memberLeft");
       socket.off("group:membersAdded");
       socket.off("group:deleted");
+      // v2
+      socket.off("poll:updated");
+      socket.off("message:pinned");
+      socket.off("message:unpinned");
+      socket.off("group:joinRequest");
+      socket.off("group:eventCreated");
+      socket.off("group:eventDeleted");
+      socket.off("conversation:disappearUpdated");
+      socket.off("notification:broadcast");
+
       socket.off("connect");
       socket.off("disconnect");
     };
