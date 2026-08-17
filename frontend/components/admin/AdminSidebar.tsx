@@ -12,11 +12,21 @@ import {
   ShieldCheck,
   Zap,
   ChevronRight,
+  BarChart,
+  DollarSign,
+  AlertTriangle,
+  Megaphone,
+  Star,
+  Ban,
 } from "lucide-react";
 
 const navItems = [
   { href: "/admin", label: "Dashboard", icon: LayoutDashboard, exact: true },
+  { href: "/admin/moderation", label: "Moderation", icon: AlertTriangle },
+  { href: "/admin/broadcast", label: "Broadcast", icon: Megaphone },
   { href: "/admin/users", label: "Users", icon: Users },
+  { href: "/admin/tiers", label: "Tiers", icon: Star },
+  { href: "/admin/ip-bans", label: "IP Bans", icon: Ban },
   { href: "/admin/payments", label: "Payments", icon: CreditCard },
   { href: "/admin/audit-logs", label: "Audit Logs", icon: ScrollText },
 ];
