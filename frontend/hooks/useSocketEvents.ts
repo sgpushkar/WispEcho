@@ -24,6 +24,8 @@ function playNotificationSound() {
     gainNode.connect(ctx.destination);
     osc.start();
     osc.stop(ctx.currentTime + 0.15);
+    // Bug #15 fix: close the AudioContext after playback to free browser resources
+    osc.onended = () => ctx.close();
   } catch (e) {
     console.error("Audio playback failed", e);
   }
@@ -118,6 +120,12 @@ export function useSocketEvents() {
       }
     });
 
+    // Bug #13 fix: handle members being added to a group
+    socket.on("group:membersAdded", ({ groupId }) => {
+      queryClient.invalidateQueries({ queryKey: ["group", groupId] });
+      queryClient.invalidateQueries({ queryKey: ["conversations"] });
+    });
+
     socket.on("group:deleted", ({ conversationId }) => {
       useChatStore.getState().removeConversation(conversationId);
     });
@@ -147,6 +155,7 @@ export function useSocketEvents() {
       socket.off("conversation:read");
       socket.off("notification:mention");
       socket.off("group:memberLeft");
+      socket.off("group:membersAdded");
       socket.off("group:deleted");
       socket.off("connect");
       socket.off("disconnect");
