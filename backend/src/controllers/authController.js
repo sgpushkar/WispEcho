@@ -62,7 +62,6 @@ export async function register(req, res, next) {
 
     res.status(201).json({
       accessToken,
-      refreshToken,
       user: sanitizeUser(user),
     });
   } catch (err) {
@@ -98,7 +97,7 @@ export async function login(req, res, next) {
     const refreshToken = await signRefreshToken(user.id, req.headers["user-agent"], req.ip);
     res.cookie("refreshToken", refreshToken, COOKIE_OPTIONS);
 
-    res.json({ accessToken, refreshToken, user: sanitizeUser(user) });
+    res.json({ accessToken, user: sanitizeUser(user) });
   } catch (err) {
     next(err);
   }
@@ -161,7 +160,7 @@ export async function googleLogin(req, res, next) {
     // hasPassword lets frontend know if user can set/change a password
     const hasPassword = !!user.password;
 
-    res.json({ accessToken, refreshToken, user: sanitizeUser(user), isNewUser, hasPassword });
+    res.json({ accessToken, user: sanitizeUser(user), isNewUser, hasPassword });
   } catch (err) {
     next(err);
   }
@@ -309,12 +308,14 @@ export async function changePassword(req, res, next) {
     const user = await prisma.user.findUnique({ where: { id: req.userId } });
     if (!user) return res.status(404).json({ error: "User not found" });
 
-    if (user.password) {
-      // Verify current password
-      if (!currentPassword) return res.status(400).json({ error: "Current password is required" });
-      const valid = await bcrypt.compare(currentPassword, user.password);
-      if (!valid) return res.status(401).json({ error: "Current password is incorrect" });
+    if (!user.password) {
+      // Google-only account with no password — must use setPassword endpoint
+      return res.status(400).json({ error: "No existing password. Use the Set Password endpoint instead." });
     }
+    // Verify current password
+    if (!currentPassword) return res.status(400).json({ error: "Current password is required" });
+    const valid = await bcrypt.compare(currentPassword, user.password);
+    if (!valid) return res.status(401).json({ error: "Current password is incorrect" });
 
     const hashed = await bcrypt.hash(newPassword, 12);
     await prisma.user.update({ where: { id: req.userId }, data: { password: hashed } });
