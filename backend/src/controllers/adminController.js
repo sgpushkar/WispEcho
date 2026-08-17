@@ -81,11 +81,10 @@ export async function getUserDetail(req, res, next) {
 
     if (!user) return res.status(404).json({ error: "User not found" });
 
-    // Sanitize user
-    delete user.password;
-    delete user.googleId;
+    // Sanitize — use destructuring so PII fields are never sent
+    const { password, googleId, ...safeUser } = user as any;
     
-    res.json({ user });
+    res.json({ user: safeUser });
   } catch (err) {
     next(err);
   }
@@ -184,10 +183,10 @@ export async function warnUser(req, res, next) {
       data.bannedUntil = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
       data.banReason = "Suspended automatically after 3 warnings.";
     } 
-    // 5 warnings = permanent ban
-    else if (newWarningCount >= 5) {
+    // 4+ warnings = permanent ban
+    else if (newWarningCount >= 4) {
       data.isBanned = true;
-      data.banReason = "Banned automatically after 5 warnings.";
+      data.banReason = "Banned automatically after 4+ warnings.";
     }
 
     const updatedUser = await prisma.user.update({
@@ -215,8 +214,12 @@ export async function suspendUser(req, res, next) {
   try {
     const { id } = req.params;
     const { reason, days } = req.body;
-    
-    const bannedUntil = new Date(Date.now() + Number(days) * 24 * 60 * 60 * 1000);
+    const numDays = Number(days);
+    if (!numDays || numDays <= 0 || !Number.isFinite(numDays)) {
+      return res.status(400).json({ error: "'days' must be a positive number" });
+    }
+
+    const bannedUntil = new Date(Date.now() + numDays * 24 * 60 * 60 * 1000);
 
     const user = await prisma.user.update({
       where: { id },
