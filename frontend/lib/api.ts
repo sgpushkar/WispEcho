@@ -50,6 +50,9 @@ api.interceptors.response.use(
         queue = [];
         return api(originalRequest);
       } catch (refreshErr) {
+        // Drain the queue so pending promises don't hang forever
+        queue.forEach((cb) => cb());
+        queue = [];
         useAuthStore.getState().logout();
         if (typeof window !== "undefined") window.location.href = "/login";
         return Promise.reject(refreshErr);
