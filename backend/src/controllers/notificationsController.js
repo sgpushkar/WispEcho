@@ -1,63 +1,85 @@
 import prisma from "../config/db.js";
 
-// GET /api/notifications — list all for current user, most recent first
-export async function listNotifications(req, res, next) {
+/** GET /api/inbox/preferences */
+export async function getConversationPreferences(req, res, next) {
   try {
-    const notifications = await prisma.notification.findMany({
+    const prefs = await prisma.conversationParticipant.findMany({
       where: { userId: req.userId },
-      orderBy: { createdAt: "desc" },
-      take: 50,
+      select: { conversationId: true, isMuted: true, mutedUntil: true },
     });
-    const unreadCount = await prisma.notification.count({
-      where: { userId: req.userId, isRead: false }
-    });
-    res.json({ notifications, unreadCount });
+    res.json({ preferences: prefs });
   } catch (err) {
     next(err);
   }
 }
 
-// PATCH /api/notifications/:notificationId/read — mark one as read
-export async function markNotificationRead(req, res, next) {
+/** PATCH /api/inbox/:conversationId/mute */
+export async function muteConversation(req, res, next) {
   try {
-    const { notificationId } = req.params;
-    const notification = await prisma.notification.findUnique({ where: { id: notificationId } });
-    if (!notification || notification.userId !== req.userId) {
-      return res.status(404).json({ error: "Notification not found" });
+    const { conversationId } = req.params;
+    const { muteFor } = req.body; // "1h" | "8h" | "24h" | "forever" | null (unmute)
+
+    const participant = await prisma.conversationParticipant.findUnique({
+      where: { conversationId_userId: { conversationId, userId: req.userId } },
+    });
+    if (!participant) return res.status(403).json({ error: "Not a participant" });
+
+    let isMuted = false;
+    let mutedUntil = null;
+
+    if (muteFor) {
+      isMuted = true;
+      if (muteFor === "1h") mutedUntil = new Date(Date.now() + 60 * 60 * 1000);
+      else if (muteFor === "8h") mutedUntil = new Date(Date.now() + 8 * 60 * 60 * 1000);
+      else if (muteFor === "24h") mutedUntil = new Date(Date.now() + 24 * 60 * 60 * 1000);
+      else if (muteFor === "forever") mutedUntil = null; // isMuted=true, no expiry
     }
-    const updated = await prisma.notification.update({
-      where: { id: notificationId },
-      data: { isRead: true },
+
+    const updated = await prisma.conversationParticipant.update({
+      where: { conversationId_userId: { conversationId, userId: req.userId } },
+      data: { isMuted, mutedUntil },
     });
-    res.json({ notification: updated });
+
+    res.json({ isMuted: updated.isMuted, mutedUntil: updated.mutedUntil });
   } catch (err) {
     next(err);
   }
 }
 
-// POST /api/notifications/mark-all-read — mark all as read for user
-export async function markAllNotificationsRead(req, res, next) {
+/** GET /api/inbox/dnd */
+export async function getDoNotDisturb(req, res, next) {
   try {
-    await prisma.notification.updateMany({
-      where: { userId: req.userId, isRead: false },
-      data: { isRead: true },
-    });
-    res.json({ success: true });
+    const dnd = await prisma.doNotDisturb.findUnique({ where: { userId: req.userId } });
+    res.json({ dnd: dnd || { enabled: false, startHour: 22, endHour: 8, timezone: "UTC" } });
   } catch (err) {
     next(err);
   }
 }
 
-// DELETE /api/notifications/:notificationId — delete one notification
-export async function deleteNotification(req, res, next) {
+/** PUT /api/inbox/dnd */
+export async function upsertDoNotDisturb(req, res, next) {
   try {
-    const { notificationId } = req.params;
-    const notification = await prisma.notification.findUnique({ where: { id: notificationId } });
-    if (!notification || notification.userId !== req.userId) {
-      return res.status(404).json({ error: "Notification not found" });
+    const { enabled, startHour, endHour, timezone } = req.body;
+    if (startHour === undefined || endHour === undefined) {
+      return res.status(400).json({ error: "startHour and endHour are required" });
     }
-    await prisma.notification.delete({ where: { id: notificationId } });
-    res.json({ success: true });
+    const dnd = await prisma.doNotDisturb.upsert({
+      where: { userId: req.userId },
+      create: { userId: req.userId, enabled, startHour, endHour, timezone: timezone || "UTC" },
+      update: { enabled, startHour, endHour, timezone: timezone || "UTC" },
+    });
+    res.json({ dnd });
+  } catch (err) {
+    next(err);
+  }
+}
+
+/** PATCH /api/inbox/email-digest */
+export async function updateEmailDigest(req, res, next) {
+  try {
+    const { enabled } = req.body;
+    await prisma.user.update({ where: { id: req.userId }, data: { emailDigest: enabled } });
+    res.json({ emailDigest: enabled });
   } catch (err) {
     next(err);
   }
