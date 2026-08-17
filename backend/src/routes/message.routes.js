@@ -1,7 +1,8 @@
 import { Router } from "express";
 import * as messageController from "../controllers/messageController.js";
+import * as forwardController from "../controllers/forwardController.js";
+import * as pinnedMessageController from "../controllers/pinnedMessageController.js";
 import { requireAuth } from "../middleware/auth.js";
-
 const router = Router();
 router.use(requireAuth);
 
@@ -22,5 +23,13 @@ router.delete("/:messageId", messageController.deleteMessage);
 router.post("/:messageId/reactions", messageController.reactToMessage);
 router.post("/:messageId/view", messageController.markViewOnce);
 router.post("/:messageId/save", messageController.toggleSaveMessage);
+
+// Feature v2 routes
+router.post("/:messageId/forward", forwardController.forwardMessage);
+router.delete("/bulk", pinnedMessageController.bulkDeleteMessages);
+router.post("/conversations/:conversationId/pin/:messageId", pinnedMessageController.pinMessage);
+router.delete("/conversations/:conversationId/pin/:messageId", pinnedMessageController.unpinMessage);
+router.get("/conversations/:conversationId/pins", pinnedMessageController.getPinnedMessages);
+router.patch("/conversations/:conversationId/disappear", messageController.setDisappearTimer); // Note: defined in groupController in earlier step? Let's fix that below
 
 export default router;
