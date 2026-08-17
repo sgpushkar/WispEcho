@@ -28,11 +28,14 @@ export const resetPasswordSchema = z.object({
 export const sendMessageSchema = z.object({
   conversationId: z.string().uuid().optional(),
   recipientId: z.string().uuid().optional(),
-  type: z.enum(["TEXT", "IMAGE", "VIDEO", "FILE", "VOICE", "GIF"]).default("TEXT"),
-  content: z.string().max(4000).optional(),
-  mediaUrl: z.string().url().optional(),
-  mediaPublicId: z.string().nullish(), // Cloudinary public_id — optional, accepts null
-  replyToId: z.string().uuid().optional(),
+  type: z.enum(["TEXT", "IMAGE", "VIDEO", "FILE", "VOICE", "GIF", "POLL"]).default("TEXT"),
+  content: z.string().nullable().optional(),
+  mediaUrl: z.string().url().nullable().optional(),
+  replyToId: z.string().uuid().nullable().optional(),
+  scheduledAt: z.string().datetime().optional(),
+  forwardedFromId: z.string().uuid().optional(),
+  // For offline queue handling
+  tempId: z.string().optional(),
   isViewOnce: z.boolean().optional().default(false),
 });
 
