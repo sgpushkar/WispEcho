@@ -304,3 +304,183 @@ export async function deleteUser(req, res, next) {
     next(err);
   }
 }
+
+// --- Content Moderation ---
+export async function getReports(req, res, next) {
+  try {
+    const { status = "OPEN" } = req.query;
+    const reports = await prisma.report.findMany({
+      where: { status },
+      include: {
+        reporter: { select: { id: true, username: true } },
+        reported: { select: { id: true, username: true } },
+      },
+      orderBy: { createdAt: "desc" },
+    });
+    res.json({ reports });
+  } catch (err) {
+    next(err);
+  }
+}
+
+export async function updateReportStatus(req, res, next) {
+  try {
+    const { id } = req.params;
+    const { status, resolution } = req.body;
+    const report = await prisma.report.update({
+      where: { id },
+      data: { status, resolution, assignedToId: req.userId },
+    });
+    res.json({ report });
+  } catch (err) {
+    next(err);
+  }
+}
+
+export async function deleteReportedContent(req, res, next) {
+  try {
+    const { id } = req.params;
+    const report = await prisma.report.findUnique({ where: { id } });
+    if (!report) return res.status(404).json({ error: "Report not found" });
+
+    if (report.contentType === "MESSAGE" && report.contentId) {
+      await prisma.message.update({
+        where: { id: report.contentId },
+        data: { isDeleted: true, content: null, mediaUrl: null, mediaPublicId: null },
+      });
+    }
+    
+    await prisma.report.update({
+      where: { id },
+      data: { status: "RESOLVED", resolution: "Content deleted", assignedToId: req.userId },
+    });
+
+    res.json({ success: true });
+  } catch (err) {
+    next(err);
+  }
+}
+
+// --- Broadcasts ---
+export async function sendBroadcast(req, res, next) {
+  try {
+    const { message, target = "ALL" } = req.body; // target: ALL | PRO | FREE
+    
+    let where = { isDeleted: false };
+    if (target === "PRO") where.isPro = true;
+    if (target === "FREE") where.isPro = false;
+
+    const users = await prisma.user.findMany({ where, select: { id: true } });
+    
+    const notifications = users.map(u => ({
+      userId: u.id,
+      type: "BROADCAST",
+      payload: { title: "Admin Broadcast", body: message }
+    }));
+
+    await prisma.notification.createMany({ data: notifications });
+
+    // Assuming we would also socket emit if we want real-time push:
+    // (We omit explicit socket emit to all here since it could be heavy, 
+    // but users will fetch notifications on polling/reload)
+
+    res.json({ success: true, count: users.length });
+  } catch (err) {
+    next(err);
+  }
+}
+
+// --- Subscription Tiers ---
+export async function getTiers(req, res, next) {
+  try {
+    const tiers = await prisma.subscriptionTier.findMany({ orderBy: { sortOrder: "asc" } });
+    res.json({ tiers });
+  } catch (err) {
+    next(err);
+  }
+}
+
+export async function createTier(req, res, next) {
+  try {
+    const { name, slug, price, currency, durationDays, features, isActive, sortOrder } = req.body;
+    const tier = await prisma.subscriptionTier.create({
+      data: { name, slug, price, currency, durationDays, features, isActive, sortOrder }
+    });
+    res.status(201).json({ tier });
+  } catch (err) {
+    next(err);
+  }
+}
+
+export async function updateTier(req, res, next) {
+  try {
+    const { id } = req.params;
+    const tier = await prisma.subscriptionTier.update({
+      where: { id },
+      data: req.body
+    });
+    res.json({ tier });
+  } catch (err) {
+    next(err);
+  }
+}
+
+export async function deleteTier(req, res, next) {
+  try {
+    const { id } = req.params;
+    await prisma.subscriptionTier.delete({ where: { id } });
+    res.json({ success: true });
+  } catch (err) {
+    next(err);
+  }
+}
+
+// --- GDPR Export ---
+export async function requestUserDataExport(req, res, next) {
+  try {
+    const { id } = req.params; // target user ID
+    const user = await prisma.user.findUnique({ where: { id } });
+    if (!user) return res.status(404).json({ error: "User not found" });
+
+    const dataExport = await prisma.userDataExport.create({
+      data: { userId: id, status: "READY", filePath: "s3://mock-bucket/export.json" }
+    });
+    
+    // In reality, this would trigger an async job. Here we mock it.
+    res.json({ export: dataExport });
+  } catch (err) {
+    next(err);
+  }
+}
+
+// --- IP Bans ---
+export async function getIpBans(req, res, next) {
+  try {
+    const bans = await prisma.ipBan.findMany({ orderBy: { createdAt: "desc" } });
+    res.json({ bans });
+  } catch (err) {
+    next(err);
+  }
+}
+
+export async function createIpBan(req, res, next) {
+  try {
+    const { ip, reason, expiresAt } = req.body;
+    const ban = await prisma.ipBan.create({
+      data: { ip, reason, bannedById: req.userId, expiresAt: expiresAt ? new Date(expiresAt) : null }
+    });
+    res.status(201).json({ ban });
+  } catch (err) {
+    next(err);
+  }
+}
+
+export async function deleteIpBan(req, res, next) {
+  try {
+    const { id } = req.params;
+    await prisma.ipBan.delete({ where: { id } });
+    res.json({ success: true });
+  } catch (err) {
+    next(err);
+  }
+}
