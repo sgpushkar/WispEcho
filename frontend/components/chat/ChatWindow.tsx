@@ -15,6 +15,7 @@ import { useUIStore } from "@/store/useUIStore";
 import { useRouter } from "next/navigation";
 import EmojiPicker, { Theme } from "emoji-picker-react";
 import { Avatar } from "../ui/Avatar";
+import { Bell, BellOff, Timer, Check } from "lucide-react";
 import { useImageUpload } from "@/hooks/useImageUpload";
 import { ImagePreviewModal } from "./ImagePreviewModal";
 import { useOfflineQueue } from "@/hooks/useOfflineQueue";
@@ -24,12 +25,16 @@ import { useVoiceRecorder } from "@/hooks/useVoiceRecorder";
 import { VoiceRecorder } from "./VoiceRecorder";
 import { WallpaperPickerModal } from "./WallpaperPickerModal";
 import { ChatBackground } from "@/lib/themes";
+import { MessageScheduler } from "./MessageScheduler";
+import { PollCreator } from "./PollCreator";
+import { ForwardModal } from "./ForwardModal";
+import { PinnedMessages } from "./PinnedMessages";
 
 export function ChatWindow() {
   const router = useRouter();
   const { setGroupSettingsOpen, applyCustomTheme, themeId: activeThemeId } = useUIStore();
   const accessToken = useAuthStore((s) => s.accessToken)!;
-  const { activeConversationId, setActiveConversation, conversations, messages, setMessages, typingUsers, onlineUsers, addMessage, updateParticipantChatBg } = useChatStore();
+  const { activeConversationId, setActiveConversation, conversations, messages, setMessages, typingUsers, onlineUsers, addMessage, updateParticipantChatBg, removeMessage } = useChatStore();
   
   const [draft, setDraft] = useState("");
   const [replyToMessage, setReplyToMessage] = useState<Message | null>(null);
@@ -39,6 +44,18 @@ export function ChatWindow() {
   const [mentionQuery, setMentionQuery] = useState<string | null>(null);
   const [showSharedMedia, setShowSharedMedia] = useState(false);
   const [showWallpaperPicker, setShowWallpaperPicker] = useState(false);
+  const [showScheduler, setShowScheduler] = useState(false);
+  const [showPollCreator, setShowPollCreator] = useState(false);
+  const [showForwardModal, setShowForwardModal] = useState(false);
+  const [showTimerMenu, setShowTimerMenu] = useState(false);
+  
+  // Multi-select state
+  const [isMultiSelectMode, setIsMultiSelectMode] = useState(false);
+  const [selectedMessageIds, setSelectedMessageIds] = useState<Set<string>>(new Set());
+
+  // Conversation Settings
+  const [isMuted, setIsMuted] = useState(false);
+  const [disappearAfter, setDisappearAfter] = useState("OFF");
 
   const {
     isRecording,
@@ -132,6 +149,15 @@ export function ChatWindow() {
     const socket = getSocket(accessToken);
     socket.emit("conversation:join", activeConversationId);
     api.post(`/messages/conversations/${activeConversationId}/read`);
+
+    // Fetch conversation preferences
+    api.get(`/notifications/preferences`).then(res => {
+      const prefs = res.data.preferences?.find((p: any) => p.conversationId === activeConversationId);
+      setIsMuted(prefs ? prefs.isMuted : false);
+    }).catch(console.error);
+    
+    const currConv = useChatStore.getState().conversations.find(c => c.id === activeConversationId);
+    if (currConv) setDisappearAfter(currConv.disappearAfter || "OFF");
 
     // Prevent transient state leaking when switching conversations
     setReplyToMessage(null);
@@ -262,7 +288,7 @@ export function ChatWindow() {
   };
 
 
-  async function sendMessage(content: string = draft, type: "TEXT" | "IMAGE" | "VOICE" = "TEXT", mediaUrl?: string, isViewOnce?: boolean, mediaPublicId?: string) {
+  async function sendMessage(content: string = draft, type: "TEXT" | "IMAGE" | "VOICE" | "POLL" = "TEXT", mediaUrl?: string, isViewOnce?: boolean, mediaPublicId?: string, scheduledAt?: Date, pollOptions?: string[]) {
     if ((!content.trim() && type === "TEXT") || !activeConversationId) return;
     
     setIsSending(true);
@@ -307,6 +333,7 @@ export function ChatWindow() {
         isEdited: false,
         isDeleted: false,
         isViewOnce,
+        scheduledAt: scheduledAt?.toISOString() || null,
         createdAt: new Date().toISOString(),
         status: "sending",
         sender: {
@@ -327,12 +354,12 @@ export function ChatWindow() {
       }, 50);
 
       if (isOffline) {
-        await enqueue(tempId, activeConversationId, content || null, type, mediaUrl || null, replyToId || null, isViewOnce);
+        await enqueue(tempId, activeConversationId, content || null, type as "TEXT" | "IMAGE" | "VOICE", mediaUrl || null, replyToId || null, isViewOnce);
         return;
       }
 
       try {
-        const res = await api.post("/messages", {
+        const payload: any = {
           conversationId: activeConversationId,
           content,
           type,
@@ -340,7 +367,11 @@ export function ChatWindow() {
           ...(mediaPublicId ? { mediaPublicId } : {}),
           replyToId,
           isViewOnce,
-        });
+        };
+        if (scheduledAt) payload.scheduledAt = scheduledAt.toISOString();
+        if (type === "POLL" && pollOptions) payload.pollOptions = pollOptions;
+
+        const res = await api.post("/messages", { ...payload });
         useChatStore.getState().replaceOptimisticMessage(activeConversationId, tempId, res.data.message);
       } catch (err) {
         console.error("Failed to send message", err);
@@ -587,15 +618,101 @@ export function ChatWindow() {
         </div>
         
         <div className="ml-auto flex items-center gap-2">
-          <button 
-            onClick={() => setShowSharedMedia(true)}
-            className="p-2 rounded-full hover:bg-white/10 text-white/50 hover:text-white transition"
-            title="Shared Media"
-          >
-            <ImageIcon size={20} />
-          </button>
+          {isMultiSelectMode ? (
+            <>
+              <button 
+                onClick={() => {
+                  setIsMultiSelectMode(false);
+                  setSelectedMessageIds(new Set());
+                }}
+                className="text-xs bg-white/10 px-3 py-1.5 rounded-full text-white/70 hover:text-white"
+              >
+                Cancel
+              </button>
+              <button 
+                onClick={async () => {
+                  if (selectedMessageIds.size > 0 && confirm("Delete selected messages?")) {
+                    await api.delete("/messages/bulk", {
+                      data: { messageIds: Array.from(selectedMessageIds) }
+                    });
+                    Array.from(selectedMessageIds).forEach(id => removeMessage(activeConversationId!, id));
+                    setSelectedMessageIds(new Set());
+                    setIsMultiSelectMode(false);
+                  }
+                }}
+                className="text-xs bg-red-500/20 text-red-400 px-3 py-1.5 rounded-full hover:bg-red-500/30"
+              >
+                Delete
+              </button>
+              <button 
+                onClick={() => {
+                  if (selectedMessageIds.size > 0) {
+                    setShowForwardModal(true);
+                  }
+                }}
+                className="text-xs bg-accent text-white px-3 py-1.5 rounded-full hover:bg-accent/90"
+              >
+                Forward
+              </button>
+            </>
+          ) : (
+            <>
+              <button onClick={() => setIsMultiSelectMode(true)} className="p-2 rounded-full hover:bg-white/10 text-white/50 hover:text-white transition" title="Select messages">
+                <Check size={18} />
+              </button>
+              <button 
+                onClick={() => setShowSharedMedia(true)}
+                className="p-2 rounded-full hover:bg-white/10 text-white/50 hover:text-white transition"
+                title="Shared Media"
+              >
+                <ImageIcon size={20} />
+              </button>
+              <button 
+                onClick={async () => {
+                  try {
+                    await api.patch(`/notifications/${activeConversationId}/mute`);
+                    setIsMuted(!isMuted);
+                  } catch (e) { console.error(e); }
+                }}
+                className={`p-2 rounded-full hover:bg-white/10 transition ${isMuted ? 'text-red-400 hover:text-red-300' : 'text-white/50 hover:text-white'}`}
+                title={isMuted ? "Unmute" : "Mute"}
+              >
+                {isMuted ? <BellOff size={18} /> : <Bell size={18} />}
+              </button>
+              <div className="relative">
+                <button 
+                  onClick={() => setShowTimerMenu(!showTimerMenu)}
+                  className={`p-2 rounded-full hover:bg-white/10 transition ${disappearAfter !== 'OFF' ? 'text-accent' : 'text-white/50 hover:text-white'}`}
+                  title="Disappearing Messages"
+                >
+                  <Timer size={18} />
+                </button>
+                {showTimerMenu && (
+                  <div className="absolute top-full right-0 mt-2 bg-[#1a1a1a] border border-white/10 rounded-xl shadow-2xl py-2 z-50 min-w-[150px]">
+                    {["OFF", "H24", "D7", "D30"].map(opt => (
+                      <button 
+                        key={opt}
+                        onClick={async () => {
+                          try {
+                            await api.patch(`/conversations/${activeConversationId}/disappear`, { disappearAfter: opt });
+                            setDisappearAfter(opt);
+                            setShowTimerMenu(false);
+                          } catch (e) { console.error(e); }
+                        }}
+                        className={`w-full text-left px-4 py-2 text-sm hover:bg-white/5 ${disappearAfter === opt ? 'text-accent font-medium' : 'text-white/80'}`}
+                      >
+                        {opt === "OFF" ? "Off" : opt === "H24" ? "24 Hours" : opt === "D7" ? "7 Days" : "30 Days"}
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </>
+          )}
         </div>
       </div>
+
+      <PinnedMessages conversationId={activeConversationId!} />
 
       <div
         className="messages"
@@ -615,6 +732,16 @@ export function ChatWindow() {
                 isGroup={conversation?.isGroup}
                 onReply={setReplyToMessage} 
                 onEdit={setEditingMessage}
+                isSelectable={isMultiSelectMode}
+                isSelected={selectedMessageIds.has(msg.id)}
+                onToggleSelect={(id) => {
+                  setSelectedMessageIds(prev => {
+                    const newSet = new Set(prev);
+                    if (newSet.has(id)) newSet.delete(id);
+                    else newSet.add(id);
+                    return newSet;
+                  });
+                }}
               />
             ))}
             
@@ -764,6 +891,22 @@ export function ChatWindow() {
             <motion.div 
               whileHover={{ scale: 1.1, filter: "brightness(1.2)" }} 
               className="icon-btn hidden sm:flex cursor-pointer"
+              onClick={() => setShowScheduler(true)}
+              title="Schedule Message"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+            </motion.div>
+            <motion.div 
+              whileHover={{ scale: 1.1, filter: "brightness(1.2)" }} 
+              className="icon-btn hidden sm:flex cursor-pointer"
+              onClick={() => setShowPollCreator(true)}
+              title="Create Poll"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+            </motion.div>
+            <motion.div 
+              whileHover={{ scale: 1.1, filter: "brightness(1.2)" }} 
+              className="icon-btn hidden sm:flex cursor-pointer"
               onClick={() => setShowEmojiPicker((prev) => !prev)}
             >
               <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><path d="M8 14s1.5 2 4 2 4-2 4-2"/><line x1="9" y1="9" x2="9.01" y2="9"/><line x1="15" y1="9" x2="15.01" y2="9"/></svg>
@@ -824,6 +967,42 @@ export function ChatWindow() {
             onClose={() => setShowWallpaperPicker(false)}
             onApplyGlobal={handleApplyGlobal}
             onApplyIndividual={handleApplyIndividual}
+          />
+        )}
+      </AnimatePresence>
+
+      <AnimatePresence>
+        {showScheduler && (
+          <MessageScheduler
+            onClose={() => setShowScheduler(false)}
+            onSchedule={(date) => {
+              sendMessage(draft, "TEXT", undefined, undefined, undefined, date);
+              setShowScheduler(false);
+            }}
+          />
+        )}
+      </AnimatePresence>
+
+      <AnimatePresence>
+        {showPollCreator && (
+          <PollCreator
+            onClose={() => setShowPollCreator(false)}
+            onSubmit={(question, options) => {
+              sendMessage(question, "POLL", undefined, undefined, undefined, undefined, options);
+              setShowPollCreator(false);
+            }}
+          />
+        )}
+      </AnimatePresence>
+      <AnimatePresence>
+        {showForwardModal && activeConversationId && (
+          <ForwardModal
+            messageIds={Array.from(selectedMessageIds)}
+            onClose={() => {
+              setShowForwardModal(false);
+              setIsMultiSelectMode(false);
+              setSelectedMessageIds(new Set());
+            }}
           />
         )}
       </AnimatePresence>
