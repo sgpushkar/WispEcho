@@ -148,6 +148,12 @@ export function SettingsModal({ isOpen, onClose }: { isOpen: boolean; onClose: (
   const [muteSounds, setMuteSounds] = useState(false);
   const [ambientGlow, setAmbientGlow] = useState(true);
 
+  // Notifications (Server)
+  const [emailDigestEnabled, setEmailDigestEnabled] = useState(false);
+  const [dndEnabled, setDndEnabled] = useState(false);
+  const [dndStart, setDndStart] = useState("22:00");
+  const [dndEnd, setDndEnd] = useState("08:00");
+
   // Password change state
   const [hasPassword, setHasPassword] = useState(false);
   const [currentPassword, setCurrentPassword] = useState("");
@@ -171,8 +177,19 @@ export function SettingsModal({ isOpen, onClose }: { isOpen: boolean; onClose: (
       // Load local settings
       setMuteSounds(localStorage.getItem("mute_sounds") === "true");
       setAmbientGlow(localStorage.getItem("ambient_glow") !== "false");
-      // Fetch hasPassword from /auth/me
-      api.get("/auth/me").then((res) => setHasPassword(res.data.hasPassword)).catch(() => {});
+      // Fetch hasPassword and emailDigest from /auth/me
+      api.get("/auth/me").then((res) => {
+        setHasPassword(res.data.hasPassword);
+        setEmailDigestEnabled(!!res.data.user.emailDigestEnabled);
+      }).catch(() => {});
+      
+      api.get("/notifications/dnd").then((res) => {
+        if (res.data.dnd) {
+          setDndEnabled(res.data.dnd.enabled);
+          setDndStart(res.data.dnd.startTime);
+          setDndEnd(res.data.dnd.endTime);
+        }
+      }).catch(() => {});
     }
   }, [user, isOpen]);
 
@@ -201,6 +218,11 @@ export function SettingsModal({ isOpen, onClose }: { isOpen: boolean; onClose: (
       } else {
         document.body.classList.remove("ambient-glow-enabled");
       }
+      
+      // Update Server Preferences
+      api.patch("/notifications/email-digest", { enabled: emailDigestEnabled }).catch(() => {});
+      api.put("/notifications/dnd", { enabled: dndEnabled, startTime: dndStart, endTime: dndEnd }).catch(() => {});
+      
       onClose();
     },
     onError: (err: any) => alert(err.response?.data?.error || "Error updating profile"),
@@ -684,6 +706,70 @@ export function SettingsModal({ isOpen, onClose }: { isOpen: boolean; onClose: (
                     style={{ transform: ambientGlow ? "translateX(20px)" : "translateX(0)" }}
                   />
                 </button>
+              </div>
+
+              <div className="flex items-center justify-between rounded-2xl p-4" style={{ border: `1px solid var(--glass-border)`, background: "var(--glass-bg)" }}>
+                <div className="flex flex-col gap-0.5">
+                  <span className="text-sm font-semibold flex items-center gap-2" style={{ color: "var(--ink-dim)" }}>
+                    <Bell size={16} style={{ color: "var(--ink-faint)" }} /> Email Digests
+                  </span>
+                  <span className="text-xs" style={{ color: "var(--ink-faint)" }}>Receive a daily summary of unread messages</span>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setEmailDigestEnabled(!emailDigestEnabled)}
+                  className="relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none"
+                  style={{ background: emailDigestEnabled ? "var(--active-border)" : "var(--glass-border)" }}
+                >
+                  <span
+                    className="pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out"
+                    style={{ transform: emailDigestEnabled ? "translateX(20px)" : "translateX(0)" }}
+                  />
+                </button>
+              </div>
+
+              <div className="rounded-2xl p-4 space-y-3" style={{ border: `1px solid var(--glass-border)`, background: "var(--glass-bg)" }}>
+                <div className="flex items-center justify-between">
+                  <div className="flex flex-col gap-0.5">
+                    <span className="text-sm font-semibold flex items-center gap-2" style={{ color: "var(--ink-dim)" }}>
+                      <EyeOff size={16} style={{ color: "var(--ink-faint)" }} /> Scheduled Do-Not-Disturb
+                    </span>
+                    <span className="text-xs" style={{ color: "var(--ink-faint)" }}>Silence all notifications during specific hours</span>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => setDndEnabled(!dndEnabled)}
+                    className="relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none"
+                    style={{ background: dndEnabled ? "var(--active-border)" : "var(--glass-border)" }}
+                  >
+                    <span
+                      className="pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out"
+                      style={{ transform: dndEnabled ? "translateX(20px)" : "translateX(0)" }}
+                    />
+                  </button>
+                </div>
+                {dndEnabled && (
+                  <div className="flex gap-4 pt-2 border-t border-white/5">
+                    <div className="flex-1 space-y-1.5">
+                      <label className="text-xs font-semibold uppercase tracking-wider" style={{ color: "var(--ink-faint)" }}>Start Time</label>
+                      <input
+                        type="time"
+                        value={dndStart}
+                        onChange={(e) => setDndStart(e.target.value)}
+                        className="w-full bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-white outline-none focus:border-accent text-sm"
+                      />
+                    </div>
+                    <div className="flex-1 space-y-1.5">
+                      <label className="text-xs font-semibold uppercase tracking-wider" style={{ color: "var(--ink-faint)" }}>End Time</label>
+                      <input
+                        type="time"
+                        value={dndEnd}
+                        onChange={(e) => setDndEnd(e.target.value)}
+                        className="w-full bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-white outline-none focus:border-accent text-sm"
+                      />
+                    </div>
+                  </div>
+                )}
               </div>
 
               {/* Version & Update Checks */}
