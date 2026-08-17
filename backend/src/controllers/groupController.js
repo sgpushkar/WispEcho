@@ -46,6 +46,7 @@ export async function inviteMembers(req, res, next) {
     }
 
     const group = await prisma.group.findUnique({ where: { id: groupId } });
+    if (!group) return res.status(404).json({ error: "Group not found" });
 
     const blocks = await prisma.friendship.findMany({
       where: {
@@ -114,6 +115,7 @@ export async function kickMember(req, res, next) {
     }
 
     const group = await prisma.group.findUnique({ where: { id: groupId } });
+    if (!group) return res.status(404).json({ error: "Group not found" });
     await prisma.groupMember.delete({ where: { groupId_userId: { groupId, userId } } });
     await prisma.conversationParticipant.deleteMany({
       where: { conversationId: group.conversationId, userId },
@@ -179,6 +181,7 @@ export async function leaveGroup(req, res, next) {
     }
 
     const group = await prisma.group.findUnique({ where: { id: groupId } });
+    if (!group) return res.status(404).json({ error: "Group not found" });
 
     await prisma.groupMember.delete({ where: { groupId_userId: { groupId, userId: req.userId } } });
     await prisma.conversationParticipant.deleteMany({
