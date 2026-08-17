@@ -330,7 +330,7 @@ export async function sendMessage(req, res, next) {
       }
     }
 
-    res.status(201).json({ message });
+    res.status(201).json({ message: messageForSocket });
   } catch (err) {
     next(err);
   }
