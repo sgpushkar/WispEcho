@@ -10,7 +10,7 @@ export interface Message {
   status?: MessageStatus;
   conversationId: string;
   senderId: string;
-  type: "TEXT" | "IMAGE" | "VIDEO" | "FILE" | "VOICE" | "GIF";
+  type: "TEXT" | "IMAGE" | "VIDEO" | "FILE" | "VOICE" | "GIF" | "POLL";
   content: string | null;
   mediaUrl: string | null;
   isEdited: boolean;
@@ -22,12 +22,20 @@ export interface Message {
   reactions?: { id: string; emoji: string; userId: string }[];
   replyTo?: Message | null;
   isPinned?: boolean;
+  // Feature v2 additions
+  scheduledAt?: string | null;
+  isForwarded?: boolean;
+  forwardedFromId?: string | null;
+  disappearsAt?: string | null;
+  poll?: any | null;
 }
 
 export interface Conversation {
   id: string;
   isGroup: boolean;
   group?: { id: string; name: string; avatarUrl?: string | null; conversationId?: string } | null;
+  disappearAfter?: string;
+  isMuted?: boolean;
   participants?: { 
     user: { id: string; username: string; displayName: string; avatarUrl?: string | null };
     chatBg?: any;
