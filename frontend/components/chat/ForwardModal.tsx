@@ -8,22 +8,24 @@ import { api } from "@/lib/api";
 import { useState } from "react";
 import { Portal } from "../ui/Portal";
 
-export function ForwardModal() {
-  const { forwardModalOpen, closeForwardModal, messageToForward } = useUIStore();
+interface ForwardModalProps {
+  messageIds: string[];
+  onClose: () => void;
+}
+
+export function ForwardModal({ messageIds, onClose }: ForwardModalProps) {
   const { conversations } = useChatStore();
   const [sendingTo, setSendingTo] = useState<string | null>(null);
 
-  if (!forwardModalOpen || !messageToForward) return null;
+  if (messageIds.length === 0) return null;
 
   async function handleForward(conversationId: string) {
     setSendingTo(conversationId);
     try {
-      await api.post("/messages", {
-        conversationId,
-        content: messageToForward.content,
-        type: "TEXT"
-      });
-      closeForwardModal();
+      for (const msgId of messageIds) {
+        await api.post(`/messages/${msgId}/forward`, { conversationId });
+      }
+      onClose();
     } catch (e) {
       console.error(e);
     } finally {
@@ -39,7 +41,7 @@ export function ForwardModal() {
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
         className="absolute inset-0 bg-black/40 backdrop-blur-sm"
-        onClick={closeForwardModal}
+        onClick={onClose}
       />
       <motion.div
         initial={{ opacity: 0, scale: 0.95, y: 10 }}
@@ -48,14 +50,14 @@ export function ForwardModal() {
         className="relative w-full max-w-sm rounded-[24px] glass-strong shadow-2xl p-6 border border-white/10"
       >
         <div className="mb-4 flex items-center justify-between">
-          <h2 className="text-lg font-medium text-white">Forward Message</h2>
-          <button onClick={closeForwardModal} className="rounded-full p-1.5 hover:bg-white/10 text-white/50 hover:text-white transition-colors">
+          <h2 className="text-lg font-medium text-white">Forward {messageIds.length} Message{messageIds.length > 1 ? 's' : ''}</h2>
+          <button onClick={onClose} className="rounded-full p-1.5 hover:bg-white/10 text-white/50 hover:text-white transition-colors">
             <X size={16} />
           </button>
         </div>
         
         <div className="mb-4 p-3 rounded-xl bg-white/5 border border-white/5 text-[13px] text-white/70 line-clamp-2">
-          "{messageToForward.content}"
+          Forwarding {messageIds.length} selected message{messageIds.length > 1 ? 's' : ''}
         </div>
 
         <div className="max-h-[300px] overflow-y-auto pr-1 space-y-1">
