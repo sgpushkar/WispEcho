@@ -27,4 +27,26 @@ router.post("/users/:id/revoke", requireAdminRoles(["SUPER_ADMIN", "ADMIN"]), ad
 // Audit Logs
 router.get("/audit-logs", requireAdminRoles(["SUPER_ADMIN", "ADMIN"]), adminController.getAuditLogs);
 
+// Content Moderation
+router.get("/reports", adminController.getReports);
+router.patch("/reports/:id", adminController.updateReportStatus);
+router.delete("/reports/:id/content", requireAdminRoles(["SUPER_ADMIN", "ADMIN"]), adminController.deleteReportedContent);
+
+// Broadcasts
+router.post("/broadcast", requireAdminRoles(["SUPER_ADMIN", "ADMIN"]), adminController.sendBroadcast);
+
+// Subscription Tiers
+router.get("/tiers", adminController.getTiers);
+router.post("/tiers", requireAdminRoles(["SUPER_ADMIN"]), adminController.createTier);
+router.patch("/tiers/:id", requireAdminRoles(["SUPER_ADMIN"]), adminController.updateTier);
+router.delete("/tiers/:id", requireAdminRoles(["SUPER_ADMIN"]), adminController.deleteTier);
+
+// GDPR Export
+router.post("/users/:id/export", adminController.requestUserDataExport);
+
+// IP Bans
+router.get("/ip-bans", adminController.getIpBans);
+router.post("/ip-bans", requireAdminRoles(["SUPER_ADMIN", "ADMIN"]), adminController.createIpBan);
+router.delete("/ip-bans/:id", requireAdminRoles(["SUPER_ADMIN", "ADMIN"]), adminController.deleteIpBan);
+
 export default router;
