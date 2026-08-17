@@ -472,7 +472,6 @@ export function Sidebar() {
       <CreateGroupModal isOpen={groupOpen} onClose={() => setGroupOpen(false)} />
       <SettingsModal isOpen={settingsOpen} onClose={handleSettingsClose} />
       <GroupSettingsModal />
-      <ForwardModal />
       <SavedMessagesModal isOpen={savedOpen} onClose={() => setSavedOpen(false)} />
     </>
   );
