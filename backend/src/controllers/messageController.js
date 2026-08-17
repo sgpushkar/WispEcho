@@ -234,10 +234,27 @@ export async function sendMessage(req, res, next) {
 
     if (!conversationId) return res.status(400).json({ error: "conversationId or recipientId required" });
 
-    const isParticipant = await prisma.conversationParticipant.findUnique({
-      where: { conversationId_userId: { conversationId, userId: req.userId } },
+    const conversation = await prisma.conversation.findUnique({
+      where: { id: conversationId },
+      include: {
+        participants: { select: { userId: true, isMuted: true } },
+        group: { select: { name: true } },
+      },
     });
+
+    if (!conversation) return res.status(404).json({ error: "Conversation not found" });
+
+    const isParticipant = conversation.participants.some(p => p.userId === req.userId);
     if (!isParticipant) return res.status(403).json({ error: "Not a participant" });
+
+    // Calculate disappearsAt
+    let disappearsAt = null;
+    if (conversation.disappearAfter && conversation.disappearAfter !== "OFF") {
+      const now = data.scheduledAt ? new Date(data.scheduledAt) : new Date();
+      if (conversation.disappearAfter === "H24") disappearsAt = new Date(now.getTime() + 24 * 60 * 60 * 1000);
+      else if (conversation.disappearAfter === "D7") disappearsAt = new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000);
+      else if (conversation.disappearAfter === "D30") disappearsAt = new Date(now.getTime() + 30 * 24 * 60 * 60 * 1000);
+    }
 
     const message = await prisma.message.create({
       data: {
@@ -249,6 +266,8 @@ export async function sendMessage(req, res, next) {
         mediaPublicId: data.mediaPublicId ?? null,
         replyToId: data.replyToId,
         isViewOnce: data.isViewOnce,
+        scheduledAt: data.scheduledAt ? new Date(data.scheduledAt) : null,
+        disappearsAt,
       },
       include: {
         sender: { select: { id: true, username: true, displayName: true, avatarUrl: true } },
@@ -261,53 +280,46 @@ export async function sendMessage(req, res, next) {
       data: { updatedAt: new Date() },
     });
 
-    // Strip raw mediaUrl before emitting over socket — clients fetch images via the proxy.
-    // Voice notes keep their mediaUrl (direct Cloudinary delivery).
+    // Strip raw mediaUrl before emitting over socket
     const messageForSocket = message.type === "IMAGE"
       ? { ...message, mediaUrl: null, mediaPublicId: null }
       : message;
 
-    emitToConversation(conversationId, "message:new", messageForSocket);
+    // Only emit and push notify if it's NOT a scheduled message
+    if (!data.scheduledAt) {
+      emitToConversation(conversationId, "message:new", messageForSocket);
 
-    // Extract mentions and notify users
-    if (data.content) {
-      const mentionRegex = /@([a-zA-Z0-9_]+)/g;
-      const matches = [...data.content.matchAll(mentionRegex)];
-      if (matches.length > 0) {
-        const usernames = matches.map(m => m[1]);
-        const mentionedUsers = await prisma.user.findMany({
-          where: { username: { in: usernames } },
-          select: { id: true, username: true }
-        });
-        
-        mentionedUsers.forEach(user => {
-          if (user.id !== req.userId) {
-            // Check if they are in the conversation
-            prisma.conversationParticipant.findUnique({
-              where: { conversationId_userId: { conversationId, userId: user.id } }
-            }).then(participant => {
-              if (participant) {
-                notifyUser(user.id, "notification:mention", {
-                  conversationId,
-                  message: `${message.sender.displayName} mentioned you: ${data.content}`
-                });
-              }
+      // Extract mentions and notify users
+      if (data.content) {
+        const mentionRegex = /@([a-zA-Z0-9_]+)/g;
+        const matches = [...data.content.matchAll(mentionRegex)];
+        if (matches.length > 0) {
+          const usernames = matches.map(m => m[1]);
+          const hasEveryone = usernames.includes("everyone") || usernames.includes("here");
+          
+          let usersToNotify = [];
+          if (hasEveryone) {
+            usersToNotify = conversation.participants.filter(p => p.userId !== req.userId).map(p => ({ id: p.userId }));
+          } else {
+            const mentionedUsers = await prisma.user.findMany({
+              where: { username: { in: usernames } },
+              select: { id: true, username: true }
             });
+            usersToNotify = mentionedUsers.filter(u => 
+              u.id !== req.userId && conversation.participants.some(p => p.userId === u.id)
+            );
           }
-        });
-      }
-    }
 
-    // ── Background Web Push to offline participants ──
-    const conversation = await prisma.conversation.findUnique({
-      where: { id: conversationId },
-      include: { 
-        participants: { select: { userId: true } },
-        group: { select: { name: true } }
+          usersToNotify.forEach(user => {
+            notifyUser(user.id, "notification:mention", {
+              conversationId,
+              message: `${message.sender.displayName} mentioned you: ${data.content}`
+            });
+          });
+        }
       }
-    });
 
-    if (conversation) {
+      // ── Background Web Push to offline participants ──
       for (const p of conversation.participants) {
         if (p.userId !== req.userId) {
           const title = conversation.isGroup && conversation.group
