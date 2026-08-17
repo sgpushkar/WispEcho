@@ -32,15 +32,15 @@ export async function activatePro(req, res, next) {
       where: { userId: req.userId },
       create: {
         userId: req.userId,
-        plan: plan || "pro",
-        status: "active",
+        plan: plan === "pro_yearly" ? "PRO_YEARLY" : "PRO",
+        status: "ACTIVE",
         expiresAt: plan === "pro_yearly"
           ? new Date(Date.now() + 365 * 24 * 60 * 60 * 1000)
           : new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
       },
       update: {
-        plan: plan || "pro",
-        status: "active",
+        plan: plan === "pro_yearly" ? "PRO_YEARLY" : "PRO",
+        status: "ACTIVE",
         expiresAt: plan === "pro_yearly"
           ? new Date(Date.now() + 365 * 24 * 60 * 60 * 1000)
           : new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
@@ -71,7 +71,7 @@ export async function cancelSubscription(req, res, next) {
 
     await prisma.subscription.update({
       where: { userId: req.userId },
-      data: { status: "cancelled" },
+      data: { status: "CANCELLED" },
     });
 
     // isPro remains true until expiry — a cron job would handle expiry in production
