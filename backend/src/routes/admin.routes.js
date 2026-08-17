@@ -22,7 +22,7 @@ router.post("/users/:id/delete", requireAdminRoles(["SUPER_ADMIN"]), adminContro
 
 // Subscriptions & Payments
 router.post("/payments/record", requireAdminRoles(["SUPER_ADMIN", "ADMIN"]), adminController.recordPaymentAndGrantPro);
-router.post("/users/:id/revoke", adminController.revokeUserPro);
+router.post("/users/:id/revoke", requireAdminRoles(["SUPER_ADMIN", "ADMIN"]), adminController.revokeUserPro);
 
 // Audit Logs
 router.get("/audit-logs", requireAdminRoles(["SUPER_ADMIN", "ADMIN"]), adminController.getAuditLogs);
