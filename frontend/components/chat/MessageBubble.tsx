@@ -8,7 +8,7 @@ import { useAuthStore } from "@/store/useAuthStore";
 import { useChatStore } from "@/store/useChatStore";
 import { useUIStore } from "@/store/useUIStore";
 import { api } from "@/lib/api";
-import { Reply, AlertCircle, Eye, CheckCheck, Clock, Check, X, Lock } from "lucide-react";
+import { Reply, AlertCircle, Eye, CheckCheck, Clock, Check, X, Lock, Forward } from "lucide-react";
 import { ContextMenu, ContextMenuPosition } from "./ContextMenu";
 import Link from "next/link";
 import { Avatar } from "../ui/Avatar";
@@ -19,6 +19,9 @@ import { ProgressiveImage } from "../ui/ProgressiveImage";
 import { LinkPreviewCard } from "./LinkPreviewCard";
 import { VoicePlayer } from "./VoicePlayer";
 import { useSecureImage } from "@/hooks/useSecureImage";
+import { PollBubble } from "./PollBubble";
+import EmojiPicker, { Theme } from "emoji-picker-react";
+import { Plus } from "lucide-react";
 
 const QUICK_REACTIONS = ["❤️", "😂", "🔥", "😭", "👍"];
 
@@ -30,9 +33,16 @@ interface MessageBubbleProps {
   pendingUpload?: PendingUpload;
   onCancelUpload?: (tempId: string) => void;
   onRetryUpload?: (tempId: string) => void;
+  // Feature v2
+  isSelectable?: boolean;
+  isSelected?: boolean;
+  onToggleSelect?: (id: string) => void;
 }
 
-export const MessageBubble = memo(function MessageBubble({ message, isGroup, onReply, onEdit, pendingUpload, onCancelUpload, onRetryUpload }: MessageBubbleProps) {
+export const MessageBubble = memo(function MessageBubble({ 
+  message, isGroup, onReply, onEdit, pendingUpload, onCancelUpload, onRetryUpload,
+  isSelectable, isSelected, onToggleSelect
+}: MessageBubbleProps) {
   const currentUserId = useAuthStore((s) => s.user?.id);
   const isMine = message.senderId === currentUserId;
   const [contextMenuPos, setContextMenuPos] = useState<ContextMenuPosition | null>(null);
@@ -40,6 +50,7 @@ export const MessageBubble = memo(function MessageBubble({ message, isGroup, onR
   const { removeMessage, activeConversationId, conversations } = useChatStore();
   const { openForwardModal } = useUIStore();
   const { retryMessage, deleteFailedMessage } = useMessageRetry();
+  const [showEmojiPicker, setShowEmojiPicker] = useState(false);
 
   const currentConversation = conversations.find(c => c.id === activeConversationId);
   
@@ -80,6 +91,7 @@ export const MessageBubble = memo(function MessageBubble({ message, isGroup, onR
     if (pendingUpload) return; // Cannot react to pending messages
     try {
       await api.post(`/messages/${message.id}/reactions`, { emoji });
+      setShowEmojiPicker(false);
     } catch (err) {
       console.error(err);
     }
@@ -108,17 +120,28 @@ export const MessageBubble = memo(function MessageBubble({ message, isGroup, onR
 
   const renderContent = (text: string | null) => {
     if (!text) return null;
-    const parts = text.split(/(@[a-zA-Z0-9_]+)/g);
+    
+    // Basic Markdown Parsing: **bold**, *italic*, ~strikethrough~
+    let parsedText = text;
+    parsedText = parsedText.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+    parsedText = parsedText.replace(/\*(.*?)\*/g, '<em>$1</em>');
+    parsedText = parsedText.replace(/~(.*?)~/g, '<del>$1</del>');
+
+    // Mentions Parsing
+    const parts = parsedText.split(/(@[a-zA-Z0-9_]+)/g);
     return parts.map((part, i) => {
       if (part.startsWith("@")) {
         const username = part.slice(1);
+        if (username === "everyone" || username === "here") {
+          return <span key={i} className="bg-accent/20 text-accent px-1 rounded-sm font-bold">{part}</span>;
+        }
         return (
-          <Link key={i} href={`/profile?u=${username}`} className="text-accent hover:underline font-medium">
+          <Link key={i} href={`/profile/${username}`} className="text-accent hover:underline font-medium">
             {part}
           </Link>
         );
       }
-      return <span key={i}>{part}</span>;
+      return <span key={i} dangerouslySetInnerHTML={{ __html: part }} />;
     });
   };
 
@@ -156,7 +179,9 @@ export const MessageBubble = memo(function MessageBubble({ message, isGroup, onR
           className="flex items-center gap-2 p-3 bg-accent/10 border border-accent/20 rounded-xl text-white text-xs select-none hover:bg-accent/20 transition cursor-pointer"
           onClick={handleImageClick}
         >
-          <Eye size={16} className="text-accent" />
+          <div>
+            <Forward size={14} className="text-white/40" />
+          </div>
           <span className="font-medium">Photo (View once)</span>
         </div>
       );
@@ -254,7 +279,15 @@ export const MessageBubble = memo(function MessageBubble({ message, isGroup, onR
         transition={{ type: "spring", stiffness: 300, damping: 24 }}
         className={`row ${isMine ? "mine" : ""} items-center gap-2 relative`}
       >
-        {!isMine && !pendingUpload && (
+        {isSelectable && (
+          <div className="mr-2" onClick={() => onToggleSelect?.(message.id)}>
+            <div className={`w-5 h-5 rounded-md border flex items-center justify-center cursor-pointer ${isSelected ? 'bg-accent border-accent' : 'border-white/30'}`}>
+              {isSelected && <Check size={14} className="text-white" />}
+            </div>
+          </div>
+        )}
+
+        {!isMine && !pendingUpload && !isSelectable && (
           <motion.div 
             className="absolute left-0 text-white/50" 
             initial={{ opacity: 0, scale: 0 }} 
@@ -264,7 +297,7 @@ export const MessageBubble = memo(function MessageBubble({ message, isGroup, onR
           </motion.div>
         )}
         
-        {isMine && !pendingUpload && (
+        {isMine && !pendingUpload && !isSelectable && (
           <button onClick={() => onReply?.(message)} className="text-white/30 hover:text-white transition p-2 rounded-full hover:bg-white/5" title="Reply">
             <Reply size={16} />
           </button>
@@ -299,11 +332,20 @@ export const MessageBubble = memo(function MessageBubble({ message, isGroup, onR
           <div className={`relative flex flex-col group/bubble ${isMine ? "items-end" : "items-start"}`}>
 
           <div className={`bubble ${isMine ? "mine" : "theirs"} ${message.isDeleted ? "italic opacity-60" : ""}`}>
+            {message.isForwarded && (
+              <div className="flex items-center gap-1 text-[11px] text-white/50 mb-1 italic">
+                <Reply size={12} className="-scale-x-100" />
+                <span>Forwarded</span>
+              </div>
+            )}
+
             {/* Secure image rendering — skip for deleted messages */}
             {isImageMessage && !message.isDeleted && renderImageContent()}
             
             {message.type === "VOICE" && message.mediaUrl ? (
               <VoicePlayer url={message.mediaUrl} isMine={isMine} />
+            ) : message.type === "POLL" ? (
+              <PollBubble message={message} />
             ) : message.isDeleted ? (
               "this message was deleted"
             ) : (
@@ -325,6 +367,11 @@ export const MessageBubble = memo(function MessageBubble({ message, isGroup, onR
                 {message.status === "delivered" && <CheckCheck size={12} className="text-white/50" />}
                 {message.status === "read" && <CheckCheck size={12} className="text-accent" />}
                 {message.status === "failed" && <AlertCircle size={12} className="text-red-500" />}
+                {message.scheduledAt && (
+                  <span title="Scheduled">
+                    <Clock size={12} className="text-blue-400 ml-1" />
+                  </span>
+                )}
               </span>
             )}
           </div>
@@ -362,12 +409,35 @@ export const MessageBubble = memo(function MessageBubble({ message, isGroup, onR
           {/* Hover Actions */}
           {!pendingUpload && (
             <div className={`pointer-events-none absolute bottom-full pb-2 ${isMine ? "right-0" : "left-0"} flex gap-1 rounded-full opacity-0 transition group-hover/bubble:pointer-events-auto group-hover/bubble:opacity-100 z-20`}>
-              <div className="glass flex gap-1 rounded-full px-2 py-1 items-center shadow-xl">
+              <div className="glass flex gap-1 rounded-full px-2 py-1 items-center shadow-xl relative">
                 {QUICK_REACTIONS.map((emoji) => (
                   <button key={emoji} onClick={() => react(emoji)} className="text-sm hover:scale-125 transition">
                     {emoji}
                   </button>
                 ))}
+                <button onClick={() => setShowEmojiPicker(!showEmojiPicker)} className="text-white/50 hover:text-white transition p-1 hover:bg-white/10 rounded-full ml-1">
+                  <Plus size={14} />
+                </button>
+
+                <AnimatePresence>
+                  {showEmojiPicker && (
+                    <motion.div 
+                      initial={{ opacity: 0, scale: 0.8 }}
+                      animate={{ opacity: 1, scale: 1 }}
+                      exit={{ opacity: 0, scale: 0.8 }}
+                      className="absolute bottom-full mb-2 right-0 pointer-events-auto"
+                    >
+                      <EmojiPicker 
+                        theme={Theme.DARK} 
+                        onEmojiClick={(emoji) => react(emoji.emoji)}
+                        autoFocusSearch={false}
+                        lazyLoadEmojis={true}
+                        width={280}
+                        height={350}
+                      />
+                    </motion.div>
+                  )}
+                </AnimatePresence>
               </div>
             </div>
           )}
