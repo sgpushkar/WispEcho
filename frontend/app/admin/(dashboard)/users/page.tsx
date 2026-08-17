@@ -2,8 +2,9 @@
 
 import { useEffect, useState, useCallback } from "react";
 import Link from "next/link";
-import { Search, Crown, UserCheck, ExternalLink } from "lucide-react";
+import { Search, Crown, UserCheck, ExternalLink, Download } from "lucide-react";
 import { adminApi as api } from "@/lib/adminApi";
+import { useAdminAuthStore } from "@/store/useAdminAuthStore";
 
 interface UserRow {
   id: string;
@@ -62,7 +63,7 @@ export default function AdminUsersPage() {
       </div>
 
       <div className="admin-card">
-        <div className="admin-card-header">
+        <div className="admin-card-header flex justify-between items-center">
           <div className="admin-search-bar">
             <Search size={15} style={{ color: "var(--admin-text-muted)", flexShrink: 0 }} />
             <input
@@ -72,6 +73,15 @@ export default function AdminUsersPage() {
               onChange={(e) => { setSearch(e.target.value); setPage(1); }}
             />
           </div>
+          <button 
+            onClick={() => {
+              const token = useAdminAuthStore.getState().accessToken;
+              window.open(process.env.NEXT_PUBLIC_API_URL + "/admin/users/export?token=" + token, "_blank");
+            }}
+            className="admin-btn admin-btn-secondary"
+          >
+            <Download size={15} /> Export CSV
+          </button>
         </div>
 
         <div className="admin-table-wrap">
