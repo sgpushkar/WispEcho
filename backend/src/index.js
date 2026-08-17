@@ -15,6 +15,7 @@ import userRoutes from "./routes/user.routes.js";
 import friendRoutes from "./routes/friend.routes.js";
 import messageRoutes from "./routes/message.routes.js";
 import groupRoutes from "./routes/group.routes.js";
+import pollRoutes from "./routes/poll.routes.js";
 import versionRoutes from "./routes/version.routes.js";
 import uploadRoutes from "./routes/upload.routes.js";
 import linkpreviewRoutes from "./routes/linkpreview.routes.js";
@@ -26,6 +27,7 @@ import subscriptionRoutes from "./routes/subscription.routes.js";
 import adminRoutes from "./routes/admin.routes.js";
 import { getVersion } from "./controllers/versionController.js";
 import { notFound, errorHandler } from "./middleware/errorHandler.js";
+import { ipBanMiddleware } from "./middleware/ipBan.js";
 import { initSockets } from "./sockets/index.js";
 import { redisAdapter } from "./config/redis.js";
 import "./jobs/cron.js"; // Subscription expiry cron
@@ -57,6 +59,7 @@ app.use(cors({ origin: allowedOrigins, credentials: true }));
 app.use(cookieParser());
 app.use(express.json({ limit: "10mb" }));
 app.use(morgan("dev"));
+app.use(ipBanMiddleware);
 
 const limiter = rateLimit({
   windowMs: Number(process.env.RATE_LIMIT_WINDOW_MS) || 15 * 60 * 1000,
@@ -78,6 +81,7 @@ app.use("/api/users", userRoutes);
 app.use("/api/friends", friendRoutes);
 app.use("/api/messages", messageRoutes);
 app.use("/api/groups", groupRoutes);
+app.use("/api/polls", pollRoutes);
 app.use("/api/version", versionRoutes);
 app.use("/api/upload", uploadRoutes);
 app.use("/api/media", secureMediaRoutes);
