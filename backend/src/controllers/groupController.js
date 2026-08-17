@@ -227,3 +227,296 @@ export async function deleteGroup(req, res, next) {
     next(err);
   }
 }
+
+import { customAlphabet } from "nanoid";
+const nanoid = customAlphabet("abcdefghijklmnopqrstuvwxyz0123456789", 10);
+
+/** POST /api/groups/:groupId/join-link — generate/rotate invite code */
+export async function generateJoinLink(req, res, next) {
+  try {
+    const { groupId } = req.params;
+    const requester = await prisma.groupMember.findUnique({
+      where: { groupId_userId: { groupId, userId: req.userId } },
+    });
+    if (!requester || !["OWNER", "ADMIN"].includes(requester.role)) {
+      return res.status(403).json({ error: "Not authorized" });
+    }
+    const joinCode = nanoid();
+    const group = await prisma.group.update({
+      where: { id: groupId },
+      data: { joinCode },
+      select: { id: true, joinCode: true },
+    });
+    res.json({ joinCode: group.joinCode, link: `${process.env.FRONTEND_URL || ""}/join/${group.joinCode}` });
+  } catch (err) {
+    next(err);
+  }
+}
+
+/** POST /api/groups/join/:joinCode */
+export async function joinByCode(req, res, next) {
+  try {
+    const { joinCode } = req.params;
+    const { message } = req.body;
+
+    const group = await prisma.group.findUnique({
+      where: { joinCode },
+      include: { members: { select: { userId: true } } },
+    });
+    if (!group) return res.status(404).json({ error: "Invalid invite link" });
+
+    const alreadyMember = group.members.some((m) => m.userId === req.userId);
+    if (alreadyMember) return res.status(400).json({ error: "Already a member" });
+
+    const currentCount = group.members.length;
+    if (currentCount >= group.maxMembers) {
+      return res.status(400).json({ error: "Group is full" });
+    }
+
+    if (group.requireJoinApproval) {
+      // Create or update join request
+      const request = await prisma.groupJoinRequest.upsert({
+        where: { groupId_userId: { groupId: group.id, userId: req.userId } },
+        create: { groupId: group.id, userId: req.userId, message },
+        update: { status: "PENDING", message, requestedAt: new Date() },
+      });
+      // Notify group admins via socket
+      emitToConversation(group.conversationId, "group:joinRequest", {
+        groupId: group.id,
+        request,
+        userId: req.userId,
+      });
+      return res.status(202).json({ status: "PENDING", message: "Join request submitted" });
+    }
+
+    // Direct join
+    await prisma.groupMember.create({ data: { groupId: group.id, userId: req.userId } });
+    await prisma.conversationParticipant.create({
+      data: { conversationId: group.conversationId, userId: req.userId },
+    });
+
+    emitToConversation(group.conversationId, "group:membersAdded", {
+      groupId: group.id,
+      userIds: [req.userId],
+    });
+    res.status(201).json({ status: "JOINED", conversationId: group.conversationId });
+  } catch (err) {
+    next(err);
+  }
+}
+
+/** GET /api/groups/:groupId/join-requests */
+export async function getJoinRequests(req, res, next) {
+  try {
+    const { groupId } = req.params;
+    const requester = await prisma.groupMember.findUnique({
+      where: { groupId_userId: { groupId, userId: req.userId } },
+    });
+    if (!requester || !["OWNER", "ADMIN"].includes(requester.role)) {
+      return res.status(403).json({ error: "Not authorized" });
+    }
+    const requests = await prisma.groupJoinRequest.findMany({
+      where: { groupId, status: "PENDING" },
+      include: { user: { select: { id: true, username: true, displayName: true, avatarUrl: true } } },
+      orderBy: { requestedAt: "asc" },
+    });
+    res.json({ requests });
+  } catch (err) {
+    next(err);
+  }
+}
+
+/** POST /api/groups/:groupId/join-requests/:requestId/approve */
+export async function approveJoinRequest(req, res, next) {
+  try {
+    const { groupId, requestId } = req.params;
+    const requester = await prisma.groupMember.findUnique({
+      where: { groupId_userId: { groupId, userId: req.userId } },
+    });
+    if (!requester || !["OWNER", "ADMIN"].includes(requester.role)) {
+      return res.status(403).json({ error: "Not authorized" });
+    }
+
+    const request = await prisma.groupJoinRequest.findUnique({ where: { id: requestId } });
+    if (!request || request.groupId !== groupId) return res.status(404).json({ error: "Request not found" });
+
+    const group = await prisma.group.findUnique({ where: { id: groupId } });
+    if (!group) return res.status(404).json({ error: "Group not found" });
+
+    const currentCount = await prisma.groupMember.count({ where: { groupId } });
+    if (currentCount >= group.maxMembers) {
+      return res.status(400).json({ error: "Group is full" });
+    }
+
+    await prisma.$transaction([
+      prisma.groupJoinRequest.update({
+        where: { id: requestId },
+        data: { status: "APPROVED", reviewedById: req.userId, reviewedAt: new Date() },
+      }),
+      prisma.groupMember.create({ data: { groupId, userId: request.userId } }),
+      prisma.conversationParticipant.create({
+        data: { conversationId: group.conversationId, userId: request.userId },
+      }),
+    ]);
+
+    emitToConversation(group.conversationId, "group:membersAdded", { groupId, userIds: [request.userId] });
+    res.json({ success: true });
+  } catch (err) {
+    next(err);
+  }
+}
+
+/** POST /api/groups/:groupId/join-requests/:requestId/reject */
+export async function rejectJoinRequest(req, res, next) {
+  try {
+    const { groupId, requestId } = req.params;
+    const requester = await prisma.groupMember.findUnique({
+      where: { groupId_userId: { groupId, userId: req.userId } },
+    });
+    if (!requester || !["OWNER", "ADMIN"].includes(requester.role)) {
+      return res.status(403).json({ error: "Not authorized" });
+    }
+
+    await prisma.groupJoinRequest.update({
+      where: { id: requestId },
+      data: { status: "REJECTED", reviewedById: req.userId, reviewedAt: new Date() },
+    });
+    res.json({ success: true });
+  } catch (err) {
+    next(err);
+  }
+}
+
+/** PATCH /api/groups/:groupId/settings */
+export async function updateGroupSettings(req, res, next) {
+  try {
+    const { groupId } = req.params;
+    const { isAnnouncementOnly, maxMembers, requireJoinApproval } = req.body;
+
+    const requester = await prisma.groupMember.findUnique({
+      where: { groupId_userId: { groupId, userId: req.userId } },
+    });
+    if (!requester || !["OWNER", "ADMIN"].includes(requester.role)) {
+      return res.status(403).json({ error: "Not authorized" });
+    }
+
+    if (maxMembers !== undefined && (maxMembers < 2 || maxMembers > 10000)) {
+      return res.status(400).json({ error: "maxMembers must be between 2 and 10000" });
+    }
+
+    const group = await prisma.group.update({
+      where: { id: groupId },
+      data: {
+        ...(isAnnouncementOnly !== undefined && { isAnnouncementOnly }),
+        ...(maxMembers !== undefined && { maxMembers }),
+        ...(requireJoinApproval !== undefined && { requireJoinApproval }),
+      },
+    });
+
+    emitToConversation(group.conversationId, "group:settingsUpdated", { group });
+    res.json({ group });
+  } catch (err) {
+    next(err);
+  }
+}
+
+/** POST /api/groups/:groupId/events */
+export async function createGroupEvent(req, res, next) {
+  try {
+    const { groupId } = req.params;
+    const { title, description, location, startsAt, endsAt } = req.body;
+
+    if (!title || !startsAt) return res.status(400).json({ error: "title and startsAt are required" });
+
+    const member = await prisma.groupMember.findUnique({
+      where: { groupId_userId: { groupId, userId: req.userId } },
+    });
+    if (!member) return res.status(403).json({ error: "Not a group member" });
+
+    const group = await prisma.group.findUnique({ where: { id: groupId } });
+    if (!group) return res.status(404).json({ error: "Group not found" });
+
+    const event = await prisma.groupEvent.create({
+      data: { groupId, createdById: req.userId, title, description, location, startsAt: new Date(startsAt), endsAt: endsAt ? new Date(endsAt) : null },
+      include: { createdBy: { select: { id: true, displayName: true, avatarUrl: true } } },
+    });
+
+    emitToConversation(group.conversationId, "group:eventCreated", { event });
+    res.status(201).json({ event });
+  } catch (err) {
+    next(err);
+  }
+}
+
+/** GET /api/groups/:groupId/events */
+export async function getGroupEvents(req, res, next) {
+  try {
+    const { groupId } = req.params;
+    const member = await prisma.groupMember.findUnique({
+      where: { groupId_userId: { groupId, userId: req.userId } },
+    });
+    if (!member) return res.status(403).json({ error: "Not a group member" });
+
+    const events = await prisma.groupEvent.findMany({
+      where: { groupId },
+      orderBy: { startsAt: "asc" },
+      include: { createdBy: { select: { id: true, displayName: true, avatarUrl: true } } },
+    });
+    res.json({ events });
+  } catch (err) {
+    next(err);
+  }
+}
+
+/** DELETE /api/groups/:groupId/events/:eventId */
+export async function deleteGroupEvent(req, res, next) {
+  try {
+    const { groupId, eventId } = req.params;
+    const event = await prisma.groupEvent.findUnique({ where: { id: eventId } });
+    if (!event || event.groupId !== groupId) return res.status(404).json({ error: "Event not found" });
+
+    const member = await prisma.groupMember.findUnique({
+      where: { groupId_userId: { groupId, userId: req.userId } },
+    });
+    if (!member) return res.status(403).json({ error: "Not a member" });
+    if (event.createdById !== req.userId && !["OWNER", "ADMIN"].includes(member.role)) {
+      return res.status(403).json({ error: "Not authorized to delete this event" });
+    }
+
+    const group = await prisma.group.findUnique({ where: { id: groupId } });
+    await prisma.groupEvent.delete({ where: { id: eventId } });
+
+    if (group) emitToConversation(group.conversationId, "group:eventDeleted", { eventId });
+    res.json({ success: true });
+  } catch (err) {
+    next(err);
+  }
+}
+
+/** PATCH /api/conversations/:conversationId/disappear */
+export async function setDisappearTimer(req, res, next) {
+  try {
+    const { conversationId } = req.params;
+    const { disappearAfter } = req.body; // OFF | H24 | D7 | D30
+
+    const valid = ["OFF", "H24", "D7", "D30"];
+    if (!valid.includes(disappearAfter)) {
+      return res.status(400).json({ error: `disappearAfter must be one of: ${valid.join(", ")}` });
+    }
+
+    const participant = await prisma.conversationParticipant.findUnique({
+      where: { conversationId_userId: { conversationId, userId: req.userId } },
+    });
+    if (!participant) return res.status(403).json({ error: "Not a participant" });
+
+    const updated = await prisma.conversation.update({
+      where: { id: conversationId },
+      data: { disappearAfter },
+    });
+
+    emitToConversation(conversationId, "conversation:disappearUpdated", { conversationId, disappearAfter });
+    res.json({ disappearAfter: updated.disappearAfter });
+  } catch (err) {
+    next(err);
+  }
+}
