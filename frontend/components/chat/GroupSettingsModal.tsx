@@ -19,12 +19,16 @@ export function GroupSettingsModal() {
   const user = useAuthStore((s) => s.user);
   const queryClient = useQueryClient();
 
-  const [activeTab, setActiveTab] = useState<"details" | "members">("details");
+  const [activeTab, setActiveTab] = useState<"details" | "members" | "settings">("details");
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
   const [avatarUrl, setAvatarUrl] = useState("");
   const [searchQuery, setSearchQuery] = useState("");
   const [showSharedMedia, setShowSharedMedia] = useState(false);
+  const [isAnnouncementOnly, setIsAnnouncementOnly] = useState(false);
+  const [requireJoinApproval, setRequireJoinApproval] = useState(false);
+  const [maxMembers, setMaxMembers] = useState(256);
+  const [joinLink, setJoinLink] = useState("");
 
   const { data: groupData, isLoading } = useQuery({
     queryKey: ["group", activeGroupId],
@@ -51,6 +55,12 @@ export function GroupSettingsModal() {
       setName(groupData.name || "");
       setDescription(groupData.description || "");
       setAvatarUrl(groupData.avatarUrl || "");
+      setIsAnnouncementOnly(!!groupData.isAnnouncementOnly);
+      setRequireJoinApproval(!!groupData.requireJoinApproval);
+      setMaxMembers(groupData.maxMembers || 256);
+      if (groupData.joinCode) {
+        setJoinLink(`${window.location.origin}/join/${groupData.joinCode}`);
+      }
     }
   }, [groupData]);
 
@@ -61,6 +71,25 @@ export function GroupSettingsModal() {
       alert("Group details updated");
     },
     onError: (err: any) => alert(err.response?.data?.error || "Error updating group"),
+  });
+
+  const updateSettings = useMutation({
+    mutationFn: async () => api.patch(`/groups/${activeGroupId}/settings`, { isAnnouncementOnly, requireJoinApproval, maxMembers }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["group", activeGroupId] });
+      alert("Settings updated");
+    },
+    onError: (err: any) => alert(err.response?.data?.error || "Error updating settings"),
+  });
+
+  const generateJoinLink = useMutation({
+    mutationFn: async () => api.post(`/groups/${activeGroupId}/join-link`),
+    onSuccess: (res) => {
+      queryClient.invalidateQueries({ queryKey: ["group", activeGroupId] });
+      setJoinLink(res.data.link);
+      alert("Join link generated");
+    },
+    onError: (err: any) => alert(err.response?.data?.error || "Error generating link"),
   });
 
   const inviteMember = useMutation({
@@ -136,6 +165,14 @@ export function GroupSettingsModal() {
           >
             Members
           </button>
+          {canEdit && (
+            <button
+              onClick={() => setActiveTab("settings")}
+              className={`flex-1 py-3 text-sm font-medium transition ${activeTab === "settings" ? "border-b-2 border-white text-white" : "text-white/40 hover:text-white/80"}`}
+            >
+              Settings
+            </button>
+          )}
         </div>
 
         <div className="flex-1 overflow-y-auto p-4 custom-scrollbar">
@@ -267,6 +304,65 @@ export function GroupSettingsModal() {
               </div>
             </div>
           )}
+
+          {!isLoading && activeTab === "settings" && canEdit && (
+            <div className="space-y-6">
+              <div className="space-y-2">
+                <label className="text-sm font-medium text-white/60">Invite Link</label>
+                <div className="flex gap-2">
+                  <input
+                    value={joinLink}
+                    readOnly
+                    placeholder="No link generated"
+                    className="flex-1 rounded-xl border border-white/10 bg-white/5 px-3 py-2 text-sm outline-none placeholder:text-white/30 text-white disabled:opacity-50"
+                  />
+                  <button 
+                    onClick={() => generateJoinLink.mutate()} 
+                    disabled={generateJoinLink.isPending}
+                    className="bg-white/10 px-3 py-2 rounded-xl text-sm font-medium hover:bg-white/20 transition disabled:opacity-50"
+                  >
+                    {joinLink ? "Rotate" : "Generate"}
+                  </button>
+                </div>
+              </div>
+
+              <div className="space-y-4">
+                <label className="flex items-center gap-3 cursor-pointer group">
+                  <div className={`w-10 h-6 rounded-full p-1 transition-colors ${requireJoinApproval ? 'bg-accent' : 'bg-white/10'}`}>
+                    <div className={`w-4 h-4 rounded-full bg-white transition-transform ${requireJoinApproval ? 'translate-x-4' : 'translate-x-0'}`} />
+                  </div>
+                  <div>
+                    <div className="text-sm font-medium text-white group-hover:text-white/90">Require Join Approval</div>
+                    <div className="text-xs text-white/50">New members must be approved by admins</div>
+                  </div>
+                  <input type="checkbox" className="hidden" checked={requireJoinApproval} onChange={(e) => setRequireJoinApproval(e.target.checked)} />
+                </label>
+
+                <label className="flex items-center gap-3 cursor-pointer group">
+                  <div className={`w-10 h-6 rounded-full p-1 transition-colors ${isAnnouncementOnly ? 'bg-accent' : 'bg-white/10'}`}>
+                    <div className={`w-4 h-4 rounded-full bg-white transition-transform ${isAnnouncementOnly ? 'translate-x-4' : 'translate-x-0'}`} />
+                  </div>
+                  <div>
+                    <div className="text-sm font-medium text-white group-hover:text-white/90">Announcement Mode</div>
+                    <div className="text-xs text-white/50">Only admins can send messages</div>
+                  </div>
+                  <input type="checkbox" className="hidden" checked={isAnnouncementOnly} onChange={(e) => setIsAnnouncementOnly(e.target.checked)} />
+                </label>
+                
+                <div className="space-y-2">
+                  <label className="text-sm font-medium text-white/60">Max Members ({maxMembers})</label>
+                  <input
+                    type="range"
+                    min="2"
+                    max="10000"
+                    value={maxMembers}
+                    onChange={(e) => setMaxMembers(Number(e.target.value))}
+                    className="w-full accent-accent"
+                  />
+                </div>
+              </div>
+            </div>
+          )}
         </div>
 
         {/* Footer */}
@@ -278,7 +374,18 @@ export function GroupSettingsModal() {
               disabled={!name || updateGroup.isPending}
               className="w-full flex items-center justify-center gap-2 rounded-xl bg-white/10 border border-white/10 px-4 py-2 font-medium text-white hover:bg-white/20 transition disabled:opacity-50"
             >
-              <Save size={16} /> {updateGroup.isPending ? "Saving..." : "Save Changes"}
+              <Save size={16} /> {updateGroup.isPending ? "Saving..." : "Save Details"}
+            </button>
+          )}
+
+          {/* Save Settings */}
+          {activeTab === "settings" && canEdit && (
+            <button
+              onClick={() => updateSettings.mutate()}
+              disabled={updateSettings.isPending}
+              className="w-full flex items-center justify-center gap-2 rounded-xl bg-accent text-white px-4 py-2 font-medium hover:bg-accent/90 transition disabled:opacity-50"
+            >
+              <Save size={16} /> {updateSettings.isPending ? "Saving..." : "Save Settings"}
             </button>
           )}
 
