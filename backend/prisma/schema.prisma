@@ -27,6 +27,7 @@ enum MessageType {
   FILE
   VOICE
   GIF
+  POLL
 }
 
 enum MessageStatus {
@@ -43,105 +44,129 @@ enum AdminRole {
   SUPPORT
 }
 
+enum DisappearDuration {
+  OFF
+  H24
+  D7
+  D30
+}
+
+enum JoinRequestStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
+enum ExportStatus {
+  PENDING
+  READY
+  EXPIRED
+}
+
 model User {
-  id              String   @id @default(uuid())
-  email           String   @unique
-  username        String   @unique
+  id              String    @id @default(uuid())
+  email           String    @unique
+  username        String    @unique
   displayName     String
-  password        String? // null if OAuth-only account
-  googleId        String?  @unique
+  password        String?
+  googleId        String?   @unique
   avatarUrl       String?
   bannerUrl       String?
-  bio             String?  @default("")
+  bio             String?   @default("")
   pronouns        String?
-  accentColor     String?  @default("#8b5cf6")
-  status          String?  @default("")
-  themeId         String?  @default("default")
-  isPro           Boolean  @default(false)
+  socialLinks     Json?
+  accentColor     String?   @default("#8b5cf6")
+  status          String?   @default("")
+  themeId         String?   @default("default")
+  isPro           Boolean   @default(false)
   role            AdminRole @default(USER)
-  isEmailVerified Boolean  @default(false)
-  isOnline        Boolean  @default(false)
-  lastSeen        DateTime @default(now())
-  
-  isBanned        Boolean  @default(false)
+  isEmailVerified Boolean   @default(false)
+  isOnline        Boolean   @default(false)
+  lastSeen        DateTime  @default(now())
+  emailDigest     Boolean   @default(true)
+  isBanned        Boolean   @default(false)
   bannedUntil     DateTime?
   banReason       String?
-  warningCount    Int      @default(0)
-  isDeleted       Boolean  @default(false)
+  warningCount    Int       @default(0)
+  isDeleted       Boolean   @default(false)
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
 
-  createdAt       DateTime @default(now())
-  updatedAt       DateTime @updatedAt
-
-  sentMessages       Message[]        @relation("SentMessages")
-  conversations       ConversationParticipant[]
-  groupMemberships     GroupMember[]
-  sentFriendRequests   Friendship[]     @relation("Requester")
-  receivedFriendRequests Friendship[]   @relation("Addressee")
-  notifications        Notification[]
-  reactions             Reaction[]
-  refreshTokens         RefreshToken[]
+  sentMessages           Message[]                @relation("SentMessages")
+  conversations          ConversationParticipant[]
+  groupMemberships       GroupMember[]
+  sentFriendRequests     Friendship[]             @relation("Requester")
+  receivedFriendRequests Friendship[]             @relation("Addressee")
+  notifications          Notification[]
+  reactions              Reaction[]
+  refreshTokens          RefreshToken[]
   emailTokens            EmailToken[]
   savedMessages          SavedMessage[]
   pushSubscriptions      PushSubscription[]
   subscription           Subscription?
   customThemes           CustomTheme[]
-  
   payments               Payment[]
-  reportsMade            Report[]         @relation("Reporter")
-  reportsReceived        Report[]         @relation("Reported")
-  auditLogs              AdminAuditLog[]  @relation("AuditLogs")
+  reportsMade            Report[]                 @relation("Reporter")
+  reportsReceived        Report[]                 @relation("Reported")
+  auditLogs              AdminAuditLog[]          @relation("AuditLogs")
+  pollVotes              PollVote[]
+  groupJoinRequests      GroupJoinRequest[]
+  groupEvents            GroupEvent[]             @relation("EventCreator")
+  pinnedMessages         PinnedMessage[]          @relation("PinnedBy")
+  doNotDisturb           DoNotDisturb?
+  dataExports            UserDataExport[]
 }
 
 model Subscription {
-  id        String   @id @default(uuid())
-  userId    String   @unique
-  plan      String   @default("FREE") 
-  status    String   @default("ACTIVE") // ACTIVE, EXPIRED, CANCELLED, REVOKED, PENDING, PAUSED
-  source    String   @default("ADMIN") // ADMIN, UPI_MANUAL, RAZORPAY, PROMOTION, TRIAL, GIFT
-  startsAt  DateTime @default(now())
-  expiresAt DateTime?
-  cancelAtPeriodEnd Boolean @default(false)
-  provider  String   @default("NONE") // MANUAL, RAZORPAY, NONE
+  id                     String    @id @default(uuid())
+  userId                 String    @unique
+  plan                   String    @default("FREE")
+  status                 String    @default("ACTIVE")
+  source                 String    @default("ADMIN")
+  startsAt               DateTime  @default(now())
+  expiresAt              DateTime?
+  cancelAtPeriodEnd      Boolean   @default(false)
+  provider               String    @default("NONE")
   providerSubscriptionId String?
-  paymentId String?  @unique
-  grantedByAdminId String?
-  notes     String?
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  paymentId              String?   @unique
+  grantedByAdminId       String?
+  notes                  String?
+  createdAt              DateTime  @default(now())
+  updatedAt              DateTime  @updatedAt
 
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user    User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   payment Payment? @relation(fields: [paymentId], references: [id])
 }
 
 model Payment {
-  id        String   @id @default(uuid())
-  userId    String
-  amount    Float
-  currency  String   @default("INR")
-  method    String   // UPI, BANK_TRANSFER, CASH, RAZORPAY, OTHER
-  status    String   // PENDING, PAID, FAILED, REFUNDED, CANCELLED
-  reference String?
-  subscriptionId String?
+  id                String    @id @default(uuid())
+  userId            String
+  amount            Float
+  currency          String    @default("INR")
+  method            String
+  status            String
+  reference         String?
+  subscriptionId    String?
   verifiedByAdminId String?
-  paidAt    DateTime?
-  notes     String?
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  paidAt            DateTime?
+  notes             String?
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @updatedAt
 
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
-  subscription Subscription? // No @relation here to prevent cyclic constraint issues, mapped via Subscription.paymentId
+  user         User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  subscription Subscription?
 }
 
 model AdminAuditLog {
-  id        String   @id @default(uuid())
-  adminId   String
-  action    String
-  targetUserId String?
+  id               String   @id @default(uuid())
+  adminId          String
+  action           String
+  targetUserId     String?
   targetResourceId String?
-  metadata  Json?
-  ipAddress String?
-  userAgent String?
-  createdAt DateTime @default(now())
+  metadata         Json?
+  ipAddress        String?
+  userAgent        String?
+  createdAt        DateTime @default(now())
 
   admin User @relation("AuditLogs", fields: [adminId], references: [id], onDelete: Cascade)
 }
@@ -158,25 +183,26 @@ model Report {
   id           String   @id @default(uuid())
   reporterId   String
   reportedId   String
-  contentType  String // USER, MESSAGE, GROUP
-  contentId    String? 
+  contentType  String
+  contentId    String?
   reason       String
-  status       String   @default("OPEN") // OPEN, REVIEWING, RESOLVED, DISMISSED
+  status       String   @default("OPEN")
   assignedToId String?
+  resolution   String?
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
 
-  reporter     User @relation("Reporter", fields: [reporterId], references: [id], onDelete: Cascade)
-  reported     User @relation("Reported", fields: [reportedId], references: [id], onDelete: Cascade)
+  reporter User @relation("Reporter", fields: [reporterId], references: [id], onDelete: Cascade)
+  reported User @relation("Reported", fields: [reportedId], references: [id], onDelete: Cascade)
 }
 
 model CustomTheme {
   id        String   @id @default(uuid())
   userId    String
   name      String
-  colors    Json     // All color tokens as JSON
-  effects   Json?    // blur, borderRadius, glassOpacity
-  chatBg    Json?    // { type, value } for chat background
+  colors    Json
+  effects   Json?
+  chatBg    Json?
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
@@ -189,11 +215,12 @@ model RefreshToken {
   id        String   @id @default(uuid())
   token     String   @unique
   userId    String
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   userAgent String?
   ip        String?
   expiresAt DateTime
   createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId])
 }
@@ -201,11 +228,12 @@ model RefreshToken {
 model EmailToken {
   id        String   @id @default(uuid())
   token     String   @unique
-  type      String // "VERIFY" | "RESET"
+  type      String
   userId    String
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   expiresAt DateTime
   createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
 model Friendship {
@@ -222,46 +250,55 @@ model Friendship {
   @@unique([requesterId, addresseeId])
 }
 
-// A Conversation is either a 1:1 DM or backs a Group
 model Conversation {
-  id        String   @id @default(uuid())
-  isGroup   Boolean  @default(false)
-  group     Group?
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id             String            @id @default(uuid())
+  isGroup        Boolean           @default(false)
+  disappearAfter DisappearDuration @default(OFF)
+  group          Group?
+  createdAt      DateTime          @default(now())
+  updatedAt      DateTime          @updatedAt
 
-  participants ConversationParticipant[]
-  messages     Message[]
+  participants   ConversationParticipant[]
+  messages       Message[]
+  pinnedMessages PinnedMessage[]
 }
 
 model ConversationParticipant {
-  id             String   @id @default(uuid())
+  id             String    @id @default(uuid())
   conversationId String
   userId         String
-  isPinned       Boolean  @default(false)
-  isArchived     Boolean  @default(false)
-  isFavorite     Boolean  @default(false)
+  isPinned       Boolean   @default(false)
+  isArchived     Boolean   @default(false)
+  isFavorite     Boolean   @default(false)
+  isMuted        Boolean   @default(false)
+  mutedUntil     DateTime?
   chatBg         Json?
-  lastReadAt     DateTime @default(now())
-  joinedAt       DateTime @default(now())
+  lastReadAt     DateTime  @default(now())
+  joinedAt       DateTime  @default(now())
 
   conversation Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
-  user         User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user         User         @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([conversationId, userId])
 }
 
 model Group {
-  id             String   @id @default(uuid())
-  conversationId String   @unique
-  name           String
-  description    String?
-  avatarUrl      String?
-  bannerUrl      String?
-  createdAt      DateTime @default(now())
+  id                  String   @id @default(uuid())
+  conversationId      String   @unique
+  name                String
+  description         String?
+  avatarUrl           String?
+  bannerUrl           String?
+  joinCode            String?  @unique
+  requireJoinApproval Boolean  @default(false)
+  isAnnouncementOnly  Boolean  @default(false)
+  maxMembers          Int      @default(500)
+  createdAt           DateTime @default(now())
 
-  conversation Conversation  @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  conversation Conversation       @relation(fields: [conversationId], references: [id], onDelete: Cascade)
   members      GroupMember[]
+  joinRequests GroupJoinRequest[]
+  events       GroupEvent[]
 }
 
 model GroupMember {
@@ -278,35 +315,123 @@ model GroupMember {
   @@unique([groupId, userId])
 }
 
-model Message {
-  id             String      @id @default(uuid())
-  conversationId String
-  senderId       String
-  type           MessageType @default(TEXT)
-  content        String?
-  mediaUrl       String?
-  replyToId      String?
-  status         MessageStatus @default(SENT)
-  isEdited       Boolean     @default(false)
-  isDeleted      Boolean     @default(false)
-  deletedByIds   String[]    @default([])
-  isViewOnce        Boolean     @default(false)
-  viewedByIds       String[]    @default([])
-  mediaPublicId     String?     // Cloudinary public_id for authenticated/private delivery
-  viewOnceOpenedAt  DateTime?   // Timestamp of first view (audit)
-  isPinned          Boolean     @default(false)
-  createdAt      DateTime    @default(now())
-  updatedAt      DateTime    @updatedAt
+model GroupJoinRequest {
+  id           String            @id @default(uuid())
+  groupId      String
+  userId       String
+  status       JoinRequestStatus @default(PENDING)
+  message      String?
+  reviewedById String?
+  requestedAt  DateTime          @default(now())
+  reviewedAt   DateTime?
 
-  conversation Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
-  sender       User         @relation("SentMessages", fields: [senderId], references: [id], onDelete: Cascade)
-  replyTo      Message?     @relation("Replies", fields: [replyToId], references: [id])
-  replies      Message[]    @relation("Replies")
+  group Group @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  user  User  @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([groupId, userId])
+}
+
+model GroupEvent {
+  id          String    @id @default(uuid())
+  groupId     String
+  createdById String
+  title       String
+  description String?
+  location    String?
+  startsAt    DateTime
+  endsAt      DateTime?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  group     Group @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  createdBy User  @relation("EventCreator", fields: [createdById], references: [id], onDelete: Cascade)
+
+  @@index([groupId, startsAt])
+}
+
+model Message {
+  id               String        @id @default(uuid())
+  conversationId   String
+  senderId         String
+  type             MessageType   @default(TEXT)
+  content          String?
+  mediaUrl         String?
+  replyToId        String?
+  status           MessageStatus @default(SENT)
+  isEdited         Boolean       @default(false)
+  isDeleted        Boolean       @default(false)
+  deletedByIds     String[]      @default([])
+  isViewOnce       Boolean       @default(false)
+  viewedByIds      String[]      @default([])
+  mediaPublicId    String?
+  viewOnceOpenedAt DateTime?
+  isPinned         Boolean       @default(false)
+  scheduledAt      DateTime?
+  isForwarded      Boolean       @default(false)
+  forwardedFromId  String?
+  disappearsAt     DateTime?
+  createdAt        DateTime      @default(now())
+  updatedAt        DateTime      @updatedAt
+
+  conversation Conversation   @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  sender       User           @relation("SentMessages", fields: [senderId], references: [id], onDelete: Cascade)
+  replyTo      Message?       @relation("Replies", fields: [replyToId], references: [id])
+  replies      Message[]      @relation("Replies")
   reactions    Reaction[]
   readReceipts ReadReceipt[]
   savedBy      SavedMessage[]
+  poll         Poll?
+  pinnedAs     PinnedMessage[]
 
   @@index([conversationId, createdAt])
+  @@index([scheduledAt])
+  @@index([disappearsAt])
+}
+
+model Poll {
+  id             String    @id @default(uuid())
+  messageId      String    @unique
+  conversationId String
+  createdById    String
+  question       String
+  options        Json
+  allowMultiple  Boolean   @default(false)
+  endsAt         DateTime?
+  closedAt       DateTime?
+  createdAt      DateTime  @default(now())
+
+  message Message    @relation(fields: [messageId], references: [id], onDelete: Cascade)
+  votes   PollVote[]
+
+  @@index([conversationId])
+}
+
+model PollVote {
+  id            String   @id @default(uuid())
+  pollId        String
+  userId        String
+  optionIndexes Int[]
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  poll Poll @relation(fields: [pollId], references: [id], onDelete: Cascade)
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([pollId, userId])
+}
+
+model PinnedMessage {
+  id             String   @id @default(uuid())
+  conversationId String
+  messageId      String
+  pinnedById     String
+  pinnedAt       DateTime @default(now())
+
+  conversation Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  message      Message      @relation(fields: [messageId], references: [id], onDelete: Cascade)
+  pinnedBy     User         @relation("PinnedBy", fields: [pinnedById], references: [id], onDelete: Cascade)
+
+  @@unique([conversationId, messageId])
 }
 
 model Reaction {
@@ -336,7 +461,7 @@ model ReadReceipt {
 model Notification {
   id        String   @id @default(uuid())
   userId    String
-  type      String // FRIEND_REQUEST | MESSAGE | MENTION | REACTION | GROUP_INVITE
+  type      String
   payload   Json
   isRead    Boolean  @default(false)
   createdAt DateTime @default(now())
@@ -367,6 +492,56 @@ model PushSubscription {
   userAgent String?
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+}
+
+model DoNotDisturb {
+  id        String   @id @default(uuid())
+  userId    String   @unique
+  enabled   Boolean  @default(false)
+  startHour Int
+  endHour   Int
+  timezone  String   @default("UTC")
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model IpBan {
+  id         String    @id @default(uuid())
+  ip         String    @unique
+  reason     String
+  bannedById String
+  expiresAt  DateTime?
+  createdAt  DateTime  @default(now())
+}
+
+model SubscriptionTier {
+  id           String   @id @default(uuid())
+  name         String
+  slug         String   @unique
+  price        Float
+  currency     String   @default("INR")
+  durationDays Int
+  features     Json
+  isActive     Boolean  @default(true)
+  sortOrder    Int      @default(0)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+}
+
+model UserDataExport {
+  id          String       @id @default(uuid())
+  userId      String
+  status      ExportStatus @default(PENDING)
+  filePath    String?
+  requestedAt DateTime     @default(now())
+  completedAt DateTime?
+  expiresAt   DateTime?
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
