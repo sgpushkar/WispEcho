@@ -19,9 +19,9 @@ export default function BroadcastPage() {
     try {
       const res = await api.post("/admin/broadcast", {
         message,
-        tier: tier === "ALL" ? undefined : tier === "PRO",
+        target: tier,
       });
-      setStatus({ type: "success", msg: `Broadcast sent to ${res.data.recipientsCount} users.` });
+      setStatus({ type: "success", msg: `Broadcast sent to ${res.data.count} users.` });
       setMessage("");
     } catch (err: any) {
       setStatus({ type: "error", msg: err.response?.data?.error || "Failed to send broadcast" });
