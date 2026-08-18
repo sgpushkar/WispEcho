@@ -120,28 +120,37 @@ export const MessageBubble = memo(function MessageBubble({
 
   const renderContent = (text: string | null) => {
     if (!text) return null;
-    
-    // Basic Markdown Parsing: **bold**, *italic*, ~strikethrough~
-    let parsedText = text;
-    parsedText = parsedText.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
-    parsedText = parsedText.replace(/\*(.*?)\*/g, '<em>$1</em>');
-    parsedText = parsedText.replace(/~(.*?)~/g, '<del>$1</del>');
 
-    // Mentions Parsing
-    const parts = parsedText.split(/(@[a-zA-Z0-9_]+)/g);
-    return parts.map((part, i) => {
-      if (part.startsWith("@")) {
-        const username = part.slice(1);
+    // Safe formatting using React elements (no dangerouslySetInnerHTML / XSS)
+    const tokenRegex = /(\*\*[^*]+\*\*|\*[^*]+\*|~[^~]+~|@[a-zA-Z0-9_]+)/g;
+    const tokens = text.split(tokenRegex);
+
+    return tokens.map((token, i) => {
+      if (token.startsWith("**") && token.endsWith("**") && token.length > 4) {
+        return <strong key={i}>{token.slice(2, -2)}</strong>;
+      }
+      if (token.startsWith("*") && token.endsWith("*") && token.length > 2) {
+        return <em key={i}>{token.slice(1, -1)}</em>;
+      }
+      if (token.startsWith("~") && token.endsWith("~") && token.length > 2) {
+        return <del key={i}>{token.slice(1, -1)}</del>;
+      }
+      if (token.startsWith("@")) {
+        const username = token.slice(1);
         if (username === "everyone" || username === "here") {
-          return <span key={i} className="bg-accent/20 text-accent px-1 rounded-sm font-bold">{part}</span>;
+          return (
+            <span key={i} className="bg-accent/20 text-accent px-1 rounded-sm font-bold">
+              {token}
+            </span>
+          );
         }
         return (
-          <Link key={i} href={`/profile/${username}`} className="text-accent hover:underline font-medium">
-            {part}
+          <Link key={i} href={`/profile?u=${username}`} className="text-accent hover:underline font-medium">
+            {token}
           </Link>
         );
       }
-      return <span key={i} dangerouslySetInnerHTML={{ __html: part }} />;
+      return token;
     });
   };
 
@@ -490,6 +499,8 @@ export const MessageBubble = memo(function MessageBubble({
     prev.message.viewedByIds?.length === next.message.viewedByIds?.length &&
     JSON.stringify(prev.message.reactions) === JSON.stringify(next.message.reactions) &&
     prev.pendingUpload?.status === next.pendingUpload?.status &&
-    prev.pendingUpload?.progress === next.pendingUpload?.progress
+    prev.pendingUpload?.progress === next.pendingUpload?.progress &&
+    prev.isSelectable === next.isSelectable &&
+    prev.isSelected === next.isSelected
   );
 });
