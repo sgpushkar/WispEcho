@@ -20,6 +20,7 @@ import {
   Smile,
   Clock,
   BarChart2,
+  Plus,
 } from "lucide-react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { api } from "@/lib/api";
@@ -91,6 +92,8 @@ export function ChatWindow() {
   // Conversation Settings
   const [isMuted, setIsMuted] = useState(false);
   const [disappearAfter, setDisappearAfter] = useState("OFF");
+  const [showShareMenu, setShowShareMenu] = useState(false);
+  const shareMenuRef = useRef<HTMLDivElement>(null);
 
   const {
     isRecording,
@@ -260,6 +263,7 @@ export function ChatWindow() {
         setEditingMessage(null);
         setDraft("");
         setShowMenu(false);
+        setShowShareMenu(false);
         if (textareaRef.current) textareaRef.current.style.height = "auto";
       }
     }
@@ -272,12 +276,15 @@ export function ChatWindow() {
       if (menuRef.current && !menuRef.current.contains(e.target as Node)) {
         setShowMenu(false);
       }
+      if (shareMenuRef.current && !shareMenuRef.current.contains(e.target as Node)) {
+        setShowShareMenu(false);
+      }
     }
-    if (showMenu) {
+    if (showMenu || showShareMenu) {
       document.addEventListener("mousedown", handleClickOutside);
     }
     return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, [showMenu]);
+  }, [showMenu, showShareMenu]);
 
   function handleTyping() {
     if (!activeConversationId) return;
@@ -975,14 +982,103 @@ export function ChatWindow() {
             className="hidden"
             onChange={handleFileSelect}
           />
-          <button
-            type="button"
-            className="icon-btn shrink-0"
-            onClick={handleImageIconClick}
-            title="Attach image"
-          >
-            <ImageIcon size={19} />
-          </button>
+
+          <div className="relative shrink-0" ref={shareMenuRef}>
+            <button
+              type="button"
+              className={`icon-btn shrink-0 transition-transform duration-200 ${
+                showShareMenu ? "bg-white/15 text-white rotate-45" : "hover:bg-white/10 text-white/70 hover:text-white"
+              }`}
+              onClick={() => setShowShareMenu((prev) => !prev)}
+              title="Share content (Image, Poll, Schedule, Voice)"
+            >
+              <Plus size={20} />
+            </button>
+
+            <AnimatePresence>
+              {showShareMenu && (
+                <motion.div
+                  initial={{ opacity: 0, scale: 0.92, y: 10 }}
+                  animate={{ opacity: 1, scale: 1, y: -8 }}
+                  exit={{ opacity: 0, scale: 0.92, y: 10 }}
+                  transition={{ duration: 0.18, ease: "easeOut" }}
+                  className="absolute bottom-full left-0 mb-2 w-64 sm:w-72 rounded-2xl bg-[#151518]/95 backdrop-blur-2xl border border-white/10 shadow-[0_20px_50px_rgba(0,0,0,0.6)] p-2 z-50 flex flex-col gap-1 select-none"
+                >
+                  <div className="px-3 py-1 text-[10px] font-bold uppercase tracking-wider text-white/40">
+                    Share Content
+                  </div>
+
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setShowShareMenu(false);
+                      handleImageIconClick();
+                    }}
+                    className="flex items-center gap-3 p-2.5 rounded-xl hover:bg-white/10 transition text-left group"
+                  >
+                    <div className="w-9 h-9 rounded-xl bg-violet-500/20 text-violet-400 flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform">
+                      <ImageIcon size={18} />
+                    </div>
+                    <div className="flex flex-col min-w-0">
+                      <span className="text-xs font-semibold text-white group-hover:text-white">Photo & Video</span>
+                      <span className="text-[11px] text-white/50 truncate">Share images and screenshots</span>
+                    </div>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setShowShareMenu(false);
+                      setShowPollCreator(true);
+                    }}
+                    className="flex items-center gap-3 p-2.5 rounded-xl hover:bg-white/10 transition text-left group"
+                  >
+                    <div className="w-9 h-9 rounded-xl bg-amber-500/20 text-amber-400 flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform">
+                      <BarChart2 size={18} />
+                    </div>
+                    <div className="flex flex-col min-w-0">
+                      <span className="text-xs font-semibold text-white group-hover:text-white">Create Poll</span>
+                      <span className="text-[11px] text-white/50 truncate">Ask a question and collect votes</span>
+                    </div>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setShowShareMenu(false);
+                      setShowScheduler(true);
+                    }}
+                    className="flex items-center gap-3 p-2.5 rounded-xl hover:bg-white/10 transition text-left group"
+                  >
+                    <div className="w-9 h-9 rounded-xl bg-sky-500/20 text-sky-400 flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform">
+                      <Clock size={18} />
+                    </div>
+                    <div className="flex flex-col min-w-0">
+                      <span className="text-xs font-semibold text-white group-hover:text-white">Schedule Message</span>
+                      <span className="text-[11px] text-white/50 truncate">Send at a specific date & time</span>
+                    </div>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setShowShareMenu(false);
+                      startRecording();
+                    }}
+                    className="flex items-center gap-3 p-2.5 rounded-xl hover:bg-white/10 transition text-left group"
+                  >
+                    <div className="w-9 h-9 rounded-xl bg-rose-500/20 text-rose-400 flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform">
+                      <Mic size={18} />
+                    </div>
+                    <div className="flex flex-col min-w-0">
+                      <span className="text-xs font-semibold text-white group-hover:text-white">Voice Note</span>
+                      <span className="text-[11px] text-white/50 truncate">Record and send audio</span>
+                    </div>
+                  </button>
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </div>
 
           <textarea
             ref={textareaRef}
@@ -1049,24 +1145,6 @@ export function ChatWindow() {
                 }}
               />
             )}
-            
-            <button
-              type="button"
-              className="icon-btn hidden sm:flex shrink-0"
-              onClick={() => setShowScheduler(true)}
-              title="Schedule Message"
-            >
-              <Clock size={18} />
-            </button>
-
-            <button
-              type="button"
-              className="icon-btn hidden sm:flex shrink-0"
-              onClick={() => setShowPollCreator(true)}
-              title="Create Poll"
-            >
-              <BarChart2 size={18} />
-            </button>
 
             <button
               type="button"
