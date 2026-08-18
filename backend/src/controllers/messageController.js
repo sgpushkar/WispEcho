@@ -164,16 +164,47 @@ export async function getMessages(req, res, next) {
         sender: { select: { id: true, username: true, displayName: true, avatarUrl: true } },
         reactions: true,
         replyTo: { include: { sender: { select: { username: true, displayName: true } } } },
+        poll: { include: { votes: true } },
       },
     });
 
     // Strip raw Cloudinary URLs from IMAGE messages — clients always fetch via the proxy.
     // Voice notes (VOICE type) keep their mediaUrl since they use direct Cloudinary delivery.
     const sanitized = messages.map((msg) => {
-      if (msg.type === "IMAGE") {
-        return { ...msg, mediaUrl: null, mediaPublicId: null };
+      let pollFormatted = null;
+      if (msg.poll) {
+        const options = Array.isArray(msg.poll.options)
+          ? msg.poll.options
+          : JSON.parse(JSON.stringify(msg.poll.options || []));
+        const votes = msg.poll.votes || [];
+        const results = options.map((label, idx) => {
+          const matching = votes.filter((v) => Array.isArray(v.optionIndexes) && v.optionIndexes.includes(idx));
+          return {
+            index: idx,
+            label,
+            votes: matching.length,
+            voters: matching.map((v) => v.userId),
+          };
+        });
+        const myVote = votes.find((v) => v.userId === req.userId);
+        pollFormatted = {
+          id: msg.poll.id,
+          messageId: msg.poll.messageId,
+          question: msg.poll.question,
+          options,
+          allowMultiple: msg.poll.allowMultiple,
+          endsAt: msg.poll.endsAt,
+          closedAt: msg.poll.closedAt,
+          results,
+          myVote: myVote?.optionIndexes ?? null,
+          totalVotes: votes.length,
+        };
       }
-      return msg;
+
+      if (msg.type === "IMAGE") {
+        return { ...msg, mediaUrl: null, mediaPublicId: null, poll: pollFormatted };
+      }
+      return { ...msg, poll: pollFormatted };
     });
 
     res.json({ messages: sanitized.reverse() });
@@ -259,6 +290,17 @@ export async function sendMessage(req, res, next) {
       else if (conversation.disappearAfter === "D30") disappearsAt = new Date(now.getTime() + 30 * 24 * 60 * 60 * 1000);
     }
 
+    const pollCreate = data.type === "POLL" && Array.isArray(req.body.pollOptions) && req.body.pollOptions.length >= 2
+      ? {
+          create: {
+            conversationId,
+            createdById: req.userId,
+            question: data.content || "Poll",
+            options: req.body.pollOptions,
+          }
+        }
+      : undefined;
+
     const message = await prisma.message.create({
       data: {
         conversationId,
@@ -271,10 +313,12 @@ export async function sendMessage(req, res, next) {
         isViewOnce: data.isViewOnce,
         scheduledAt: data.scheduledAt ? new Date(data.scheduledAt) : null,
         disappearsAt,
+        ...(pollCreate ? { poll: pollCreate } : {}),
       },
       include: {
         sender: { select: { id: true, username: true, displayName: true, avatarUrl: true } },
         replyTo: true,
+        poll: { include: { votes: true } },
       },
     });
 
@@ -283,10 +327,38 @@ export async function sendMessage(req, res, next) {
       data: { updatedAt: new Date() },
     });
 
+    let pollFormatted = null;
+    if (message.poll) {
+      const options = Array.isArray(message.poll.options) ? message.poll.options : JSON.parse(JSON.stringify(message.poll.options || []));
+      const votes = message.poll.votes || [];
+      const results = options.map((label, idx) => {
+        const matching = votes.filter((v) => Array.isArray(v.optionIndexes) && v.optionIndexes.includes(idx));
+        return {
+          index: idx,
+          label,
+          votes: matching.length,
+          voters: matching.map((v) => v.userId),
+        };
+      });
+      pollFormatted = {
+        id: message.poll.id,
+        messageId: message.poll.messageId,
+        question: message.poll.question,
+        options,
+        allowMultiple: message.poll.allowMultiple,
+        endsAt: message.poll.endsAt,
+        closedAt: message.poll.closedAt,
+        results,
+        myVote: null,
+        totalVotes: votes.length,
+      };
+    }
+
     // Strip raw mediaUrl before emitting over socket
-    const messageForSocket = message.type === "IMAGE"
-      ? { ...message, mediaUrl: null, mediaPublicId: null }
-      : message;
+    const messageForSocket = {
+      ...(message.type === "IMAGE" ? { ...message, mediaUrl: null, mediaPublicId: null } : message),
+      poll: pollFormatted,
+    };
 
     // Only emit and push notify if it's NOT a scheduled message
     if (!data.scheduledAt) {
