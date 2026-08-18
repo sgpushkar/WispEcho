@@ -13,8 +13,6 @@ import {
   ShieldCheck,
   Zap,
   ChevronRight,
-  BarChart,
-  DollarSign,
   AlertTriangle,
   Megaphone,
   Star,
