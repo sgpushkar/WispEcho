@@ -32,7 +32,7 @@ import { PinnedMessages } from "./PinnedMessages";
 
 export function ChatWindow() {
   const router = useRouter();
-  const { setGroupSettingsOpen, applyCustomTheme, themeId: activeThemeId } = useUIStore();
+  const { setGroupSettingsOpen, applyCustomTheme, themeId: activeThemeId, forwardModalOpen, messageToForward, closeForwardModal } = useUIStore();
   const accessToken = useAuthStore((s) => s.accessToken)!;
   const { activeConversationId, setActiveConversation, conversations, messages, setMessages, typingUsers, onlineUsers, addMessage, updateParticipantChatBg, removeMessage } = useChatStore();
   
@@ -101,7 +101,7 @@ export function ChatWindow() {
 
   const deleteMessageMutation = useMutation({
     mutationFn: async ({ messageId, forEveryone }: { messageId: string; forEveryone: boolean }) =>
-      api.delete(`/messages/${messageId}${forEveryone ? "?forEveryone=true" : ""}`),
+      api.delete(`/messages/${messageId}`, { data: { forEveryone } }),
     onMutate: ({ messageId }) => {
       const currentMessages = useChatStore.getState().messages[activeConversationId!] || [];
       const index = currentMessages.findIndex((m) => m.id === messageId);
@@ -631,13 +631,29 @@ export function ChatWindow() {
               </button>
               <button 
                 onClick={async () => {
-                  if (selectedMessageIds.size > 0 && confirm("Delete selected messages?")) {
+                  if (selectedMessageIds.size === 0) return;
+                  const currentUserId = useAuthStore.getState().user?.id;
+                  const allMine = Array.from(selectedMessageIds).every(id => {
+                    const msg = conversationMessages.find(m => m.id === id);
+                    return msg && msg.senderId === currentUserId;
+                  });
+
+                  let forEveryone = false;
+                  if (allMine) {
+                    forEveryone = confirm("Delete for everyone? Click OK to delete for everyone, or Cancel to delete just for you.");
+                  } else {
+                    if (!confirm("Delete selected messages for you?")) return;
+                  }
+
+                  try {
                     await api.delete("/messages/bulk", {
-                      data: { messageIds: Array.from(selectedMessageIds) }
+                      data: { messageIds: Array.from(selectedMessageIds), forEveryone }
                     });
                     Array.from(selectedMessageIds).forEach(id => removeMessage(activeConversationId!, id));
                     setSelectedMessageIds(new Set());
                     setIsMultiSelectMode(false);
+                  } catch (err: any) {
+                    alert(err.response?.data?.error || "Failed to delete messages");
                   }
                 }}
                 className="text-xs bg-red-500/20 text-red-400 px-3 py-1.5 rounded-full hover:bg-red-500/30"
@@ -694,7 +710,7 @@ export function ChatWindow() {
                         key={opt}
                         onClick={async () => {
                           try {
-                            await api.patch(`/conversations/${activeConversationId}/disappear`, { disappearAfter: opt });
+                            await api.patch(`/messages/conversations/${activeConversationId}/disappear`, { disappearAfter: opt });
                             setDisappearAfter(opt);
                             setShowTimerMenu(false);
                           } catch (e) { console.error(e); }
@@ -995,11 +1011,16 @@ export function ChatWindow() {
         )}
       </AnimatePresence>
       <AnimatePresence>
-        {showForwardModal && activeConversationId && (
+        {(showForwardModal || forwardModalOpen) && activeConversationId && (
           <ForwardModal
-            messageIds={Array.from(selectedMessageIds)}
+            messageIds={
+              forwardModalOpen && messageToForward
+                ? [messageToForward.id]
+                : Array.from(selectedMessageIds)
+            }
             onClose={() => {
               setShowForwardModal(false);
+              closeForwardModal();
               setIsMultiSelectMode(false);
               setSelectedMessageIds(new Set());
             }}
