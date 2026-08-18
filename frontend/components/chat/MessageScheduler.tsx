@@ -16,14 +16,16 @@ export function MessageScheduler({ onClose, onSchedule }: MessageSchedulerProps)
     e.preventDefault();
     if (!date || !time) return;
     const scheduledAt = new Date(`${date}T${time}`);
-    if (scheduledAt <= new Date()) return; // Must be in the future
+    if (scheduledAt <= new Date()) {
+      alert("Please select a future date and time");
+      return;
+    }
     onSchedule(scheduledAt);
   };
 
-  // Get tomorrow's date for min attribute
-  const tomorrow = new Date();
-  tomorrow.setDate(tomorrow.getDate());
-  const minDate = tomorrow.toISOString().split("T")[0];
+  // Allow scheduling starting today
+  const today = new Date();
+  const minDate = today.toISOString().split("T")[0];
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
