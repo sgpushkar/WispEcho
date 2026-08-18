@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { useState, useEffect } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import { useAdminAuthStore } from "@/store/useAdminAuthStore";
 import {
@@ -18,6 +19,8 @@ import {
   Megaphone,
   Star,
   Ban,
+  Menu,
+  X,
 } from "lucide-react";
 
 const navItems = [
@@ -35,6 +38,11 @@ export function AdminSidebar() {
   const pathname = usePathname();
   const router = useRouter();
   const { user, logout } = useAdminAuthStore();
+  const [isOpen, setIsOpen] = useState(false);
+
+  useEffect(() => {
+    setIsOpen(false);
+  }, [pathname]);
 
   const handleLogout = async () => {
     try {
@@ -54,9 +62,22 @@ export function AdminSidebar() {
   };
 
   return (
-    <aside className="admin-sidebar">
-      {/* Logo */}
-      <div className="admin-sidebar-logo">
+    <>
+      <button className="admin-mobile-toggle" onClick={() => setIsOpen(true)}>
+        <Menu size={20} />
+      </button>
+
+      {isOpen && (
+        <div className="admin-mobile-overlay" onClick={() => setIsOpen(false)} />
+      )}
+
+      <aside className={`admin-sidebar ${isOpen ? "mobile-open" : ""}`}>
+        <button className="admin-mobile-close" onClick={() => setIsOpen(false)}>
+          <X size={20} />
+        </button>
+
+        {/* Logo */}
+        <div className="admin-sidebar-logo">
         <ShieldCheck size={22} className="admin-logo-icon" />
         <div>
           <span className="admin-logo-title">WispEcho</span>
@@ -105,5 +126,6 @@ export function AdminSidebar() {
         </button>
       </div>
     </aside>
+    </>
   );
 }
