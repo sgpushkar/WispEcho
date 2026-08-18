@@ -140,7 +140,7 @@ export function GroupSettingsModal() {
         initial={{ opacity: 0, scale: 0.95, y: 20 }}
         animate={{ opacity: 1, scale: 1, y: 0 }}
         exit={{ opacity: 0, scale: 0.95, y: 20 }}
-        className="glass relative flex h-[600px] w-full max-w-md flex-col overflow-hidden rounded-2xl border border-white/10"
+        className="glass relative flex h-[600px] max-h-[88vh] w-full max-w-md flex-col overflow-hidden rounded-2xl border border-white/10"
       >
         <div className="flex items-center justify-between border-b border-white/5 p-4">
           <h2 className="text-lg font-semibold flex items-center gap-2">
