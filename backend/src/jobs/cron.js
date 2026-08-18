@@ -58,7 +58,6 @@ cron.schedule("0 * * * *", async () => {
     console.error("❌ Error in subscription cron job:", err);
   }
 });
-});
 
 // Run every minute for scheduled & disappearing messages
 cron.schedule("* * * * *", async () => {
