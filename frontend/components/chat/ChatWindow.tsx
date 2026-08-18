@@ -2,7 +2,25 @@
 
 import { useEffect, useRef, useState, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Send, Image as ImageIcon, ArrowLeft, Mic, X } from "lucide-react";
+import {
+  Send,
+  Image as ImageIcon,
+  ArrowLeft,
+  Mic,
+  X,
+  Edit2,
+  Bell,
+  BellOff,
+  Timer,
+  Check,
+  MoreVertical,
+  User,
+  Palette,
+  CheckSquare,
+  Smile,
+  Clock,
+  BarChart2,
+} from "lucide-react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { api } from "@/lib/api";
 import { useChatStore, Message, useChatHasHydrated } from "@/store/useChatStore";
@@ -10,12 +28,10 @@ import { useAuthStore } from "@/store/useAuthStore";
 import { getSocket } from "@/lib/socket";
 import { MessageBubble } from "./MessageBubble";
 import { useVirtualScroll } from "@/hooks/useVirtualScroll";
-import { Edit2 } from "lucide-react";
 import { useUIStore } from "@/store/useUIStore";
 import { useRouter } from "next/navigation";
 import EmojiPicker, { Theme } from "emoji-picker-react";
 import { Avatar } from "../ui/Avatar";
-import { Bell, BellOff, Timer, Check } from "lucide-react";
 import { useImageUpload } from "@/hooks/useImageUpload";
 import { ImagePreviewModal } from "./ImagePreviewModal";
 import { useOfflineQueue } from "@/hooks/useOfflineQueue";
@@ -47,7 +63,8 @@ export function ChatWindow() {
   const [showScheduler, setShowScheduler] = useState(false);
   const [showPollCreator, setShowPollCreator] = useState(false);
   const [showForwardModal, setShowForwardModal] = useState(false);
-  const [showTimerMenu, setShowTimerMenu] = useState(false);
+  const [showMenu, setShowMenu] = useState(false);
+  const menuRef = useRef<HTMLDivElement>(null);
   
   // Multi-select state
   const [isMultiSelectMode, setIsMultiSelectMode] = useState(false);
@@ -224,12 +241,25 @@ export function ChatWindow() {
         setReplyToMessage(null);
         setEditingMessage(null);
         setDraft("");
+        setShowMenu(false);
         if (textareaRef.current) textareaRef.current.style.height = "auto";
       }
     }
     window.addEventListener("keydown", handleEsc);
     return () => window.removeEventListener("keydown", handleEsc);
   }, []);
+
+  useEffect(() => {
+    function handleClickOutside(e: MouseEvent) {
+      if (menuRef.current && !menuRef.current.contains(e.target as Node)) {
+        setShowMenu(false);
+      }
+    }
+    if (showMenu) {
+      document.addEventListener("mousedown", handleClickOutside);
+    }
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, [showMenu]);
 
   function handleTyping() {
     if (!activeConversationId) return;
@@ -562,70 +592,65 @@ export function ChatWindow() {
         />
       )}
 
-      <div className="chat-header h-[64px] shrink-0">
-        <button 
-          onClick={() => setActiveConversation(null)}
-          className="md:hidden mr-2 p-2 -ml-2 rounded-full hover:bg-white/10"
-        >
-          <ArrowLeft size={18} />
-        </button>
-        <motion.div 
-          whileHover={{ scale: 1.05, rotate: 2 }} 
-          className="relative cursor-pointer shadow-md shrink-0 rounded-[14px] overflow-hidden"
-          onClick={() => {
-            if (conversation.isGroup && conversation.group) {
-              setGroupSettingsOpen(true, conversation.group.id);
-            } else if (conversation.otherUser) {
-              router.push(`/profile?u=${conversation.otherUser.username}`);
-            }
-          }}
-        >
-          <Avatar src={avatar} name={name} className="h-10 w-10 border-none" />
-          {isOnline && <span className="dot" />}
-        </motion.div>
-        <div 
-          className="cursor-pointer"
-          onClick={() => {
-            if (conversation.isGroup && conversation.group) {
-              setGroupSettingsOpen(true, conversation.group.id);
-            } else if (conversation.otherUser) {
-              router.push(`/profile?u=${conversation.otherUser.username}`);
-            }
-          }}
-        >
-          <div className="chat-title leading-tight hover:underline">{name}</div>
-          <div className="chat-sub">
-            {typingInThisChat.length > 0 ? (
-              <div className="flex items-center gap-1 mt-0.5">
-                <motion.span 
-                  animate={{ y: [0, -2, 0] }} 
-                  transition={{ repeat: Infinity, duration: 0.6, delay: 0 }} 
-                  className="w-1 h-1 bg-white/50 rounded-full" 
-                />
-                <motion.span 
-                  animate={{ y: [0, -2, 0] }} 
-                  transition={{ repeat: Infinity, duration: 0.6, delay: 0.2 }} 
-                  className="w-1 h-1 bg-white/50 rounded-full" 
-                />
-                <motion.span 
-                  animate={{ y: [0, -2, 0] }} 
-                  transition={{ repeat: Infinity, duration: 0.6, delay: 0.4 }} 
-                  className="w-1 h-1 bg-white/50 rounded-full" 
-                />
-              </div>
-            ) : isOnline ? "online" : "offline"}
+      <div className="chat-header h-[64px] shrink-0 border-b border-white/5 flex items-center justify-between px-3.5 sm:px-6 z-20">
+        <div className="flex items-center gap-3 min-w-0 flex-1">
+          <button 
+            onClick={() => setActiveConversation(null)}
+            className="md:hidden p-2 -ml-2 rounded-full hover:bg-white/10 text-white/70 hover:text-white transition shrink-0"
+          >
+            <ArrowLeft size={18} />
+          </button>
+          <motion.div 
+            whileHover={{ scale: 1.05 }} 
+            className="relative cursor-pointer shadow-md shrink-0 rounded-2xl overflow-hidden"
+            onClick={() => {
+              if (conversation.isGroup && conversation.group) {
+                setGroupSettingsOpen(true, conversation.group.id);
+              } else if (conversation.otherUser) {
+                router.push(`/profile?u=${conversation.otherUser.username}`);
+              }
+            }}
+          >
+            <Avatar src={avatar} name={name} className="h-10 w-10 border-none" />
+            {isOnline && <span className="dot" />}
+          </motion.div>
+          <div 
+            className="cursor-pointer min-w-0 flex-1"
+            onClick={() => {
+              if (conversation.isGroup && conversation.group) {
+                setGroupSettingsOpen(true, conversation.group.id);
+              } else if (conversation.otherUser) {
+                router.push(`/profile?u=${conversation.otherUser.username}`);
+              }
+            }}
+          >
+            <div className="chat-title font-semibold text-white text-sm sm:text-base leading-tight truncate hover:underline">{name}</div>
+            <div className="chat-sub text-xs text-white/50 truncate mt-0.5">
+              {typingInThisChat.length > 0 ? (
+                <span className="text-accent font-medium animate-pulse">typing...</span>
+              ) : conversation.isGroup ? (
+                `${conversation.participants?.length || 0} members`
+              ) : isOnline ? (
+                <span className="text-emerald-400 font-medium">Online</span>
+              ) : (
+                "Offline"
+              )}
+            </div>
           </div>
         </div>
         
-        <div className="ml-auto flex items-center gap-2">
+        <div className="flex items-center gap-1 shrink-0 relative">
           {isMultiSelectMode ? (
-            <>
+            <div className="flex items-center gap-2">
+              <span className="text-xs text-white/60 font-medium mr-1 hidden sm:inline">
+                {selectedMessageIds.size} selected
+              </span>
               <button 
                 onClick={() => {
                   setIsMultiSelectMode(false);
                   setSelectedMessageIds(new Set());
                 }}
-                className="text-xs bg-white/10 px-3 py-1.5 rounded-full text-white/70 hover:text-white"
+                className="text-xs bg-white/10 px-3 py-1.5 rounded-full text-white/70 hover:text-white transition"
               >
                 Cancel
               </button>
@@ -656,9 +681,9 @@ export function ChatWindow() {
                     alert(err.response?.data?.error || "Failed to delete messages");
                   }
                 }}
-                className="text-xs bg-red-500/20 text-red-400 px-3 py-1.5 rounded-full hover:bg-red-500/30"
+                className="text-xs bg-red-500/20 text-red-400 px-3 py-1.5 rounded-full hover:bg-red-500/30 transition"
               >
-                Delete
+                Delete ({selectedMessageIds.size})
               </button>
               <button 
                 onClick={() => {
@@ -666,64 +691,136 @@ export function ChatWindow() {
                     setShowForwardModal(true);
                   }
                 }}
-                className="text-xs bg-accent text-white px-3 py-1.5 rounded-full hover:bg-accent/90"
+                className="text-xs bg-accent text-white px-3 py-1.5 rounded-full hover:bg-accent/90 transition"
               >
                 Forward
               </button>
-            </>
+            </div>
           ) : (
-            <>
-              <button onClick={() => setIsMultiSelectMode(true)} className="p-2 rounded-full hover:bg-white/10 text-white/50 hover:text-white transition" title="Select messages">
-                <Check size={18} />
-              </button>
-              <button 
-                onClick={() => setShowSharedMedia(true)}
-                className="p-2 rounded-full hover:bg-white/10 text-white/50 hover:text-white transition"
-                title="Shared Media"
+            <div className="relative" ref={menuRef}>
+              <button
+                onClick={() => setShowMenu((prev) => !prev)}
+                className={`p-2 rounded-full transition ${showMenu ? "bg-white/15 text-white" : "hover:bg-white/10 text-white/60 hover:text-white"}`}
+                title="Options"
               >
-                <ImageIcon size={20} />
+                <MoreVertical size={20} />
               </button>
-              <button 
-                onClick={async () => {
-                  try {
-                    await api.patch(`/notifications/${activeConversationId}/mute`);
-                    setIsMuted(!isMuted);
-                  } catch (e) { console.error(e); }
-                }}
-                className={`p-2 rounded-full hover:bg-white/10 transition ${isMuted ? 'text-red-400 hover:text-red-300' : 'text-white/50 hover:text-white'}`}
-                title={isMuted ? "Unmute" : "Mute"}
-              >
-                {isMuted ? <BellOff size={18} /> : <Bell size={18} />}
-              </button>
-              <div className="relative">
-                <button 
-                  onClick={() => setShowTimerMenu(!showTimerMenu)}
-                  className={`p-2 rounded-full hover:bg-white/10 transition ${disappearAfter !== 'OFF' ? 'text-accent' : 'text-white/50 hover:text-white'}`}
-                  title="Disappearing Messages"
-                >
-                  <Timer size={18} />
-                </button>
-                {showTimerMenu && (
-                  <div className="absolute top-full right-0 mt-2 bg-[#1a1a1a] border border-white/10 rounded-xl shadow-2xl py-2 z-50 min-w-[150px]">
-                    {["OFF", "H24", "D7", "D30"].map(opt => (
-                      <button 
-                        key={opt}
-                        onClick={async () => {
-                          try {
-                            await api.patch(`/messages/conversations/${activeConversationId}/disappear`, { disappearAfter: opt });
-                            setDisappearAfter(opt);
-                            setShowTimerMenu(false);
-                          } catch (e) { console.error(e); }
-                        }}
-                        className={`w-full text-left px-4 py-2 text-sm hover:bg-white/5 ${disappearAfter === opt ? 'text-accent font-medium' : 'text-white/80'}`}
-                      >
-                        {opt === "OFF" ? "Off" : opt === "H24" ? "24 Hours" : opt === "D7" ? "7 Days" : "30 Days"}
-                      </button>
-                    ))}
-                  </div>
+
+              <AnimatePresence>
+                {showMenu && (
+                  <motion.div
+                    initial={{ opacity: 0, scale: 0.95, y: -6 }}
+                    animate={{ opacity: 1, scale: 1, y: 0 }}
+                    exit={{ opacity: 0, scale: 0.95, y: -6 }}
+                    transition={{ duration: 0.15 }}
+                    className="absolute right-0 top-full mt-2 w-60 rounded-2xl bg-[#141416]/95 backdrop-blur-2xl border border-white/10 shadow-[0_20px_50px_rgba(0,0,0,0.5)] p-1.5 z-50 flex flex-col gap-0.5"
+                  >
+                    <button
+                      onClick={() => {
+                        setShowMenu(false);
+                        if (conversation.isGroup && conversation.group) {
+                          setGroupSettingsOpen(true, conversation.group.id);
+                        } else if (conversation.otherUser) {
+                          router.push(`/profile?u=${conversation.otherUser.username}`);
+                        }
+                      }}
+                      className="flex items-center gap-2.5 px-3 py-2.5 text-xs font-medium text-white/80 hover:text-white hover:bg-white/10 rounded-xl transition text-left"
+                    >
+                      <User size={15} className="text-white/50 shrink-0" />
+                      <span>{conversation.isGroup ? "Group Details" : "View Profile"}</span>
+                    </button>
+
+                    <button
+                      onClick={() => {
+                        setShowMenu(false);
+                        setShowSharedMedia(true);
+                      }}
+                      className="flex items-center gap-2.5 px-3 py-2.5 text-xs font-medium text-white/80 hover:text-white hover:bg-white/10 rounded-xl transition text-left"
+                    >
+                      <ImageIcon size={15} className="text-white/50 shrink-0" />
+                      <span>Shared Media</span>
+                    </button>
+
+                    <button
+                      onClick={() => {
+                        setShowMenu(false);
+                        setShowWallpaperPicker(true);
+                      }}
+                      className="flex items-center gap-2.5 px-3 py-2.5 text-xs font-medium text-white/80 hover:text-white hover:bg-white/10 rounded-xl transition text-left"
+                    >
+                      <Palette size={15} className="text-white/50 shrink-0" />
+                      <span>Chat Wallpaper</span>
+                    </button>
+
+                    <button
+                      onClick={() => {
+                        setShowMenu(false);
+                        setIsMultiSelectMode(true);
+                      }}
+                      className="flex items-center gap-2.5 px-3 py-2.5 text-xs font-medium text-white/80 hover:text-white hover:bg-white/10 rounded-xl transition text-left"
+                    >
+                      <CheckSquare size={15} className="text-white/50 shrink-0" />
+                      <span>Select Messages</span>
+                    </button>
+
+                    <button
+                      onClick={async () => {
+                        setShowMenu(false);
+                        try {
+                          await api.patch(`/notifications/${activeConversationId}/mute`);
+                          setIsMuted(!isMuted);
+                        } catch (e) {
+                          console.error(e);
+                        }
+                      }}
+                      className="flex items-center justify-between px-3 py-2.5 text-xs font-medium text-white/80 hover:text-white hover:bg-white/10 rounded-xl transition text-left"
+                    >
+                      <div className="flex items-center gap-2.5">
+                        {isMuted ? <BellOff size={15} className="text-red-400 shrink-0" /> : <Bell size={15} className="text-white/50 shrink-0" />}
+                        <span>{isMuted ? "Unmute Notifications" : "Mute Notifications"}</span>
+                      </div>
+                      {isMuted && <span className="text-[10px] bg-red-500/20 text-red-400 px-1.5 py-0.5 rounded font-semibold">MUTED</span>}
+                    </button>
+
+                    <div className="h-[1px] bg-white/5 my-1" />
+
+                    <div className="px-3 py-1.5 text-[10px] font-bold uppercase tracking-wider text-white/40 flex items-center gap-1.5">
+                      <Timer size={12} className="text-white/40" />
+                      <span>Disappearing Messages</span>
+                    </div>
+
+                    <div className="grid grid-cols-4 gap-1 px-1.5 pb-1">
+                      {[
+                        { label: "Off", val: "OFF" },
+                        { label: "24h", val: "H24" },
+                        { label: "7d", val: "D7" },
+                        { label: "30d", val: "D30" },
+                      ].map((opt) => (
+                        <button
+                          key={opt.val}
+                          onClick={async () => {
+                            try {
+                              await api.patch(`/messages/conversations/${activeConversationId}/disappear`, { disappearAfter: opt.val });
+                              setDisappearAfter(opt.val);
+                              setShowMenu(false);
+                            } catch (e) {
+                              console.error(e);
+                            }
+                          }}
+                          className={`py-1 text-center rounded-lg text-xs font-medium transition ${
+                            disappearAfter === opt.val
+                              ? "bg-accent text-white"
+                              : "bg-white/5 text-white/60 hover:bg-white/10 hover:text-white"
+                          }`}
+                        >
+                          {opt.label}
+                        </button>
+                      ))}
+                    </div>
+                  </motion.div>
                 )}
-              </div>
-            </>
+              </AnimatePresence>
+            </div>
           )}
         </div>
       </div>
@@ -739,7 +836,7 @@ export function ChatWindow() {
         onPointerLeave={cancelLongPress}
         onPointerCancel={cancelLongPress}
       >
-        <div style={{ paddingTop, paddingBottom }}>
+        <div className="max-w-4xl mx-auto w-full" style={{ paddingTop, paddingBottom }}>
           <AnimatePresence initial={false}>
             {visibleItems.map((msg) => (
               <MessageBubble 
@@ -802,25 +899,25 @@ export function ChatWindow() {
         </div>
       </div>
 
-      <div className="composer">
+      <div className="composer max-w-4xl mx-auto w-full">
         {replyToMessage && (
-          <div className="mb-3 flex items-center justify-between rounded-[20px] bg-white/5 border border-white/10 px-5 py-3 text-[13px] text-white/60">
-            <div className="flex flex-col">
-              <span className="text-white font-medium mb-1">Replying to {replyToMessage.sender?.displayName}</span>
-              <span className="truncate max-w-[200px] sm:max-w-[400px]">{replyToMessage.content}</span>
+          <div className="mb-3 flex items-center justify-between rounded-2xl bg-white/5 border border-white/10 px-4 py-2.5 text-[13px] text-white/60 backdrop-blur-md">
+            <div className="flex flex-col min-w-0 pr-2">
+              <span className="text-white font-medium text-xs mb-0.5 truncate">Replying to {replyToMessage.sender?.displayName}</span>
+              <span className="truncate text-xs text-white/70">{replyToMessage.content}</span>
             </div>
-            <button onClick={() => setReplyToMessage(null)} className="hover:text-white transition bg-white/5 p-1.5 rounded-full">
+            <button onClick={() => setReplyToMessage(null)} className="hover:text-white transition bg-white/5 hover:bg-white/10 p-1.5 rounded-full shrink-0">
               <X size={14} />
             </button>
           </div>
         )}
         {editingMessage && (
-          <div className="mb-3 flex items-center justify-between rounded-[20px] bg-white/5 border border-white/10 px-5 py-3 text-[13px] text-white/60">
-            <div className="flex flex-col">
-              <span className="text-white font-medium mb-1 flex items-center gap-2"><Edit2 size={12}/> Editing Message</span>
-              <span className="truncate max-w-[200px] sm:max-w-[400px]">{editingMessage.content}</span>
+          <div className="mb-3 flex items-center justify-between rounded-2xl bg-white/5 border border-white/10 px-4 py-2.5 text-[13px] text-white/60 backdrop-blur-md">
+            <div className="flex flex-col min-w-0 pr-2">
+              <span className="text-white font-medium text-xs mb-0.5 flex items-center gap-1.5"><Edit2 size={12} className="text-accent"/> Editing Message</span>
+              <span className="truncate text-xs text-white/70">{editingMessage.content}</span>
             </div>
-            <button onClick={() => { setEditingMessage(null); setDraft(""); }} className="hover:text-white transition bg-white/5 p-1.5 rounded-full">
+            <button onClick={() => { setEditingMessage(null); setDraft(""); }} className="hover:text-white transition bg-white/5 hover:bg-white/10 p-1.5 rounded-full shrink-0">
               <X size={14} />
             </button>
           </div>
@@ -834,9 +931,15 @@ export function ChatWindow() {
             className="hidden"
             onChange={handleFileSelect}
           />
-          <motion.div whileHover={{ scale: 1.1, filter: "brightness(1.2)" }} className="icon-btn" onClick={handleImageIconClick}>
-            <ImageIcon size={18} />
-          </motion.div>
+          <button
+            type="button"
+            className="icon-btn shrink-0"
+            onClick={handleImageIconClick}
+            title="Attach image"
+          >
+            <ImageIcon size={19} />
+          </button>
+
           <textarea
             ref={textareaRef}
             value={draft}
@@ -864,10 +967,8 @@ export function ChatWindow() {
             }}
             onKeyDown={(e) => {
               if (mentionQuery !== null && (e.key === "ArrowUp" || e.key === "ArrowDown" || e.key === "Enter")) {
-                // Let the suggestion box handle it if we want, but for now just prevent default if enter
                 if (e.key === "Enter") {
                    e.preventDefault();
-                   // Wait for user to select from suggestions
                    return;
                 }
               }
@@ -878,9 +979,10 @@ export function ChatWindow() {
               }
             }}
             placeholder="say something..."
-            className="flex-1 bg-transparent border-none outline-none text-white font-inter text-[14px] min-h-[22px] max-h-[120px] resize-none py-1 placeholder:text-white/30 transition-opacity focus:placeholder:opacity-50"
+            className="flex-1 bg-transparent border-none outline-none text-white font-inter text-[14px] min-h-[22px] max-h-[120px] resize-none py-1.5 placeholder:text-white/30 transition-opacity focus:placeholder:opacity-50"
           />
-          <div className="relative">
+
+          <div className="flex items-center gap-0.5 shrink-0 relative">
             {conversation?.isGroup && (
               <MentionSuggestions
                 query={mentionQuery || ""}
@@ -894,7 +996,6 @@ export function ChatWindow() {
                   if (textareaRef.current) {
                     textareaRef.current.focus();
                     textareaRef.current.style.height = "auto";
-                    // Need setTimeout for the value to update before scrollHeight calculation
                     setTimeout(() => {
                       if (textareaRef.current) {
                         textareaRef.current.style.height = `${textareaRef.current.scrollHeight}px`;
@@ -904,35 +1005,40 @@ export function ChatWindow() {
                 }}
               />
             )}
-            <motion.div 
-              whileHover={{ scale: 1.1, filter: "brightness(1.2)" }} 
-              className="icon-btn hidden sm:flex cursor-pointer"
+            
+            <button
+              type="button"
+              className="icon-btn hidden sm:flex shrink-0"
               onClick={() => setShowScheduler(true)}
               title="Schedule Message"
             >
-              <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
-            </motion.div>
-            <motion.div 
-              whileHover={{ scale: 1.1, filter: "brightness(1.2)" }} 
-              className="icon-btn hidden sm:flex cursor-pointer"
+              <Clock size={18} />
+            </button>
+
+            <button
+              type="button"
+              className="icon-btn hidden sm:flex shrink-0"
               onClick={() => setShowPollCreator(true)}
               title="Create Poll"
             >
-              <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
-            </motion.div>
-            <motion.div 
-              whileHover={{ scale: 1.1, filter: "brightness(1.2)" }} 
-              className="icon-btn hidden sm:flex cursor-pointer"
+              <BarChart2 size={18} />
+            </button>
+
+            <button
+              type="button"
+              className="icon-btn flex shrink-0"
               onClick={() => setShowEmojiPicker((prev) => !prev)}
+              title="Insert Emoji"
             >
-              <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><path d="M8 14s1.5 2 4 2 4-2 4-2"/><line x1="9" y1="9" x2="9.01" y2="9"/><line x1="15" y1="9" x2="15.01" y2="9"/></svg>
-            </motion.div>
+              <Smile size={18} />
+            </button>
+
             <AnimatePresence>
               {showEmojiPicker && (
                 <motion.div 
-                  initial={{ opacity: 0, y: 20, scale: 0.95 }}
+                  initial={{ opacity: 0, y: 15, scale: 0.95 }}
                   animate={{ opacity: 1, y: 0, scale: 1 }}
-                  exit={{ opacity: 0, y: 20, scale: 0.95 }}
+                  exit={{ opacity: 0, y: 15, scale: 0.95 }}
                   className="absolute bottom-12 right-0 z-50 shadow-2xl"
                 >
                   <EmojiPicker 
@@ -944,26 +1050,30 @@ export function ChatWindow() {
                 </motion.div>
               )}
             </AnimatePresence>
+
+            <button
+              type="button"
+              className="icon-btn flex shrink-0"
+              onClick={startRecording}
+              title="Voice Message"
+            >
+              <Mic size={18} />
+            </button>
+
+            <motion.button
+              whileHover={{ scale: 1.05, rotate: -4 }}
+              whileTap={{ scale: 0.92 }}
+              animate={isSending ? { scale: [1, 1.15, 1] } : {}}
+              transition={{ type: "spring", stiffness: 400, damping: 17 }}
+              onMouseDown={(e) => e.preventDefault()}
+              onTouchStart={(e) => e.preventDefault()}
+              onClick={() => sendMessage()}
+              className="send-btn shrink-0 ml-1"
+              title="Send"
+            >
+              <Send size={15} color="#ffffff" />
+            </motion.button>
           </div>
-           <motion.div 
-            whileHover={{ scale: 1.1, filter: "brightness(1.2)" }} 
-            className="icon-btn flex cursor-pointer"
-            onClick={startRecording}
-          >
-            <Mic size={18} />
-          </motion.div>
-          <motion.button
-            whileHover={{ scale: 1.05, rotate: -5, filter: "brightness(1.2)" }}
-            whileTap={{ scale: 0.9 }}
-            animate={isSending ? { scale: [1, 1.2, 1], filter: ["brightness(1)", "brightness(1.5)", "brightness(1)"] } : {}}
-            transition={{ type: "spring", stiffness: 400, damping: 17 }}
-            onMouseDown={(e) => e.preventDefault()}
-            onTouchStart={(e) => e.preventDefault()}
-            onClick={() => sendMessage()}
-            className="send-btn"
-          >
-            <Send size={16} color="#ffffff" />
-          </motion.button>
         </div>
       </div>
 
