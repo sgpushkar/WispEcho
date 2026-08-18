@@ -41,7 +41,7 @@ export default function IpBansPage() {
     if (!ipAddress.trim()) return;
     setIsBanning(true);
     try {
-      await api.post("/admin/ip-bans", { ipAddress, reason });
+      await api.post("/admin/ip-bans", { ip: ipAddress, reason });
       setIpAddress("");
       setReason("");
       fetchBans();
@@ -52,10 +52,10 @@ export default function IpBansPage() {
     }
   };
 
-  const handleRemove = async (ip: string) => {
+  const handleRemove = async (id: string, ip: string) => {
     if (!confirm(`Remove ban for IP ${ip}?`)) return;
     try {
-      await api.delete(`/admin/ip-bans/${encodeURIComponent(ip)}`);
+      await api.delete(`/admin/ip-bans/${id}`);
       fetchBans();
     } catch (err: any) {
       alert(err.response?.data?.error || "Failed to remove ban");
@@ -154,7 +154,7 @@ export default function IpBansPage() {
                         </td>
                         <td>
                           <button
-                            onClick={() => handleRemove(b.ipAddress)}
+                            onClick={() => handleRemove(b.id, b.ipAddress)}
                             className="p-1.5 text-red-500 hover:bg-red-500/10 rounded transition"
                             title="Remove Ban"
                           >
