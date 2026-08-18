@@ -2,6 +2,7 @@ import { Router } from "express";
 import * as messageController from "../controllers/messageController.js";
 import * as forwardController from "../controllers/forwardController.js";
 import * as pinnedMessageController from "../controllers/pinnedMessageController.js";
+import * as groupController from "../controllers/groupController.js";
 import { requireAuth } from "../middleware/auth.js";
 const router = Router();
 router.use(requireAuth);
@@ -30,6 +31,6 @@ router.delete("/bulk", pinnedMessageController.bulkDeleteMessages);
 router.post("/conversations/:conversationId/pin/:messageId", pinnedMessageController.pinMessage);
 router.delete("/conversations/:conversationId/pin/:messageId", pinnedMessageController.unpinMessage);
 router.get("/conversations/:conversationId/pins", pinnedMessageController.getPinnedMessages);
-router.patch("/conversations/:conversationId/disappear", messageController.setDisappearTimer); // Note: defined in groupController in earlier step? Let's fix that below
+router.patch("/conversations/:conversationId/disappear", groupController.setDisappearTimer);
 
 export default router;
