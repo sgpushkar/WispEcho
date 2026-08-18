@@ -86,7 +86,7 @@ app.use("/api/version", versionRoutes);
 app.use("/api/upload", uploadRoutes);
 app.use("/api/media", secureMediaRoutes);
 app.use("/api/linkpreview", linkpreviewRoutes);
-app.use("/api/notifications", pushRoutes);
+app.use("/api/notifications", notificationsRoutes);
 app.use("/api/inbox", notificationsRoutes);
 app.use("/api/themes", themeRoutes);
 app.use("/api/subscription", subscriptionRoutes);
