@@ -292,7 +292,7 @@ export function SettingsModal({ isOpen, onClose }: { isOpen: boolean; onClose: (
         initial={{ opacity: 0, scale: 0.95, y: 20 }}
         animate={{ opacity: 1, scale: 1, y: 0 }}
         exit={{ opacity: 0, scale: 0.95, y: 20 }}
-        className="relative flex h-[580px] w-full max-w-md flex-col overflow-hidden rounded-3xl"
+        className="relative flex h-[580px] max-h-[88vh] w-full max-w-md flex-col overflow-hidden rounded-3xl"
         style={{
           background: isDarkMode ? "rgba(18,18,22,0.97)" : "rgba(255,255,255,0.97)",
           border: `1px solid var(--glass-border)`,
