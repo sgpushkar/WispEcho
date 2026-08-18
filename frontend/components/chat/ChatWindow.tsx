@@ -391,6 +391,17 @@ export function ChatWindow() {
           avatarUrl: user.avatarUrl
         },
         replyTo: currentReplyTo,
+        poll: type === "POLL" && pollOptions ? {
+          id: tempId,
+          messageId: tempId,
+          question: content || "Poll",
+          options: pollOptions,
+          results: pollOptions.map((opt, idx) => ({ index: idx, label: opt, votes: 0, voters: [] })),
+          totalVotes: 0,
+          myVote: null,
+          closedAt: null,
+          endsAt: null,
+        } : null,
       };
       
       addMessage(optimisticMsg);
