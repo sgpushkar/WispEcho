@@ -261,7 +261,7 @@ export function Sidebar() {
 
   return (
     <>
-      <aside className="sidebar glass h-full w-full md:w-[300px]">
+      <aside className="sidebar glass h-full w-full md:w-[290px] lg:w-[320px] xl:w-[340px] shrink-0">
         {/* Header / Brand */}
         <div className="flex items-center justify-between pb-1 relative z-[9999]">
           <div className="flex items-center gap-2">
