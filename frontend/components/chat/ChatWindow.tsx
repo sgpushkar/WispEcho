@@ -41,10 +41,28 @@ import { useVoiceRecorder } from "@/hooks/useVoiceRecorder";
 import { VoiceRecorder } from "./VoiceRecorder";
 import { WallpaperPickerModal } from "./WallpaperPickerModal";
 import { ChatBackground } from "@/lib/themes";
+import { isToday, isYesterday, format as formatDate, isSameDay } from "date-fns";
 import { MessageScheduler } from "./MessageScheduler";
 import { PollCreator } from "./PollCreator";
 import { ForwardModal } from "./ForwardModal";
 import { PinnedMessages } from "./PinnedMessages";
+
+function formatDayDivider(dateStr: string) {
+  try {
+    const date = new Date(dateStr);
+    if (isNaN(date.getTime())) return null;
+    if (isToday(date)) return "Today";
+    if (isYesterday(date)) return "Yesterday";
+    const currentYear = new Date().getFullYear();
+    const msgYear = date.getFullYear();
+    if (currentYear === msgYear) {
+      return formatDate(date, "EEEE, MMMM d");
+    }
+    return formatDate(date, "EEEE, MMMM d, yyyy");
+  } catch {
+    return null;
+  }
+}
 
 export function ChatWindow() {
   const router = useRouter();
@@ -838,25 +856,40 @@ export function ChatWindow() {
       >
         <div className="max-w-4xl mx-auto w-full" style={{ paddingTop, paddingBottom }}>
           <AnimatePresence initial={false}>
-            {visibleItems.map((msg) => (
-              <MessageBubble 
-                key={msg.id} 
-                message={msg} 
-                isGroup={conversation?.isGroup}
-                onReply={setReplyToMessage} 
-                onEdit={setEditingMessage}
-                isSelectable={isMultiSelectMode}
-                isSelected={selectedMessageIds.has(msg.id)}
-                onToggleSelect={(id) => {
-                  setSelectedMessageIds(prev => {
-                    const newSet = new Set(prev);
-                    if (newSet.has(id)) newSet.delete(id);
-                    else newSet.add(id);
-                    return newSet;
-                  });
-                }}
-              />
-            ))}
+            {visibleItems.map((msg, index) => {
+              const prevMsg = visibleItems[index - 1];
+              const showDateDivider =
+                !prevMsg ||
+                !isSameDay(new Date(msg.createdAt), new Date(prevMsg.createdAt));
+
+              return (
+                <div key={msg.id} className="flex flex-col">
+                  {showDateDivider && (
+                    <div className="flex items-center justify-center my-3 select-none">
+                      <span className="bg-white/10 backdrop-blur-md border border-white/10 px-3.5 py-1 rounded-full text-[11px] font-medium text-white/70 shadow-sm">
+                        {formatDayDivider(msg.createdAt)}
+                      </span>
+                    </div>
+                  )}
+                  <MessageBubble 
+                    message={msg} 
+                    isGroup={conversation?.isGroup}
+                    onReply={setReplyToMessage} 
+                    onEdit={setEditingMessage}
+                    isSelectable={isMultiSelectMode}
+                    isSelected={selectedMessageIds.has(msg.id)}
+                    onToggleSelect={(id) => {
+                      setSelectedMessageIds(prev => {
+                        const newSet = new Set(prev);
+                        if (newSet.has(id)) newSet.delete(id);
+                        else newSet.add(id);
+                        return newSet;
+                      });
+                    }}
+                  />
+                </div>
+              );
+            })}
             
             {/* Render Pending Uploads as mock bubbles */}
             {pendingUploads.map((up) => (
