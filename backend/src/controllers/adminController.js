@@ -199,7 +199,7 @@ export async function warnUser(req, res, next) {
         adminId: req.userId,
         action: "WARN_USER",
         targetUserId: id,
-        metadata: { reason, newWarningCount, autoSuspended: newWarningCount === 3, autoBanned: newWarningCount >= 5 },
+        metadata: { reason, newWarningCount, autoSuspended: newWarningCount === 3, autoBanned: newWarningCount >= 4 },
         ipAddress: req.ip,
       },
     });
@@ -308,12 +308,12 @@ export async function deleteUser(req, res, next) {
 // --- Content Moderation ---
 export async function getReports(req, res, next) {
   try {
-    const { status = "OPEN" } = req.query;
+    const { status = "PENDING" } = req.query;
     const reports = await prisma.report.findMany({
       where: { status },
       include: {
-        reporter: { select: { id: true, username: true } },
-        reported: { select: { id: true, username: true } },
+        reporter: { select: { id: true, username: true, displayName: true } },
+        reported: { select: { id: true, username: true, displayName: true } },
       },
       orderBy: { createdAt: "desc" },
     });
@@ -456,7 +456,12 @@ export async function requestUserDataExport(req, res, next) {
 // --- IP Bans ---
 export async function getIpBans(req, res, next) {
   try {
-    const bans = await prisma.ipBan.findMany({ orderBy: { createdAt: "desc" } });
+    const bans = await prisma.ipBan.findMany({
+      orderBy: { createdAt: "desc" },
+      include: {
+        bannedBy: { select: { id: true, displayName: true, username: true } },
+      },
+    });
     res.json({ bans });
   } catch (err) {
     next(err);
