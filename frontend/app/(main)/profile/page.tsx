@@ -5,14 +5,17 @@ import { useSearchParams, useRouter } from "next/navigation";
 import { useQuery } from "@tanstack/react-query";
 import { api } from "@/lib/api";
 import { motion } from "framer-motion";
-import { ArrowLeft, User as UserIcon, Calendar, Circle } from "lucide-react";
+import { ArrowLeft, User as UserIcon, Calendar, Circle, MessageSquare } from "lucide-react";
 import { format } from "date-fns";
 import { Avatar } from "@/components/ui/Avatar";
+import { useChatStore } from "@/store/useChatStore";
+import { useAuthStore } from "@/store/useAuthStore";
 
 function ProfileContent() {
   const searchParams = useSearchParams();
   const username = searchParams.get("u") || "";
   const router = useRouter();
+  const currentUserId = useAuthStore((s) => s.user?.id);
 
   const { data, isLoading, error } = useQuery({
     queryKey: ["profile", username],
@@ -89,12 +92,30 @@ function ProfileContent() {
 
         {/* Profile Info */}
         <div className="relative px-4 sm:px-8">
-          <div className="flex justify-between">
-            <div className="-mt-16 sm:-mt-20 relative h-32 w-32 sm:h-40 sm:w-40 rounded-full border-4 border-[#0a0a0a] overflow-hidden">
+          <div className="flex justify-between items-end">
+            <div className="-mt-16 sm:-mt-20 relative h-32 w-32 sm:h-40 sm:w-40 rounded-full border-4 border-[#0a0a0a] overflow-hidden shrink-0">
               <Avatar src={user.avatarUrl} name={user.displayName} className="h-full w-full border-none text-3xl font-bold" />
             </div>
             <div className="pt-4">
-              {/* Could add action buttons here like 'Add Friend' or 'Message' in the future */}
+              {currentUserId !== user.id && (
+                <button
+                  onClick={async () => {
+                    try {
+                      const { data: convData } = await api.get(`/messages/conversations/direct/${user.id}`);
+                      if (convData.conversation) {
+                        useChatStore.getState().setActiveConversation(convData.conversation.id);
+                        router.push("/chat");
+                      }
+                    } catch (err) {
+                      console.error(err);
+                    }
+                  }}
+                  className="flex items-center gap-2 px-4 py-2 rounded-xl bg-accent text-white font-medium text-sm hover:bg-accent/90 transition shadow-md"
+                >
+                  <MessageSquare size={16} />
+                  <span>Message</span>
+                </button>
+              )}
             </div>
           </div>
 
