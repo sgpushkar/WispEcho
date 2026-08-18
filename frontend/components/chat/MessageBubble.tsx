@@ -501,6 +501,7 @@ export const MessageBubble = memo(function MessageBubble({
     prev.pendingUpload?.status === next.pendingUpload?.status &&
     prev.pendingUpload?.progress === next.pendingUpload?.progress &&
     prev.isSelectable === next.isSelectable &&
-    prev.isSelected === next.isSelected
+    prev.isSelected === next.isSelected &&
+    JSON.stringify(prev.message.poll) === JSON.stringify(next.message.poll)
   );
 });
