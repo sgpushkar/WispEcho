@@ -20,20 +20,23 @@ export function PinnedMessages({ conversationId }: PinnedMessagesProps) {
     queryKey: ["pinnedMessages", conversationId],
     queryFn: async () => {
       const res = await api.get(`/messages/conversations/${conversationId}/pins`);
-      return res.data.messages;
+      const list = res.data.pins || res.data.messages || [];
+      return list.map((p: any) => p.message || p);
     },
     enabled: !!conversationId
   });
 
   if (!pinnedMessages || pinnedMessages.length === 0) return null;
 
-  const currentMsg = pinnedMessages[currentIdx];
+  const safeIdx = Math.min(currentIdx, Math.max(0, pinnedMessages.length - 1));
+  const currentMsg = pinnedMessages[safeIdx];
+  if (!currentMsg) return null;
 
   const handleUnpin = async (e: React.MouseEvent, msgId: string) => {
     e.stopPropagation();
     try {
       await api.delete(`/messages/conversations/${conversationId}/pin/${msgId}`);
-      // The socket event message:unpinned will refetch
+      setCurrentIdx(0);
     } catch (err) {
       console.error(err);
     }
