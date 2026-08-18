@@ -82,7 +82,7 @@ export async function getUserDetail(req, res, next) {
     if (!user) return res.status(404).json({ error: "User not found" });
 
     // Sanitize — use destructuring so PII fields are never sent
-    const { password, googleId, ...safeUser } = user as any;
+    const { password, googleId, ...safeUser } = user;
     
     res.json({ user: safeUser });
   } catch (err) {
