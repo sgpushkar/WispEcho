@@ -10,6 +10,7 @@ interface Report {
   status: string;
   createdAt: string;
   reporter: { displayName: string; username: string };
+  reported?: { displayName: string; username: string };
   reportedUser?: { displayName: string; username: string };
   message?: { content: string };
 }
@@ -110,14 +111,14 @@ export default function ModerationPage() {
                       </div>
                     </td>
                     <td>
-                      {report.reportedUser ? (
+                      {report.reported || report.reportedUser ? (
                         <div className="admin-user-cell">
                           <div className="admin-avatar-sm">
-                            <span>{report.reportedUser?.displayName?.[0]?.toUpperCase() || "?"}</span>
+                            <span>{(report.reported || report.reportedUser)?.displayName?.[0]?.toUpperCase() || "?"}</span>
                           </div>
                           <div className="admin-user-cell-info">
-                            <div className="name">{report.reportedUser?.displayName}</div>
-                            <div className="email">@{report.reportedUser?.username}</div>
+                            <div className="name">{(report.reported || report.reportedUser)?.displayName}</div>
+                            <div className="email">@{(report.reported || report.reportedUser)?.username}</div>
                           </div>
                         </div>
                       ) : (
