@@ -132,9 +132,19 @@ export function useSocketEvents() {
 
     // Feature v2 Socket Events
     socket.on("poll:updated", ({ pollId, poll }) => {
-      // Just invalidate the query since poll rendering components fetch poll by ID
       queryClient.invalidateQueries({ queryKey: ["poll", pollId] });
-      queryClient.invalidateQueries({ queryKey: ["messages", activeConvRef.current] });
+      if (activeConvRef.current) {
+        queryClient.invalidateQueries({ queryKey: ["messages", activeConvRef.current] });
+        const allMsgs = useChatStore.getState().messages[activeConvRef.current] || [];
+        const targetMsg = allMsgs.find(m => m.poll?.id === pollId || m.id === poll?.messageId);
+        if (targetMsg) {
+          useChatStore.getState().updateMessage({
+            id: targetMsg.id,
+            conversationId: activeConvRef.current,
+            poll,
+          });
+        }
+      }
     });
 
     socket.on("message:pinned", ({ conversationId }) => {
