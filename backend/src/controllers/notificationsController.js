@@ -1,5 +1,62 @@
 import prisma from "../config/db.js";
 
+/** GET /api/inbox — list notifications for current user */
+export async function listNotifications(req, res, next) {
+  try {
+    const notifications = await prisma.notification.findMany({
+      where: { userId: req.userId },
+      orderBy: { createdAt: "desc" },
+      take: 50,
+    });
+    const unreadCount = await prisma.notification.count({
+      where: { userId: req.userId, isRead: false },
+    });
+    res.json({ notifications, unreadCount });
+  } catch (err) {
+    next(err);
+  }
+}
+
+/** PATCH /api/inbox/:notificationId/read — mark notification as read */
+export async function markNotificationRead(req, res, next) {
+  try {
+    const { notificationId } = req.params;
+    await prisma.notification.updateMany({
+      where: { id: notificationId, userId: req.userId },
+      data: { isRead: true },
+    });
+    res.json({ success: true });
+  } catch (err) {
+    next(err);
+  }
+}
+
+/** POST /api/inbox/mark-all-read — mark all notifications as read */
+export async function markAllNotificationsRead(req, res, next) {
+  try {
+    await prisma.notification.updateMany({
+      where: { userId: req.userId, isRead: false },
+      data: { isRead: true },
+    });
+    res.json({ success: true });
+  } catch (err) {
+    next(err);
+  }
+}
+
+/** DELETE /api/inbox/:notificationId — delete a notification */
+export async function deleteNotification(req, res, next) {
+  try {
+    const { notificationId } = req.params;
+    await prisma.notification.deleteMany({
+      where: { id: notificationId, userId: req.userId },
+    });
+    res.json({ success: true });
+  } catch (err) {
+    next(err);
+  }
+}
+
 /** GET /api/inbox/preferences */
 export async function getConversationPreferences(req, res, next) {
   try {
