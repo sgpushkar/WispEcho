@@ -228,8 +228,17 @@ export async function deleteGroup(req, res, next) {
   }
 }
 
-import { customAlphabet } from "nanoid";
-const nanoid = customAlphabet("abcdefghijklmnopqrstuvwxyz0123456789", 10);
+import crypto from "crypto";
+
+function generateJoinCode(length = 10) {
+  const chars = "abcdefghijklmnopqrstuvwxyz0123456789";
+  const bytes = crypto.randomBytes(length);
+  let code = "";
+  for (let i = 0; i < length; i++) {
+    code += chars[bytes[i] % chars.length];
+  }
+  return code;
+}
 
 /** POST /api/groups/:groupId/join-link — generate/rotate invite code */
 export async function generateJoinLink(req, res, next) {
@@ -241,7 +250,7 @@ export async function generateJoinLink(req, res, next) {
     if (!requester || !["OWNER", "ADMIN"].includes(requester.role)) {
       return res.status(403).json({ error: "Not authorized" });
     }
-    const joinCode = nanoid();
+    const joinCode = generateJoinCode();
     const group = await prisma.group.update({
       where: { id: groupId },
       data: { joinCode },
