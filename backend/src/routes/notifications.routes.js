@@ -1,10 +1,13 @@
 import { Router } from "express";
 import * as notificationsController from "../controllers/notificationsController.js";
+import { subscribe, unsubscribe } from "../controllers/pushController.js";
 import { requireAuth } from "../middleware/auth.js";
 
 const router = Router();
 router.use(requireAuth);
 
+router.post("/subscribe", subscribe);
+router.post("/unsubscribe", unsubscribe);
 router.get("/", notificationsController.listNotifications);
 router.post("/mark-all-read", notificationsController.markAllNotificationsRead);
 router.patch("/:notificationId/read", notificationsController.markNotificationRead);
