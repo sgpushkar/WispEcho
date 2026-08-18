@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Message } from "@/store/useChatStore";
+import { Message, useChatStore } from "@/store/useChatStore";
 import { api } from "@/lib/api";
 import { CheckCircle2, Circle } from "lucide-react";
 import { useAuthStore } from "@/store/useAuthStore";
@@ -25,7 +25,14 @@ export function PollBubble({ message }: PollBubbleProps) {
     if (isClosed || isVoting) return;
     setIsVoting(true);
     try {
-      await api.post(`/polls/${poll.id}/vote`, { optionIndexes: [index] });
+      const res = await api.post(`/polls/${poll.id}/vote`, { optionIndexes: [index] });
+      if (res.data?.poll) {
+        useChatStore.getState().updateMessage({
+          id: message.id,
+          conversationId: message.conversationId,
+          poll: res.data.poll,
+        });
+      }
     } catch (err: any) {
       alert(err.response?.data?.error || "Vote failed");
     } finally {
