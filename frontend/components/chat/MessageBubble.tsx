@@ -318,7 +318,7 @@ export const MessageBubble = memo(function MessageBubble({
           onDragStart={() => setIsDragging(true)}
           onDragEnd={handleDragEnd}
           animate={controls}
-          className={`flex flex-col max-w-[60%] sm:max-w-[70%] relative group ${!isMine && !pendingUpload ? "touch-pan-y" : ""}`}
+          className={`flex flex-col max-w-[85%] sm:max-w-[75%] md:max-w-[70%] relative group ${!isMine && !pendingUpload ? "touch-pan-y" : ""}`}
           onContextMenu={(e) => {
             if (pendingUpload) return;
             // Block context menu on images for privacy
