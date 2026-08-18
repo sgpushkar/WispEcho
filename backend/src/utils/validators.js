@@ -37,6 +37,7 @@ export const sendMessageSchema = z.object({
   // For offline queue handling
   tempId: z.string().optional(),
   isViewOnce: z.boolean().optional().default(false),
+  pollOptions: z.array(z.string()).optional(),
 });
 
 export const createGroupSchema = z.object({
