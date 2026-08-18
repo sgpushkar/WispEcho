@@ -29,7 +29,10 @@ export async function listConversations(req, res, next) {
         id: conv.id,
         isGroup: conv.isGroup,
         group: conv.group,
+        disappearAfter: conv.disappearAfter || "OFF",
         participants: conv.participants.map(cp => ({
+          userId: cp.userId,
+          chatBg: cp.chatBg,
           user: {
             id: cp.user.id,
             username: cp.user.username,
@@ -373,7 +376,7 @@ export async function editMessage(req, res, next) {
 export async function deleteMessage(req, res, next) {
   try {
     const { messageId } = req.params;
-    const { forEveryone } = req.body;
+    const forEveryone = req.body?.forEveryone ?? (req.query?.forEveryone === "true");
 
     const existing = await prisma.message.findUnique({ where: { id: messageId } });
     if (!existing) {
