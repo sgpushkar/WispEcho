@@ -23,7 +23,7 @@ export function ForwardModal({ messageIds, onClose }: ForwardModalProps) {
     setSendingTo(conversationId);
     try {
       for (const msgId of messageIds) {
-        await api.post(`/messages/${msgId}/forward`, { conversationId });
+        await api.post(`/messages/${msgId}/forward`, { targetConversationIds: [conversationId] });
       }
       onClose();
     } catch (e) {
