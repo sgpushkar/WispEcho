@@ -90,7 +90,10 @@ export default function DownloadPage() {
           transition={{ duration: 0.6, ease: "easeOut" }}
           className="flex flex-col items-center space-y-4"
         >
-          <img src="/logo.png" alt="WispEcho Logo" className="h-16 w-16 rounded-[20px] shadow-[0_0_50px_rgba(255,255,255,0.15)] border border-white/10" />
+          <div className="relative flex h-16 w-16 items-center justify-center rounded-[20px] bg-white/10 border border-white/15 shadow-[0_0_50px_rgba(255,255,255,0.15)] overflow-hidden p-2.5">
+            <img src="/logo-dark.png" alt="WispEcho Logo" className="h-10 w-auto object-contain logo-dark" />
+            <img src="/logo-light.png" alt="WispEcho Logo" className="h-10 w-auto object-contain logo-light" />
+          </div>
           <div className="space-y-2">
             <h1 className="text-4xl font-extrabold tracking-tight font-space bg-gradient-to-r from-white via-white to-white/40 bg-clip-text text-transparent">
               WispEcho Mobile
