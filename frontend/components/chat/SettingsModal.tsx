@@ -827,7 +827,7 @@ export function SettingsModal({ isOpen, onClose }: { isOpen: boolean; onClose: (
             </button>
           </div>
           <p className="text-center text-[10px] font-semibold tracking-wider uppercase" style={{ color: "var(--ink-faint)" }}>
-            WispEcho App v1.3.0
+            WispEcho App v1.3.1
           </p>
           </div>
         </motion.div>
