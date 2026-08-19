@@ -48,7 +48,10 @@ export default function RegisterPage() {
         className="relative z-10 w-full max-w-sm rounded-[32px] p-8 glass-strong border-[1px] border-white/10 bg-white/[0.04]"
       >
         <div className="flex justify-center mb-6">
-          <img src="/logo.png" alt="WispEcho" className="h-16 w-auto rounded-2xl border border-white/10 brand-logo" />
+          <div className="relative flex h-16 w-16 items-center justify-center rounded-2xl bg-white/10 border border-white/15 shadow-[0_0_30px_rgba(255,255,255,0.1)] p-2">
+            <img src="/logo-dark.png" alt="WispEcho" className="h-10 w-auto object-contain logo-dark" />
+            <img src="/logo-light.png" alt="WispEcho" className="h-10 w-auto object-contain logo-light" />
+          </div>
         </div>
         <h1 className="mb-1 text-2xl font-semibold tracking-tight text-white text-center">let's get you in</h1>
         <p className="mb-6 text-[13px] text-white/50 text-center">takes like 10 seconds fr</p>
