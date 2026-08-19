@@ -26,6 +26,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { api } from "@/lib/api";
 import { useChatStore, Message, useChatHasHydrated } from "@/store/useChatStore";
 import { useAuthStore } from "@/store/useAuthStore";
+import { useToast } from "@/hooks/useToast";
 import { getSocket } from "@/lib/socket";
 import { MessageBubble } from "./MessageBubble";
 import { useVirtualScroll } from "@/hooks/useVirtualScroll";
@@ -69,6 +70,7 @@ export function ChatWindow() {
   const router = useRouter();
   const { setGroupSettingsOpen, applyCustomTheme, themeId: activeThemeId, forwardModalOpen, messageToForward, closeForwardModal } = useUIStore();
   const accessToken = useAuthStore((s) => s.accessToken)!;
+  const { success, error: toastError, warning } = useToast();
   const { activeConversationId, setActiveConversation, conversations, messages, setMessages, typingUsers, onlineUsers, addMessage, updateParticipantChatBg, removeMessage } = useChatStore();
   
   const [draft, setDraft] = useState("");
@@ -81,7 +83,6 @@ export function ChatWindow() {
   const [showWallpaperPicker, setShowWallpaperPicker] = useState(false);
   const [showScheduler, setShowScheduler] = useState(false);
   const [showPollCreator, setShowPollCreator] = useState(false);
-  const [showForwardModal, setShowForwardModal] = useState(false);
   const [showMenu, setShowMenu] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
   
@@ -148,7 +149,7 @@ export function ChatWindow() {
       return { previousMessage, index };
     },
     onError: (_err, variables, context: any) => {
-      alert("Failed to delete message");
+      toastError("Failed to delete message");
       if (context?.previousMessage) {
         const currentMessages = useChatStore.getState().messages[activeConversationId!] || [];
         const newMessages = [...currentMessages];
@@ -252,7 +253,7 @@ export function ChatWindow() {
       setShowWallpaperPicker(false);
     } catch (error) {
       console.error(error);
-      alert("Failed to update chat background");
+      toastError("Failed to update chat background");
     }
   };
 
@@ -336,7 +337,7 @@ export function ChatWindow() {
       await sendMessage("", "VOICE", secureUrl);
     } catch (err) {
       console.error(err);
-      alert("Failed to upload voice note.");
+      toastError("Failed to upload voice note.");
     } finally {
       setIsSending(false);
     }
@@ -539,7 +540,7 @@ export function ChatWindow() {
     for (const item of filesWithCaptions) {
       // 1. Check size limit (20MB)
       if (item.file.size > 20 * 1024 * 1024) {
-        alert(`File ${item.file.name} is too large. Max 20MB allowed.`);
+        warning(`"${item.file.name}" is too large. Max 20 MB allowed.`);
         continue;
       }
       // 2. Add to pending uploads (shows temporary UI bubble)
@@ -701,9 +702,9 @@ export function ChatWindow() {
 
                   let forEveryone = false;
                   if (allMine) {
-                    forEveryone = confirm("Delete for everyone? Click OK to delete for everyone, or Cancel to delete just for you.");
+                    forEveryone = window.confirm("Delete for everyone? Click OK to delete for everyone, or Cancel to delete just for you.");
                   } else {
-                    if (!confirm("Delete selected messages for you?")) return;
+                    if (!window.confirm("Delete selected messages for you?")) return;
                   }
 
                   try {
@@ -714,7 +715,7 @@ export function ChatWindow() {
                     setSelectedMessageIds(new Set());
                     setIsMultiSelectMode(false);
                   } catch (err: any) {
-                    alert(err.response?.data?.error || "Failed to delete messages");
+                    toastError(err.response?.data?.error || "Failed to delete messages");
                   }
                 }}
                 className="text-xs bg-red-500/20 text-red-400 px-3 py-1.5 rounded-full hover:bg-red-500/30 transition"
@@ -724,7 +725,10 @@ export function ChatWindow() {
               <button 
                 onClick={() => {
                   if (selectedMessageIds.size > 0) {
-                    setShowForwardModal(true);
+                    // Open the forward modal via UIStore (single source of truth).
+                    // messageToForward=null signals multi-select mode;
+                    // the ForwardModal receives selectedMessageIds via the prop below.
+                    useUIStore.getState().openForwardModal(null);
                   }
                 }}
                 className="text-xs bg-accent text-white px-3 py-1.5 rounded-full hover:bg-accent/90 transition"
@@ -1243,15 +1247,14 @@ export function ChatWindow() {
         )}
       </AnimatePresence>
       <AnimatePresence>
-        {(showForwardModal || forwardModalOpen) && activeConversationId && (
+        {forwardModalOpen && activeConversationId && (
           <ForwardModal
             messageIds={
-              forwardModalOpen && messageToForward
+              messageToForward?.id
                 ? [messageToForward.id]
                 : Array.from(selectedMessageIds)
             }
             onClose={() => {
-              setShowForwardModal(false);
               closeForwardModal();
               setIsMultiSelectMode(false);
               setSelectedMessageIds(new Set());
