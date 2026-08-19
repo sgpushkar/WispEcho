@@ -21,6 +21,10 @@ import {
   Clock,
   BarChart2,
   Plus,
+  Sparkles,
+  Users,
+  Bookmark,
+  Compass,
 } from "lucide-react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { api } from "@/lib/api";
@@ -68,7 +72,17 @@ function formatDayDivider(dateStr: string) {
 
 export function ChatWindow() {
   const router = useRouter();
-  const { setGroupSettingsOpen, applyCustomTheme, themeId: activeThemeId, forwardModalOpen, messageToForward, closeForwardModal } = useUIStore();
+  const { 
+    setGroupSettingsOpen, 
+    setFriendsOpen, 
+    setGroupOpen, 
+    setSettingsOpen, 
+    applyCustomTheme, 
+    themeId: activeThemeId, 
+    forwardModalOpen, 
+    messageToForward, 
+    closeForwardModal 
+  } = useUIStore();
   const accessToken = useAuthStore((s) => s.accessToken)!;
   const { success, error: toastError, warning } = useToast();
   const { activeConversationId, setActiveConversation, conversations, messages, setMessages, typingUsers, onlineUsers, addMessage, updateParticipantChatBg, removeMessage } = useChatStore();
@@ -562,25 +576,85 @@ export function ChatWindow() {
 
   if (!conversation) {
     return (
-      <main className="chat glass w-full h-full hidden md:flex flex-col items-center justify-center">
+      <main className="chat glass w-full h-full hidden md:flex flex-col items-center justify-center p-8 relative overflow-hidden">
+        {/* Ambient subtle background glow */}
+        <div className="pointer-events-none absolute h-[320px] w-[320px] rounded-full bg-accent/10 blur-[100px]" />
+
         <motion.div
-          initial={{ opacity: 0, y: 10 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.4, ease: "easeOut" }}
-          className="flex flex-col items-center text-center"
+          initial={{ opacity: 0, y: 15, scale: 0.98 }}
+          animate={{ opacity: 1, y: 0, scale: 1 }}
+          transition={{ duration: 0.35, ease: "easeOut" }}
+          className="relative z-10 flex flex-col items-center text-center max-w-md w-full"
         >
           <motion.div
-            animate={{ 
-              y: [0, -8, 0],
-              rotate: [-2, 2, -2]
+            animate={{
+              y: [0, -6, 0],
+              rotate: [-1.5, 1.5, -1.5],
             }}
-            transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
-            className="mb-6 h-16 w-16 rounded-full bg-white/5 border border-white/10 flex items-center justify-center text-white/40 shadow-[0_0_40px_rgba(255,255,255,0.05)]"
+            transition={{ duration: 5, repeat: Infinity, ease: "easeInOut" }}
+            className="mb-5 h-16 w-16 rounded-3xl bg-accent/15 border border-accent/25 flex items-center justify-center text-accent shadow-[0_0_30px_rgba(139,92,246,0.2)]"
           >
-            <Send size={24} className="ml-1" />
+            <Sparkles size={28} />
           </motion.div>
-          <h2 className="text-lg font-medium text-white mb-2">Select a conversation</h2>
-          <p className="text-sm text-white/40">Your messages will appear here.</p>
+
+          <h2 className="text-xl font-bold text-white tracking-tight mb-1.5">Welcome to WispEcho</h2>
+          <p className="text-xs text-white/50 mb-7 max-w-xs leading-relaxed">
+            Select a conversation from the sidebar or jump right into action.
+          </p>
+
+          {/* Quick Actions Grid */}
+          <div className="grid grid-cols-2 gap-2.5 w-full">
+            <button
+              onClick={() => setGroupOpen(true)}
+              className="flex items-center gap-3 p-3 rounded-2xl bg-white/5 hover:bg-white/10 border border-white/10 text-left transition group shadow-sm hover:scale-[1.02] cursor-pointer"
+            >
+              <div className="h-9 w-9 rounded-xl bg-violet-500/20 text-violet-400 flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform">
+                <Users size={18} />
+              </div>
+              <div className="min-w-0">
+                <div className="text-xs font-semibold text-white">Create Group</div>
+                <div className="text-[10.5px] text-white/40 truncate">Start a squad chat</div>
+              </div>
+            </button>
+
+            <button
+              onClick={() => setFriendsOpen(true)}
+              className="flex items-center gap-3 p-3 rounded-2xl bg-white/5 hover:bg-white/10 border border-white/10 text-left transition group shadow-sm hover:scale-[1.02] cursor-pointer"
+            >
+              <div className="h-9 w-9 rounded-xl bg-emerald-500/20 text-emerald-400 flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform">
+                <Compass size={18} />
+              </div>
+              <div className="min-w-0">
+                <div className="text-xs font-semibold text-white">Find Friends</div>
+                <div className="text-[10.5px] text-white/40 truncate">Add new contacts</div>
+              </div>
+            </button>
+
+            <button
+              onClick={() => setSettingsOpen(true)}
+              className="flex items-center gap-3 p-3 rounded-2xl bg-white/5 hover:bg-white/10 border border-white/10 text-left transition group shadow-sm hover:scale-[1.02] cursor-pointer"
+            >
+              <div className="h-9 w-9 rounded-xl bg-fuchsia-500/20 text-fuchsia-400 flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform">
+                <Palette size={18} />
+              </div>
+              <div className="min-w-0">
+                <div className="text-xs font-semibold text-white">Themes & UI</div>
+                <div className="text-[10.5px] text-white/40 truncate">Customize look</div>
+              </div>
+            </button>
+
+            <div
+              className="flex items-center gap-3 p-3 rounded-2xl bg-white/5 border border-white/10 text-left opacity-80 select-none"
+            >
+              <div className="h-9 w-9 rounded-xl bg-sky-500/20 text-sky-400 flex items-center justify-center shrink-0">
+                <Send size={16} />
+              </div>
+              <div className="min-w-0">
+                <div className="text-xs font-semibold text-white">Quick Jump</div>
+                <div className="text-[10.5px] text-white/40 truncate">Press ⌘K / Ctrl+K</div>
+              </div>
+            </div>
+          </div>
         </motion.div>
       </main>
     );
@@ -878,11 +952,54 @@ export function ChatWindow() {
       >
         <div className="max-w-4xl mx-auto w-full" style={{ paddingTop, paddingBottom }}>
           <AnimatePresence initial={false}>
+            {visibleItems.length === 0 && pendingUploads.length === 0 && (
+              <motion.div
+                initial={{ opacity: 0, y: 12 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="flex flex-col items-center justify-center my-auto py-16 text-center select-none"
+              >
+                <div className="mb-4 h-12 w-12 rounded-2xl bg-accent/15 border border-accent/20 flex items-center justify-center text-accent shadow-[0_0_20px_rgba(139,92,246,0.15)]">
+                  <Sparkles size={22} />
+                </div>
+                <h3 className="text-sm font-semibold text-white mb-1">No messages yet</h3>
+                <p className="text-xs text-white/50 mb-4 max-w-xs">Start the conversation with an icebreaker</p>
+                <div className="flex flex-wrap items-center justify-center gap-2 max-w-sm">
+                  <button
+                    onClick={() => sendMessage("Hey! 👋", "TEXT")}
+                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-white/5 hover:bg-white/10 border border-white/10 text-xs font-medium text-white transition hover:scale-105 cursor-pointer"
+                  >
+                    <span>Say hi</span> <span>👋</span>
+                  </button>
+                  <button
+                    onClick={handleImageIconClick}
+                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-white/5 hover:bg-white/10 border border-white/10 text-xs font-medium text-white transition hover:scale-105 cursor-pointer"
+                  >
+                    <span>Send photo</span> <span>📸</span>
+                  </button>
+                  <button
+                    onClick={() => setShowPollCreator(true)}
+                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-white/5 hover:bg-white/10 border border-white/10 text-xs font-medium text-white transition hover:scale-105 cursor-pointer"
+                  >
+                    <span>Create poll</span> <span>📊</span>
+                  </button>
+                </div>
+              </motion.div>
+            )}
+
             {visibleItems.map((msg, index) => {
               const prevMsg = visibleItems[index - 1];
+              const nextMsg = visibleItems[index + 1];
               const showDateDivider =
                 !prevMsg ||
                 !isSameDay(new Date(msg.createdAt), new Date(prevMsg.createdAt));
+              const isPreviousSameSender =
+                !!prevMsg &&
+                prevMsg.senderId === msg.senderId &&
+                !showDateDivider;
+              const isNextSameSender =
+                !!nextMsg &&
+                nextMsg.senderId === msg.senderId &&
+                isSameDay(new Date(msg.createdAt), new Date(nextMsg.createdAt));
 
               return (
                 <div key={msg.id} className="flex flex-col">
@@ -896,6 +1013,8 @@ export function ChatWindow() {
                   <MessageBubble 
                     message={msg} 
                     isGroup={conversation?.isGroup}
+                    isPreviousSameSender={isPreviousSameSender}
+                    isNextSameSender={isNextSameSender}
                     onReply={setReplyToMessage} 
                     onEdit={setEditingMessage}
                     isSelectable={isMultiSelectMode}
@@ -954,7 +1073,7 @@ export function ChatWindow() {
         </div>
       </div>
 
-      <div className="composer max-w-4xl mx-auto w-full">
+      <div className="composer max-w-4xl mx-auto w-full px-3.5 pb-3.5 sm:px-6 sm:pb-5">
         {replyToMessage && (
           <div className="mb-3 flex items-center justify-between rounded-2xl bg-white/5 border border-white/10 px-4 py-2.5 text-[13px] text-white/60 backdrop-blur-md">
             <div className="flex flex-col min-w-0 pr-2">
@@ -977,7 +1096,7 @@ export function ChatWindow() {
             </button>
           </div>
         )}
-        <div className="composer-glass">
+        <div className="composer-glass shadow-[0_10px_35px_rgba(0,0,0,0.35)] border border-white/10 focus-within:border-accent/40 focus-within:ring-2 focus-within:ring-accent/20 transition-all rounded-3xl p-2 sm:p-2.5">
           <input
             type="file"
             multiple
