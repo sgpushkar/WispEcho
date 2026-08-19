@@ -59,18 +59,21 @@ const ConversationItem = memo(({
     <div
       onClick={onClick}
       onContextMenu={(e) => onContextMenu(e, conv.id)}
-      className={`conv ${active ? "active" : ""} ${conv.isFavorite ? "ring-1 ring-yellow-400/20" : ""}`}
+      className={`conv ${active ? "active !border-white/15 !bg-white/10 shadow-sm" : ""} ${conv.isPinned ? "border-l-2 !border-l-accent/70 bg-accent/[0.02]" : ""} ${conv.isFavorite ? "ring-1 ring-yellow-400/20" : ""}`}
     >
       <div className="relative shrink-0">
         <Avatar src={avatar} name={name} className="h-10 w-10 rounded-[14px]" />
         {isOnline && <span className="dot" />}
         {conv.isFavorite && (
-          <span className="absolute -top-1 -right-1 text-yellow-400 text-[8px]">★</span>
+          <span className="absolute -top-1 -right-1 text-yellow-400 text-[9px] drop-shadow">★</span>
         )}
       </div>
 
       <div className="conv-meta">
-        <div className="conv-name">{name}</div>
+        <div className="flex items-center gap-1.5">
+          <span className="conv-name truncate">{name}</span>
+          {conv.isPinned && <Pin size={10} className="text-white/40 shrink-0 rotate-45" />}
+        </div>
         <div className="conv-preview">
           {isTyping ? (
             <div className="flex items-center gap-1 h-[18px]">
@@ -105,7 +108,7 @@ const ConversationItem = memo(({
             <MoreHorizontal size={12} />
           </button>
         </div>
-        {hasUnread && <div className="w-2 h-2 rounded-full bg-white mt-1" />}
+        {hasUnread && <div className="w-2.5 h-2.5 rounded-full bg-accent shadow-[0_0_10px_rgba(139,92,246,0.85)] mt-1 animate-pulse" />}
       </div>
     </div>
   );
