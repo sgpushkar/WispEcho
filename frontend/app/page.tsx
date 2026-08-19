@@ -109,7 +109,10 @@ export default function LandingPage() {
       {/* Top Navbar */}
       <nav className="w-full max-w-6xl mx-auto flex items-center justify-between py-6 px-6 lg:px-8">
         <div className="flex items-center gap-2.5">
-          <img src="/logo.png" alt="WispEcho Logo" className="h-8 w-8 rounded-[12px] shadow-[0_0_20px_rgba(255,255,255,0.15)] border border-white/10" />
+          <div className="relative flex h-8 w-8 items-center justify-center rounded-[12px] bg-white/10 border border-white/15 shadow-[0_0_20px_rgba(255,255,255,0.15)] overflow-hidden">
+            <img src="/logo-dark.png" alt="WispEcho Logo" className="h-5 w-auto object-contain logo-dark" />
+            <img src="/logo-light.png" alt="WispEcho Logo" className="h-5 w-auto object-contain logo-light" />
+          </div>
           <span className="font-extrabold font-space tracking-tight text-lg">WispEcho</span>
         </div>
         <div>
