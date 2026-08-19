@@ -7,6 +7,32 @@ Versioning follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ---
 
+## [1.3.1] — 2026-08-19
+
+### New
+- **Interactive Discovery Hub** — empty chat screen now features quick action cards for New Group, Find Friends, Themes & UI, and Quick Jump (`⌘K`)
+- **Conversation Icebreakers** — instant first-message prompt chips (*"Say hi 👋"*, *"Send photo 📸"*, *"Create poll 📊"*)
+- **Code Block Rendering** — multi-line code block parser with syntax block header, language badge, and 1-click **Copy Code** button
+- **Group Invite Landing Pages** — dedicated `/join` and `/join/:joinCode` routes with direct joining and admin approval support
+
+### Improved
+- **Floating Island Composer** — elevated glass input bar with glowing neon focus ring and safe-area padding
+- **Progressive Bubble Geometry** — dynamic corner radii for consecutive messages from the same sender
+- **Universal App Logo & Brand Visibility** — radiant inverted contrast in dark themes and crisp drop-shadows across all 10+ preset themes
+- **Inline Markdown Formatting** — rich inline support for `**bold**`, `*italic*`, `~strike~`, and `` `code` ``
+- **Sidebar Polish** — glowing unread notification pills, pinned chat edge highlights, and favorite badges
+
+### Fixed
+- Message forwarding 400 Bad Request error by accepting both conversation ID strings and arrays
+- Push notification action buttons (Reply and React) 404 endpoints and route aliases
+- Do-Not-Disturb time string parsing (`"22:00"`) and user email digest setting synchronization
+- `mediaPublicId` and `publicId` stripping in Zod message validation schemas
+- Scheduled poll messages missing questions and option metadata in cron socket broadcasts
+- Session logout token clearance failure when access tokens were expired
+- Admin manual payment method tracking always defaulting to "UPI"
+
+---
+
 ## [1.2.6] — 2026-08-04
 
 ### New
