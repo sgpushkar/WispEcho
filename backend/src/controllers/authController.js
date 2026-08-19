@@ -188,11 +188,20 @@ export async function logout(req, res, next) {
     if (token) {
       await prisma.refreshToken.deleteMany({ where: { token } });
     }
-    if (req.userId) {
+    
+    let userId = req.userId;
+    if (!userId && req.headers.authorization?.startsWith("Bearer ")) {
+      try {
+        const payload = verifyAccessToken(req.headers.authorization.split(" ")[1]);
+        userId = payload?.sub;
+      } catch {}
+    }
+
+    if (userId) {
       await prisma.user.update({
-        where: { id: req.userId },
+        where: { id: userId },
         data: { isOnline: false, lastSeen: new Date() },
-      });
+      }).catch(() => {});
     }
     res.clearCookie("refreshToken", COOKIE_OPTIONS);
     res.json({ success: true });
