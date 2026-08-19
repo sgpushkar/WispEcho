@@ -21,13 +21,18 @@ export async function getSubscription(req, res, next) {
   }
 }
 
-// Activate Pro (placeholder — will be connected to payment gateway later)
+// Activate Pro (disabled in production until payment gateway is wired)
 export async function activatePro(req, res, next) {
   try {
+    // SECURITY: This endpoint bypasses payment verification.
+    // It is intentionally disabled in production.
+    // Wire Stripe/Razorpay webhook verification here before re-enabling.
+    if (process.env.NODE_ENV === "production") {
+      return res.status(403).json({ error: "Direct activation is disabled. Use the payment flow." });
+    }
+
     const { plan } = req.body; // "pro" | "pro_yearly"
 
-    // In production, this would verify payment with Stripe/Razorpay
-    // For now, directly activate for development/testing
     const subscription = await prisma.subscription.upsert({
       where: { userId: req.userId },
       create: {
