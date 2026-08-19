@@ -55,13 +55,14 @@ export function useNotifications() {
             if (!data || !data.messageId) return;
 
             if (actionId === "reply" && inputValue) {
-              await api.post(`/messages/${data.conversationId}`, {
+              await api.post(`/messages`, {
+                conversationId: data.conversationId,
                 type: "TEXT",
                 content: inputValue,
                 replyToId: data.messageId
               }).catch(console.error);
             } else if (actionId === "react") {
-              await api.post(`/messages/${data.messageId}/react`, {
+              await api.post(`/messages/${data.messageId}/reactions`, {
                 emoji: "👍"
               }).catch(console.error);
             }
