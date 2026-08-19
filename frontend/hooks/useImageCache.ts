@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 
 const CACHE_NAME = "wispecho-image-cache-v1";
 
@@ -8,6 +8,9 @@ const CACHE_NAME = "wispecho-image-cache-v1";
  */
 export function useImageCache(url: string | null | undefined, isViewOnce?: boolean) {
   const [cachedUrl, setCachedUrl] = useState<string | null>(null);
+  // Track the live object URL in a ref so the cleanup function
+  // always revokes the correct value, not a stale closure snapshot.
+  const objectUrlRef = useRef<string | null>(null);
 
   useEffect(() => {
     if (!url) {
@@ -37,6 +40,7 @@ export function useImageCache(url: string | null | undefined, isViewOnce?: boole
         if (cachedResponse) {
           const blob = await cachedResponse.blob();
           const localUrl = URL.createObjectURL(blob);
+          objectUrlRef.current = localUrl;
           if (isMounted) setCachedUrl(localUrl);
         } else {
           // Fetch and store
@@ -46,6 +50,7 @@ export function useImageCache(url: string | null | undefined, isViewOnce?: boole
             await cache.put(url, response.clone());
             const blob = await response.blob();
             const localUrl = URL.createObjectURL(blob);
+            objectUrlRef.current = localUrl;
             if (isMounted) setCachedUrl(localUrl);
           } else {
             if (isMounted) setCachedUrl(url);
@@ -61,9 +66,10 @@ export function useImageCache(url: string | null | undefined, isViewOnce?: boole
 
     return () => {
       isMounted = false;
-      // Revoke the object URL if we created one
-      if (cachedUrl && cachedUrl.startsWith("blob:")) {
-        URL.revokeObjectURL(cachedUrl);
+      // Revoke via ref — always has the current URL, not a stale closure snapshot
+      if (objectUrlRef.current) {
+        URL.revokeObjectURL(objectUrlRef.current);
+        objectUrlRef.current = null;
       }
     };
   }, [url, isViewOnce]);
