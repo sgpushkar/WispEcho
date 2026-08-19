@@ -180,14 +180,16 @@ export function SettingsModal({ isOpen, onClose }: { isOpen: boolean; onClose: (
       // Fetch hasPassword and emailDigest from /auth/me
       api.get("/auth/me").then((res) => {
         setHasPassword(res.data.hasPassword);
-        setEmailDigestEnabled(!!res.data.user.emailDigestEnabled);
+        setEmailDigestEnabled(!!res.data.user.emailDigest);
       }).catch(() => {});
       
       api.get("/notifications/dnd").then((res) => {
         if (res.data.dnd) {
           setDndEnabled(res.data.dnd.enabled);
-          setDndStart(res.data.dnd.startTime);
-          setDndEnd(res.data.dnd.endTime);
+          const startH = res.data.dnd.startHour ?? (res.data.dnd.startTime ? parseInt(res.data.dnd.startTime) : 22);
+          const endH = res.data.dnd.endHour ?? (res.data.dnd.endTime ? parseInt(res.data.dnd.endTime) : 8);
+          setDndStart(`${String(startH).padStart(2, "0")}:00`);
+          setDndEnd(`${String(endH).padStart(2, "0")}:00`);
         }
       }).catch(() => {});
     }
@@ -220,8 +222,17 @@ export function SettingsModal({ isOpen, onClose }: { isOpen: boolean; onClose: (
       }
       
       // Update Server Preferences
+      const startHour = parseInt(dndStart.split(":")[0], 10) || 0;
+      const endHour = parseInt(dndEnd.split(":")[0], 10) || 0;
       api.patch("/notifications/email-digest", { enabled: emailDigestEnabled }).catch(() => {});
-      api.put("/notifications/dnd", { enabled: dndEnabled, startTime: dndStart, endTime: dndEnd }).catch(() => {});
+      api.put("/notifications/dnd", { 
+        enabled: dndEnabled, 
+        startHour, 
+        endHour, 
+        startTime: dndStart, 
+        endTime: dndEnd,
+        timezone: Intl.DateTimeFormat().resolvedOptions().timeZone || "UTC"
+      }).catch(() => {});
       
       onClose();
     },
