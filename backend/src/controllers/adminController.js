@@ -113,12 +113,13 @@ export async function updateUserRole(req, res, next) {
 // --- Payments & Subscriptions ---
 export async function recordPaymentAndGrantPro(req, res, next) {
   try {
-    const { userId, amount, reference, notes, grantProDays } = req.body;
+    const { userId, amount, reference, notes, grantProDays, method } = req.body;
     
     const result = await recordManualPayment({
       adminId: req.userId,
       userId,
       amount: Number(amount),
+      method: method || "UPI",
       reference,
       notes,
       grantProDays: Number(grantProDays || 0),
