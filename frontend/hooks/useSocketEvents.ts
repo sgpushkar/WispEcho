@@ -96,8 +96,13 @@ export function useSocketEvents() {
     socket.on("presence:update", ({ userId, isOnline }) => setPresence(userId, isOnline));
     
     socket.on("conversation:read", ({ conversationId, userId }) => {
-      // You can implement updating read receipts in the store here if needed
-      // Currently, we don't have a specific store action for read receipts
+      // When another user marks a conversation as read, update the lastMessage
+      // status so the sender sees the double-check read receipt.
+      const state = useChatStore.getState();
+      const conversation = state.conversations.find(c => c.id === conversationId);
+      if (conversation?.lastMessage && conversation.lastMessage.senderId === currentUserId) {
+        state.setMessageStatus(conversationId, conversation.lastMessage.id, "read");
+      }
     });
 
     socket.on("notification:mention", (payload) => {
