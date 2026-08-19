@@ -8,7 +8,7 @@ import { useAuthStore } from "@/store/useAuthStore";
 import { useChatStore } from "@/store/useChatStore";
 import { useUIStore } from "@/store/useUIStore";
 import { api } from "@/lib/api";
-import { Reply, AlertCircle, Eye, CheckCheck, Clock, Check, X, Lock, Forward } from "lucide-react";
+import { Reply, AlertCircle, Eye, CheckCheck, Clock, Check, X, Lock, Forward, Copy } from "lucide-react";
 import { ContextMenu, ContextMenuPosition } from "./ContextMenu";
 import Link from "next/link";
 import { Avatar } from "../ui/Avatar";
@@ -25,9 +25,37 @@ import { Plus } from "lucide-react";
 
 const QUICK_REACTIONS = ["❤️", "😂", "🔥", "😭", "👍"];
 
+function CodeBlock({ code, language }: { code: string; language?: string }) {
+  const [copied, setCopied] = useState(false);
+  const copy = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    navigator.clipboard?.writeText(code);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  };
+
+  return (
+    <div className="my-2 rounded-xl overflow-hidden bg-black/40 border border-white/10 text-left font-mono text-[12.5px] max-w-full">
+      <div className="flex items-center justify-between px-3 py-1.5 bg-white/5 border-b border-white/5 text-[10.5px] text-white/50">
+        <span className="uppercase font-semibold tracking-wider">{language || "code"}</span>
+        <button
+          onClick={copy}
+          className="flex items-center gap-1 hover:text-white transition px-2 py-0.5 rounded hover:bg-white/10 cursor-pointer"
+        >
+          {copied ? <Check size={11} className="text-green-400" /> : <Copy size={11} />}
+          <span>{copied ? "Copied" : "Copy"}</span>
+        </button>
+      </div>
+      <pre className="p-3 overflow-x-auto text-white/90 leading-relaxed custom-scrollbar font-mono">{code}</pre>
+    </div>
+  );
+}
+
 interface MessageBubbleProps {
   message: Message;
   isGroup?: boolean;
+  isPreviousSameSender?: boolean;
+  isNextSameSender?: boolean;
   onReply?: (msg: Message) => void;
   onEdit?: (msg: Message) => void;
   pendingUpload?: PendingUpload;
@@ -39,10 +67,22 @@ interface MessageBubbleProps {
   onToggleSelect?: (id: string) => void;
 }
 
-export const MessageBubble = memo(function MessageBubble({ 
-  message, isGroup, onReply, onEdit, pendingUpload, onCancelUpload, onRetryUpload,
-  isSelectable, isSelected, onToggleSelect
-}: MessageBubbleProps) {
+export const MessageBubble = memo(function MessageBubble(props: MessageBubbleProps) {
+  const {
+    message,
+    isGroup,
+    isPreviousSameSender,
+    isNextSameSender,
+    onReply,
+    onEdit,
+    pendingUpload,
+    onCancelUpload,
+    onRetryUpload,
+    isSelectable,
+    isSelected,
+    onToggleSelect,
+  } = props;
+
   const currentUserId = useAuthStore((s) => s.user?.id);
   const isMine = message.senderId === currentUserId;
   const [contextMenuPos, setContextMenuPos] = useState<ContextMenuPosition | null>(null);
@@ -60,11 +100,6 @@ export const MessageBubble = memo(function MessageBubble({
 
   const alreadyViewed = !!(message.isViewOnce && message.viewedByIds?.includes(currentUserId || ""));
 
-  // ─── Secure image URL ───────────────────────────────────────────────────────
-  // For images: fetch a short-lived signed URL from the backend instead of using the raw URL.
-  // Handles both legacy (public URL) and new (authenticated) Cloudinary images.
-  // - View-once images already viewed: no URL fetched, placeholder shown
-  // - Pending uploads: use local blob preview URL directly
   const isImageMessage = message.type === "IMAGE";
   const hasId = !!message.id && !message.id.startsWith("temp_");
 
@@ -75,7 +110,6 @@ export const MessageBubble = memo(function MessageBubble({
     enabled: isImageMessage && !pendingUpload && hasId,
   });
 
-  // For pending uploads, show the local preview
   const displayImageUrl = pendingUpload?.previewUrl ?? secureImageUrl;
 
   async function handleDragEnd(event: any, info: any) {
@@ -88,7 +122,7 @@ export const MessageBubble = memo(function MessageBubble({
   }
 
   async function react(emoji: string) {
-    if (pendingUpload) return; // Cannot react to pending messages
+    if (pendingUpload) return;
     try {
       await api.post(`/messages/${message.id}/reactions`, { emoji });
       setShowEmojiPicker(false);
@@ -97,7 +131,6 @@ export const MessageBubble = memo(function MessageBubble({
     }
   }
 
-  // Extract first URL for link preview
   const rawUrlMatch = message.type === "TEXT" && message.content ? message.content.match(/(https?:\/\/[^\s]+)/) : null;
   const firstUrl = rawUrlMatch ? rawUrlMatch[0].replace(/[.,;:?!"')\]]+$/, "") : null;
 
@@ -118,40 +151,77 @@ export const MessageBubble = memo(function MessageBubble({
     return acc;
   }, {});
 
+  const renderInlineText = (rawText: string) => {
+    const tokenRegex = /(\*\*[^*]+\*\*|\*[^*]+\*|~[^~]+~|`[^`]+`|@[a-zA-Z0-9_]+)/g;
+    const tokens = rawText.split(tokenRegex);
+
+    return (
+      <span className="whitespace-pre-wrap leading-relaxed">
+        {tokens.map((token, i) => {
+          if (token.startsWith("`") && token.endsWith("`") && token.length > 2) {
+            return (
+              <code key={i} className="px-1.5 py-0.5 rounded-md bg-white/10 text-accent font-mono text-[12px] border border-white/10 inline-block align-baseline">
+                {token.slice(1, -1)}
+              </code>
+            );
+          }
+          if (token.startsWith("**") && token.endsWith("**") && token.length > 4) {
+            return <strong key={i} className="font-semibold text-white">{token.slice(2, -2)}</strong>;
+          }
+          if (token.startsWith("*") && token.endsWith("*") && token.length > 2) {
+            return <em key={i} className="italic text-white/90">{token.slice(1, -1)}</em>;
+          }
+          if (token.startsWith("~") && token.endsWith("~") && token.length > 2) {
+            return <del key={i} className="opacity-70 line-through">{token.slice(1, -1)}</del>;
+          }
+          if (token.startsWith("@")) {
+            const username = token.slice(1);
+            if (username === "everyone" || username === "here") {
+              return (
+                <span key={i} className="bg-accent/20 text-accent px-1.5 py-0.5 rounded-md font-bold text-xs inline-block">
+                  {token}
+                </span>
+              );
+            }
+            return (
+              <Link key={i} href={`/profile?u=${username}`} className="text-accent hover:underline font-medium">
+                {token}
+              </Link>
+            );
+          }
+          return token;
+        })}
+      </span>
+    );
+  };
+
   const renderContent = (text: string | null) => {
     if (!text) return null;
 
-    // Safe formatting using React elements (no dangerouslySetInnerHTML / XSS)
-    const tokenRegex = /(\*\*[^*]+\*\*|\*[^*]+\*|~[^~]+~|@[a-zA-Z0-9_]+)/g;
-    const tokens = text.split(tokenRegex);
+    if (text.includes("```")) {
+      const codeBlockRegex = /```([a-zA-Z0-9_-]*)\n([\s\S]*?)```/g;
+      const parts = [];
+      let lastIndex = 0;
+      let match;
 
-    return tokens.map((token, i) => {
-      if (token.startsWith("**") && token.endsWith("**") && token.length > 4) {
-        return <strong key={i}>{token.slice(2, -2)}</strong>;
-      }
-      if (token.startsWith("*") && token.endsWith("*") && token.length > 2) {
-        return <em key={i}>{token.slice(1, -1)}</em>;
-      }
-      if (token.startsWith("~") && token.endsWith("~") && token.length > 2) {
-        return <del key={i}>{token.slice(1, -1)}</del>;
-      }
-      if (token.startsWith("@")) {
-        const username = token.slice(1);
-        if (username === "everyone" || username === "here") {
-          return (
-            <span key={i} className="bg-accent/20 text-accent px-1 rounded-sm font-bold">
-              {token}
-            </span>
-          );
+      while ((match = codeBlockRegex.exec(text)) !== null) {
+        if (match.index > lastIndex) {
+          parts.push(renderInlineText(text.slice(lastIndex, match.index)));
         }
-        return (
-          <Link key={i} href={`/profile?u=${username}`} className="text-accent hover:underline font-medium">
-            {token}
-          </Link>
-        );
+        const lang = match[1]?.trim() || "code";
+        const code = match[2]?.trimEnd() || "";
+        parts.push(<CodeBlock key={match.index} language={lang} code={code} />);
+        lastIndex = match.index + match[0].length;
       }
-      return token;
-    });
+
+      if (lastIndex < text.length) {
+        parts.push(renderInlineText(text.slice(lastIndex)));
+      }
+
+      return <div className="space-y-1">{parts}</div>;
+    }
+
+    return renderInlineText(text);
   };
 
   // ─── Image content renderer ──────────────────────────────────────────────────
@@ -280,6 +350,20 @@ export const MessageBubble = memo(function MessageBubble({
     }
   };
 
+  const getBubbleShape = () => {
+    if (isMine) {
+      if (isPreviousSameSender && isNextSameSender) return "!rounded-2xl !rounded-r-md";
+      if (isPreviousSameSender && !isNextSameSender) return "!rounded-2xl !rounded-br-md";
+      if (!isPreviousSameSender && isNextSameSender) return "!rounded-2xl !rounded-tr-md";
+      return "!rounded-2xl !rounded-tr-md";
+    } else {
+      if (isPreviousSameSender && isNextSameSender) return "!rounded-2xl !rounded-l-md";
+      if (isPreviousSameSender && !isNextSameSender) return "!rounded-2xl !rounded-bl-md";
+      if (!isPreviousSameSender && isNextSameSender) return "!rounded-2xl !rounded-tl-md";
+      return "!rounded-2xl !rounded-tl-md";
+    }
+  };
+
   return (
     <>
       <motion.div
@@ -327,7 +411,7 @@ export const MessageBubble = memo(function MessageBubble({
             setContextMenuPos({ x: e.clientX, y: e.clientY });
           }}
         >
-          {!isMine && isGroup && (
+          {!isMine && isGroup && !isPreviousSameSender && (
              <Link href={`/profile?u=${message.sender?.username}`} className="flex items-center gap-2 mb-1 ml-2 group/profile">
                <Avatar src={message.sender?.avatarUrl} name={message.sender?.displayName} className="w-5 h-5 rounded-full text-[8px] border-none" />
                <span className="text-[12px] font-medium text-white/60 group-hover/profile:text-white group-hover/profile:underline transition">{message.sender?.displayName}</span>
@@ -340,7 +424,7 @@ export const MessageBubble = memo(function MessageBubble({
           )}
           <div className={`relative flex flex-col group/bubble ${isMine ? "items-end" : "items-start"}`}>
 
-          <div className={`bubble ${isMine ? "mine" : "theirs"} ${message.isDeleted ? "italic opacity-60" : ""}`}>
+          <div className={`bubble ${isMine ? "mine" : "theirs"} ${getBubbleShape()} ${message.isDeleted ? "italic opacity-60" : ""}`}>
             {message.isForwarded && (
               <div className="flex items-center gap-1 text-[11px] text-white/50 mb-1 italic">
                 <Reply size={12} className="-scale-x-100" />
@@ -397,21 +481,30 @@ export const MessageBubble = memo(function MessageBubble({
           )}
 
           {Object.keys(grouped).length > 0 && !pendingUpload && (
-            <div className={`flex gap-1 mt-1 ${isMine ? "justify-end" : "justify-start"}`}>
-              {Object.entries(grouped).map(([emoji, count]) => (
-                <motion.button
-                  key={emoji}
-                  onClick={() => react(emoji)}
-                  initial={{ scale: 0.8, opacity: 0 }}
-                  animate={{ scale: 1, opacity: 1 }}
-                  whileHover={{ scale: 1.1 }}
-                  whileTap={{ scale: 0.9 }}
-                  className="glass rounded-full px-2.5 py-1 text-[11px] shadow-md flex items-center gap-1 border border-white/10"
-                >
-                  <span>{emoji}</span>
-                  <span className="opacity-70">{count}</span>
-                </motion.button>
-              ))}
+            <div className={`flex flex-wrap gap-1 mt-1.5 ${isMine ? "justify-end" : "justify-start"}`}>
+              {Object.entries(grouped).map(([emoji, count]) => {
+                const isMyReaction = (message.reactions || []).some(
+                  (r) => r.emoji === emoji && r.userId === currentUserId
+                );
+                return (
+                  <motion.button
+                    key={emoji}
+                    onClick={() => react(emoji)}
+                    initial={{ scale: 0.8, opacity: 0 }}
+                    animate={{ scale: 1, opacity: 1 }}
+                    whileHover={{ scale: 1.1 }}
+                    whileTap={{ scale: 0.9 }}
+                    className={`glass rounded-full px-2.5 py-1 text-[11px] shadow-sm flex items-center gap-1.5 border transition cursor-pointer ${
+                      isMyReaction
+                        ? "bg-accent/25 border-accent/60 text-white font-semibold shadow-[0_0_12px_rgba(139,92,246,0.25)]"
+                        : "border-white/10 hover:border-white/20 text-white/90"
+                    }`}
+                  >
+                    <span className="text-xs">{emoji}</span>
+                    <span className={isMyReaction ? "text-accent font-bold" : "opacity-75"}>{count}</span>
+                  </motion.button>
+                );
+              })}
             </div>
           )}
 
