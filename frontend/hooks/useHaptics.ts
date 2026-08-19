@@ -15,5 +15,5 @@ export function useHaptics() {
     }
   }, []);
 
-  return { triggerImpact: trigger, triggerSelection: () => trigger('light') };
+  return { triggerImpact: trigger };
 }
