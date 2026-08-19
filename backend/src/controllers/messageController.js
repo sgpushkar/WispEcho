@@ -308,7 +308,7 @@ export async function sendMessage(req, res, next) {
         type: data.type,
         content: data.content,
         mediaUrl: data.mediaUrl,
-        mediaPublicId: data.mediaPublicId ?? null,
+        mediaPublicId: data.mediaPublicId || data.publicId || null,
         replyToId: data.replyToId,
         isViewOnce: data.isViewOnce,
         scheduledAt: data.scheduledAt ? new Date(data.scheduledAt) : null,
