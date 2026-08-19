@@ -74,20 +74,49 @@ cron.schedule("* * * * *", async () => {
       include: {
         sender: { select: { id: true, username: true, displayName: true, avatarUrl: true } },
         replyTo: true,
+        poll: { include: { votes: true } },
       },
     });
 
     if (scheduled.length > 0) {
-      // Mark them as not scheduled anymore by clearing scheduledAt (or we can just leave it as history, but let's just emit them)
-      // Actually we just emit them, and maybe mark status = DELIVERED or clear scheduledAt so we don't re-emit.
       await prisma.message.updateMany({
         where: { id: { in: scheduled.map(m => m.id) } },
         data: { scheduledAt: null } // Clear so they aren't picked up again
       });
 
       for (const msg of scheduled) {
+        let pollFormatted = null;
+        if (msg.poll) {
+          const options = Array.isArray(msg.poll.options) ? msg.poll.options : JSON.parse(JSON.stringify(msg.poll.options || []));
+          const votes = msg.poll.votes || [];
+          const results = options.map((label, idx) => {
+            const matching = votes.filter((v) => Array.isArray(v.optionIndexes) && v.optionIndexes.includes(idx));
+            return {
+              index: idx,
+              label,
+              votes: matching.length,
+              voters: matching.map((v) => v.userId),
+            };
+          });
+          pollFormatted = {
+            id: msg.poll.id,
+            messageId: msg.poll.messageId,
+            question: msg.poll.question,
+            options,
+            allowMultiple: msg.poll.allowMultiple,
+            endsAt: msg.poll.endsAt,
+            closedAt: msg.poll.closedAt,
+            results,
+            myVote: null,
+            totalVotes: votes.length,
+          };
+        }
+
         // Strip mediaUrl if IMAGE
-        const msgForSocket = msg.type === "IMAGE" ? { ...msg, mediaUrl: null, mediaPublicId: null } : msg;
+        const msgForSocket = {
+          ...(msg.type === "IMAGE" ? { ...msg, mediaUrl: null, mediaPublicId: null } : msg),
+          poll: pollFormatted,
+        };
         emitToConversation(msg.conversationId, "message:new", msgForSocket);
       }
     }
