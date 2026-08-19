@@ -168,7 +168,15 @@
   }
 
   /* Specific Components */
-  .brand-name { font-family: var(--font-space), sans-serif; font-weight: 700; font-size: 18px; letter-spacing: -0.02em; color: var(--ink); }
+  .brand-name {
+    font-family: var(--font-space), sans-serif;
+    font-weight: 700;
+    font-size: 18px;
+    letter-spacing: -0.02em;
+    color: var(--ink);
+    transition: color 0.3s ease;
+    text-shadow: 0 1px 12px var(--glass-border-strong);
+  }
   .avatar-font { font-family: var(--font-space), sans-serif; font-weight: 500; }
   .info-name { font-family: var(--font-space), sans-serif; font-size: 16px; font-weight: 500; }
 
@@ -195,12 +203,37 @@
   }
 
   .brand { display: flex; align-items: center; gap: 10px; padding: 0 4px; }
-  /* Dark mode logo (shown by default), hidden in light mode */
-  .logo-dark { display: block; border-radius: 6px; }
-  .logo-light { display: none; border-radius: 6px; }
+  
+  /* Dark mode logo (shown by default in dark themes) with radiant inverted contrast */
+  .logo-dark {
+    display: block;
+    border-radius: 8px;
+    filter: invert(1) brightness(1.25) drop-shadow(0 0 10px rgba(255,255,255,0.3));
+    transition: filter 0.3s ease, opacity 0.3s ease;
+  }
+  .logo-light {
+    display: none;
+    border-radius: 8px;
+    filter: drop-shadow(0 2px 6px rgba(0,0,0,0.15));
+    transition: filter 0.3s ease, opacity 0.3s ease;
+  }
+
   /* Light mode: swap which logo is visible */
   .light .logo-dark { display: none; }
   .light .logo-light { display: block; }
+
+  /* Universal Brand Logo styling for auth & marketing cards */
+  .brand-logo {
+    border-radius: 18px;
+    background: rgba(255, 255, 255, 0.08);
+    border: 1px solid var(--glass-border-strong);
+    box-shadow: 0 8px 32px -4px rgba(0, 0, 0, 0.4);
+    transition: all 0.3s cubic-bezier(0.2, 0.8, 0.2, 1);
+  }
+  .light .brand-logo {
+    background: rgba(0, 0, 0, 0.04);
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+  }
 
   .search { display: flex; align-items: center; gap: 8px; padding: 10px 14px; border-radius: 16px; background: var(--search-bg); border: 1px solid var(--search-border); font-size: 13px; color: var(--ink-faint); transition: all 0.18s cubic-bezier(0.2, 0.8, 0.2, 1); }
   .search:focus-within { background: var(--hover-bg); border-color: var(--hover-border); backdrop-filter: blur(12px); box-shadow: 0 8px 24px rgba(0,0,0,0.2); }
