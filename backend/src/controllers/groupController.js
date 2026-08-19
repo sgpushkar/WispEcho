@@ -1,6 +1,7 @@
 import prisma from "../config/db.js";
 import { createGroupSchema } from "../utils/validators.js";
 import { emitToConversation } from "../sockets/index.js";
+import crypto from "crypto";
 
 export async function createGroup(req, res, next) {
   try {
@@ -227,8 +228,6 @@ export async function deleteGroup(req, res, next) {
     next(err);
   }
 }
-
-import crypto from "crypto";
 
 function generateJoinCode(length = 10) {
   const chars = "abcdefghijklmnopqrstuvwxyz0123456789";
