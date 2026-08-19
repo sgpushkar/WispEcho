@@ -267,10 +267,12 @@ export function Sidebar() {
       <aside className="sidebar glass h-full w-full md:w-[290px] lg:w-[320px] xl:w-[340px] shrink-0">
         {/* Header / Brand */}
         <div className="flex items-center justify-between pb-1 relative z-[9999]">
-          <div className="flex items-center gap-2">
-            <img src="/logo-dark.png" alt="WispEcho" className="h-8 w-auto rounded-[6px] logo-dark" />
-            <img src="/logo-light.png" alt="WispEcho" className="h-8 w-auto rounded-[6px] logo-light" />
-            <span className="brand-name text-base font-bold">WispEcho</span>
+          <div className="flex items-center gap-2.5">
+            <div className="relative flex h-8 w-8 items-center justify-center rounded-xl bg-white/5 border border-white/10 overflow-hidden shadow-sm shrink-0">
+              <img src="/logo-dark.png" alt="WispEcho" className="h-5 w-auto object-contain logo-dark" />
+              <img src="/logo-light.png" alt="WispEcho" className="h-5 w-auto object-contain logo-light" />
+            </div>
+            <span className="brand-name text-base font-bold tracking-tight">WispEcho</span>
           </div>
           {/* Desktop action buttons */}
           <div className="hidden md:flex items-center gap-1 relative z-[9999]">
