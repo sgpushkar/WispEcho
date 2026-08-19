@@ -158,6 +158,8 @@ export default function LandingPage() {
             className="flex flex-col items-center lg:items-start space-y-6 text-center lg:text-left"
           >
             <div className="flex items-center gap-2 bg-white/5 rounded-full px-4 py-1.5 border border-white/5 text-[11px] font-medium text-white/80 backdrop-blur-md">
+              <span className="rounded-full bg-accent/20 px-2 py-0.5 text-[10px] font-bold text-accent border border-accent/30 font-space">v1.3.1</span>
+              <span className="text-white/40">·</span>
               <Sparkles size={11} className="text-accent" />
               <span>Next-Gen Encrypted Messaging</span>
             </div>
@@ -208,7 +210,7 @@ export default function LandingPage() {
                 <Shield size={20} className="text-white/60 shrink-0" />
                 <div className="flex flex-col">
                   <span className="text-[10px] text-white/40 uppercase font-medium">Privacy</span>
-                  <span className="text-xs font-bold">Zero Ads & Trackers</span>
+                  <span className="text-xs font-bold">Zero Ads &amp; Trackers</span>
                 </div>
               </div>
             </div>
@@ -298,6 +300,102 @@ export default function LandingPage() {
           </div>
         </motion.div>
 
+        {/* Latest Release & Update Logs (v1.3.1) Card */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          className="bg-white/5 backdrop-blur-2xl w-full rounded-[32px] p-6 sm:p-8 border border-white/10 space-y-6 text-left relative overflow-hidden"
+        >
+          {/* Subtle Ambient Glow */}
+          <div className="pointer-events-none absolute -right-20 -top-20 h-64 w-64 rounded-full bg-accent/15 blur-[80px]" />
+
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-white/5 pb-4">
+            <div className="space-y-1">
+              <div className="flex items-center gap-2.5">
+                <span className="rounded-full bg-accent/20 px-2.5 py-0.5 text-xs font-bold text-accent border border-accent/30 font-space">v1.3.1</span>
+                <span className="text-xs text-white/40">Released August 19, 2026</span>
+              </div>
+              <h2 className="text-xl font-bold font-space text-white">What&apos;s New &amp; Update Logs</h2>
+            </div>
+            <Link
+              href="/download"
+              className="inline-flex items-center gap-2 rounded-xl bg-white/10 px-4 py-2 text-xs font-semibold text-white hover:bg-white/15 transition border border-white/10 self-start sm:self-auto"
+            >
+              <span>Get Update</span>
+              <ArrowRight size={13} />
+            </Link>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            {/* New Features Column */}
+            <div className="space-y-3">
+              <div className="flex items-center gap-2 text-xs font-bold text-accent uppercase tracking-wider">
+                <Sparkles size={14} />
+                <span>New Features</span>
+              </div>
+              <div className="space-y-2.5">
+                <div className="p-3.5 rounded-2xl bg-white/5 border border-white/5 space-y-1">
+                  <h4 className="text-xs font-bold text-white">Discovery Hub &amp; Icebreakers</h4>
+                  <p className="text-[11px] text-white/50 leading-relaxed">Quick action jump cards and 1-click starter prompts in empty chat screens.</p>
+                </div>
+                <div className="p-3.5 rounded-2xl bg-white/5 border border-white/5 space-y-1">
+                  <h4 className="text-xs font-bold text-white">Code Block Formatting</h4>
+                  <p className="text-[11px] text-white/50 leading-relaxed">Multi-line syntax blocks with language badge and 1-click copy code action.</p>
+                </div>
+                <div className="p-3.5 rounded-2xl bg-white/5 border border-white/5 space-y-1">
+                  <h4 className="text-xs font-bold text-white">Group Invite Links (/join)</h4>
+                  <p className="text-[11px] text-white/50 leading-relaxed">Dedicated invite landing screens with direct join &amp; admin approval status.</p>
+                </div>
+              </div>
+            </div>
+
+            {/* UI/UX Improvements Column */}
+            <div className="space-y-3">
+              <div className="flex items-center gap-2 text-xs font-bold text-violet-400 uppercase tracking-wider">
+                <Zap size={14} />
+                <span>Design Upgrades</span>
+              </div>
+              <div className="space-y-2.5">
+                <div className="p-3.5 rounded-2xl bg-white/5 border border-white/5 space-y-1">
+                  <h4 className="text-xs font-bold text-white">Floating Island Composer</h4>
+                  <p className="text-[11px] text-white/50 leading-relaxed">Elevated glass input bar with neon glow ring and mobile safe-area padding.</p>
+                </div>
+                <div className="p-3.5 rounded-2xl bg-white/5 border border-white/5 space-y-1">
+                  <h4 className="text-xs font-bold text-white">Progressive Bubble Geometry</h4>
+                  <p className="text-[11px] text-white/50 leading-relaxed">Dynamic corner stacking on consecutive message bursts (iMessage style).</p>
+                </div>
+                <div className="p-3.5 rounded-2xl bg-white/5 border border-white/5 space-y-1">
+                  <h4 className="text-xs font-bold text-white">Universal Brand Contrast</h4>
+                  <p className="text-[11px] text-white/50 leading-relaxed">Radiant inverted logo and crisp text shadows across all 10+ themes.</p>
+                </div>
+              </div>
+            </div>
+
+            {/* Performance & Fixes Column */}
+            <div className="space-y-3">
+              <div className="flex items-center gap-2 text-xs font-bold text-green-400 uppercase tracking-wider">
+                <Shield size={14} />
+                <span>Fixes &amp; Stability</span>
+              </div>
+              <div className="space-y-2.5">
+                <div className="p-3.5 rounded-2xl bg-white/5 border border-white/5 space-y-1">
+                  <h4 className="text-xs font-bold text-white">Message Forwarding Fix</h4>
+                  <p className="text-[11px] text-white/50 leading-relaxed">Full support for forwarding to single chats or multiple conversations simultaneously.</p>
+                </div>
+                <div className="p-3.5 rounded-2xl bg-white/5 border border-white/5 space-y-1">
+                  <h4 className="text-xs font-bold text-white">Push Notification Actions</h4>
+                  <p className="text-[11px] text-white/50 leading-relaxed">Direct Reply and Reaction actions now connect to verified API endpoints.</p>
+                </div>
+                <div className="p-3.5 rounded-2xl bg-white/5 border border-white/5 space-y-1">
+                  <h4 className="text-xs font-bold text-white">Session Logout Cleanup</h4>
+                  <p className="text-[11px] text-white/50 leading-relaxed">Server refresh tokens are automatically purged even if access tokens expire.</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </motion.div>
+
         {/* How It Works Card */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
@@ -339,7 +437,7 @@ export default function LandingPage() {
             {[
               "100% free with zero ads or hidden paywalls",
               "View Once self-destructing photo sharing",
-              "Real-time online presence & typing indicators",
+              "Real-time online presence &amp; typing indicators",
               "Native Android app + Web app cross-compatibility",
               "Google 1-tap sign in with automatic account linking",
             ].map((item) => (
@@ -385,7 +483,7 @@ export default function LandingPage() {
 
         {/* Footer */}
         <footer className="pt-6 border-t border-white/5 w-full flex flex-col md:flex-row items-center justify-between gap-4 text-[11px] text-white/30">
-          <p>© 2026 WispEcho · Built for the next generation</p>
+          <p>© 2026 WispEcho v1.3.1 · Built for the next generation</p>
           <div className="flex flex-wrap justify-center gap-4">
             <Link href="/privacy" className="hover:text-white/60 transition">Privacy Policy</Link>
             <Link href="/terms" className="hover:text-white/60 transition">Terms of Service</Link>
