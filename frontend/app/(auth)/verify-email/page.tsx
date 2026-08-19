@@ -126,8 +126,11 @@ function VerifyEmailContent() {
 
         {/* Brand watermark */}
         <div className="flex items-center gap-2 pt-4 border-t border-white/5 w-full justify-center">
-          <img src="/logo.png" alt="WispEcho" className="h-5 w-5 rounded-md opacity-60" />
-          <span className="text-xs text-white/30 font-semibold">WispEcho</span>
+          <div className="relative flex h-5 w-5 items-center justify-center rounded-md bg-white/10 overflow-hidden">
+            <img src="/logo-dark.png" alt="WispEcho" className="h-3.5 w-auto object-contain logo-dark" />
+            <img src="/logo-light.png" alt="WispEcho" className="h-3.5 w-auto object-contain logo-light" />
+          </div>
+          <span className="text-xs text-white/50 font-semibold">WispEcho</span>
         </div>
       </motion.div>
     </div>
