@@ -24,29 +24,79 @@ interface VersionData {
 
 export default function DownloadPage() {
   const [data, setData] = useState<VersionData>({
-    latestVersion: "1.2.0",
-    downloadUrl: "https://github.com/sgpushkar/WispEcho/releases/download/latest/WispEcho-v1.2.0.apk",
-    releaseDate: null,
-    changelog: [],
+    latestVersion: "1.3.1",
+    downloadUrl: "https://github.com/sgpushkar/WispEcho/releases/download/latest/WispEcho-v1.3.1.apk",
+    releaseDate: "2026-08-19",
+    changelog: [
+      {
+        version: "1.3.1",
+        date: "2026-08-19",
+        changes: {
+          new: [
+            "Interactive Discovery Hub — quick action shortcuts for Groups, Friends, Themes, and Quick Jump (⌘K)",
+            "Conversation Icebreakers — instant first-message starter prompts in empty chats",
+            "Code Block Formatting — multi-line syntax blocks with 1-click Copy Code",
+            "Group Invite Landing Pages — dedicated /join and /join/:joinCode routes"
+          ],
+          improved: [
+            "Floating Island Composer — elevated glass input bar with neon focus ring",
+            "Progressive Bubble Geometry — dynamic stacked corner radii for consecutive messages",
+            "Universal Brand Contrast — radiant inverted logo and crisp text shadows on all themes",
+            "Inline Markdown Formatting — support for bold, italic, strikethrough, and inline code",
+            "Sidebar Polish — glowing unread indicators and pinned chat highlights"
+          ],
+          fixed: [
+            "Message forwarding accepting both conversation ID strings and arrays",
+            "Push notification Reply and React action endpoints and aliases",
+            "Do-Not-Disturb time string parsing and email digest field name synchronization",
+            "Zod schema mediaPublicId retention",
+            "Scheduled poll message data retention in cron broadcasts",
+            "Graceful session logout on expired tokens",
+            "Payment method forwarding in admin manual payments"
+          ]
+        }
+      },
+      {
+        version: "1.3.0",
+        date: "2026-08-09",
+        changes: {
+          new: [
+            "Admin Control Panel — comprehensive admin dashboard for managing platform metrics",
+            "Entitlement & Subscription system — structured user roles and premium feature gates",
+            "Manual Payments tracker — record manual UPI/Cash payments and automatically grant Pro access",
+            "Automated Expiration engine — hourly system tasks to manage active subscriptions and notify users",
+            "Admin Audit Logs — central append-only logs tracking sensitive admin actions"
+          ],
+          improved: [
+            "Synchronized theme verification — dynamic Pro theme checking integrated with the database",
+            "Build systems alignment — static exports and asset directory outputs restored for Capacitor compatibility"
+          ],
+          fixed: [
+            "Dynamic admin route generation build errors resolved for next export"
+          ]
+        }
+      }
+    ],
   });
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const baseUrl = process.env.NEXT_PUBLIC_SOCKET_URL || "https://wispecho.onrender.com";
-    const url = baseUrl ? `${baseUrl}/version.json?t=${Date.now()}` : `/version.json?t=${Date.now()}`;
-
-    fetch(url)
+    // Try fetching local version.json first, fallback to socket url
+    fetch(`/version.json?t=${Date.now()}`)
       .then((res) => {
         if (res.ok) return res.json();
-        throw new Error("Failed to fetch");
+        const baseUrl = process.env.NEXT_PUBLIC_SOCKET_URL || "https://wispecho.onrender.com";
+        return fetch(`${baseUrl}/version.json?t=${Date.now()}`).then((r) => r.json());
       })
       .then((json) => {
-        setData({
-          latestVersion: json.latestVersion || json.version || "1.2.0",
-          downloadUrl: json.downloadUrl || "https://wispecho.onrender.com/downloads/wispecho.apk",
-          releaseDate: json.releaseDate || null,
-          changelog: json.changelog || [],
-        });
+        if (json && (json.latestVersion || json.version)) {
+          setData({
+            latestVersion: json.latestVersion || json.version || "1.3.1",
+            downloadUrl: json.downloadUrl || json.apkUrl || "https://github.com/sgpushkar/WispEcho/releases/download/latest/WispEcho-v1.3.1.apk",
+            releaseDate: json.releaseDate || "2026-08-19",
+            changelog: json.changelog?.length ? json.changelog : data.changelog,
+          });
+        }
       })
       .catch((err) => console.error("Failed to load version details:", err))
       .finally(() => setLoading(false));
