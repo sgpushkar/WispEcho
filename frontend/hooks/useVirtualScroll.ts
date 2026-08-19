@@ -1,31 +1,31 @@
 "use client";
 
-import { useState, useEffect, useRef, useCallback } from "react";
+import { useState, useEffect, useRef } from "react";
 
 /**
- * A lightweight virtualizer for variable-height items.
- * Since true virtualization without libraries is complex (due to dynamic heights),
- * this hook implements a simplified "render window" approach.
- * It renders a generous chunk of items around the current scroll position,
- * avoiding the rendering of thousands of DOM nodes while keeping scroll smooth.
+ * Tracks scroll state for the messages container.
+ *
+ * NOTE: This is NOT a true virtualizer — all messages are rendered to the DOM.
+ * A future upgrade to react-virtual / tanstack-virtual would add real windowing.
+ * For now, `visibleItems` always returns the full item list.
  */
-export function useVirtualScroll<T>({ items }: { items: T[], itemHeightEstimate?: number, overscan?: number }) {
+export function useVirtualScroll<T>({ items }: { items: T[] }) {
   const containerRef = useRef<HTMLDivElement>(null);
   const [isAtBottom, setIsAtBottom] = useState(true);
 
   useEffect(() => {
     const el = containerRef.current;
     if (!el) return;
-    
+
     const handleScroll = () => {
       setIsAtBottom(el.scrollHeight - el.scrollTop - el.clientHeight < 150);
     };
-    
+
     el.addEventListener("scroll", handleScroll, { passive: true });
-    
+
     // Initial check
     setTimeout(handleScroll, 100);
-    
+
     return () => {
       el.removeEventListener("scroll", handleScroll);
     };
@@ -34,10 +34,10 @@ export function useVirtualScroll<T>({ items }: { items: T[], itemHeightEstimate?
   return {
     containerRef,
     visibleItems: items,
-    startIndex: 0,
-    endIndex: items.length,
+    /** Distance from bottom; use to auto-scroll on new messages */
+    isAtBottom,
+    /** Virtual padding (reserved for future virtualisation) */
     paddingTop: 0,
     paddingBottom: 0,
-    isAtBottom,
   };
 }
