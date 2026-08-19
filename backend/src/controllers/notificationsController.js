@@ -116,14 +116,35 @@ export async function getDoNotDisturb(req, res, next) {
 /** PUT /api/inbox/dnd */
 export async function upsertDoNotDisturb(req, res, next) {
   try {
-    const { enabled, startHour, endHour, timezone } = req.body;
-    if (startHour === undefined || endHour === undefined) {
-      return res.status(400).json({ error: "startHour and endHour are required" });
+    let { enabled, startHour, endHour, startTime, endTime, timezone } = req.body;
+
+    // Parse startTime/endTime strings (e.g. "22:00") if startHour/endHour not explicitly passed
+    if (startHour === undefined && startTime) {
+      startHour = parseInt(String(startTime).split(":")[0], 10);
     }
+    if (endHour === undefined && endTime) {
+      endHour = parseInt(String(endTime).split(":")[0], 10);
+    }
+
+    if (startHour === undefined || endHour === undefined || isNaN(startHour) || isNaN(endHour)) {
+      return res.status(400).json({ error: "startHour and endHour (or startTime and endTime) are required" });
+    }
+
     const dnd = await prisma.doNotDisturb.upsert({
       where: { userId: req.userId },
-      create: { userId: req.userId, enabled, startHour, endHour, timezone: timezone || "UTC" },
-      update: { enabled, startHour, endHour, timezone: timezone || "UTC" },
+      create: { 
+        userId: req.userId, 
+        enabled: !!enabled, 
+        startHour: Math.max(0, Math.min(23, startHour)), 
+        endHour: Math.max(0, Math.min(23, endHour)), 
+        timezone: timezone || "UTC" 
+      },
+      update: { 
+        enabled: !!enabled, 
+        startHour: Math.max(0, Math.min(23, startHour)), 
+        endHour: Math.max(0, Math.min(23, endHour)), 
+        timezone: timezone || "UTC" 
+      },
     });
     res.json({ dnd });
   } catch (err) {
