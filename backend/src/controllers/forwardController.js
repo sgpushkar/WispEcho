@@ -9,7 +9,12 @@ import { sendPushNotification } from "../services/pushService.js";
 export async function forwardMessage(req, res, next) {
   try {
     const { messageId } = req.params;
-    const { targetConversationIds } = req.body;
+    let targetConversationIds = req.body.targetConversationIds;
+
+    // Handle single conversationId fallback from older clients or modal shortcuts
+    if (!targetConversationIds && req.body.conversationId) {
+      targetConversationIds = [req.body.conversationId];
+    }
 
     if (!Array.isArray(targetConversationIds) || targetConversationIds.length === 0) {
       return res.status(400).json({ error: "targetConversationIds must be a non-empty array" });
