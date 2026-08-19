@@ -34,11 +34,12 @@ self.addEventListener('notificationclick', function(event) {
   } else if (event.action === 'react') {
     // Send reaction in the background
     event.waitUntil(
-      fetch('/api/messages/' + data.messageId + '/react', {
+      fetch('/api/messages/' + data.messageId + '/reactions', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
         },
+        credentials: 'include',
         body: JSON.stringify({ emoji: '👍' })
       })
     );
