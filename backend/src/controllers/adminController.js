@@ -380,9 +380,15 @@ export async function sendBroadcast(req, res, next) {
 
     await prisma.notification.createMany({ data: notifications });
 
-    // Assuming we would also socket emit if we want real-time push:
-    // (We omit explicit socket emit to all here since it could be heavy, 
-    // but users will fetch notifications on polling/reload)
+    // Emit real-time socket event to all online users.
+    // Connected clients listen on "notification:broadcast" in useSocketEvents.ts.
+    const { notifyUser } = await import("../sockets/index.js");
+    for (const u of users) {
+      notifyUser(u.id, "notification:broadcast", {
+        title: "Admin Broadcast",
+        body: message,
+      });
+    }
 
     res.json({ success: true, count: users.length });
   } catch (err) {
