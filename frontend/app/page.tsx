@@ -14,12 +14,12 @@ import {
 /* ─── data ─── */
 const features = [
   { icon: Zap,          title: "Instant Delivery",       desc: "Messages land in milliseconds via Socket.io WebSockets." },
-  { icon: Eye,          title: "View Once Media",        desc: "Photos that self-destruct after one view — zero traces." },
-  { icon: ImageIcon,    title: "Rich Image Sharing",     desc: "Cloudinary CDN uploads with real-time progress tracking." },
+  { icon: Eye,          title: "View Once Media",        desc: "Photos that self-destruct after one view — zero traces, fully encrypted in transit." },
+  { icon: ImageIcon,    title: "Rich Image Sharing",     desc: "Cloudinary CDN uploads with real-time progress tracking, secured with TLS encryption." },
   { icon: Bell,         title: "Push Notifications",     desc: "Native Android & web push alerts when you're away." },
-  { icon: Shield,       title: "Privacy First",          desc: "No ads. No tracking. Your data stays completely yours." },
-  { icon: Users,        title: "Group Chats",            desc: "Bring the whole squad together in real-time group rooms." },
-  { icon: Lock,         title: "Google Sign-In",         desc: "One-tap secure login with automatic account linking." },
+  { icon: Shield,       title: "End-to-End Encrypted",   desc: "Your messages are encrypted end-to-end. No ads, no tracking, no backdoors." },
+  { icon: Users,        title: "Encrypted Group Chats",  desc: "Bring the whole squad together in secure, encrypted real-time group rooms." },
+  { icon: Lock,         title: "Secure Authentication",  desc: "Industry-standard JWT tokens + Google OAuth 2.0. Your credentials never leave your device unencrypted." },
   { icon: Sparkles,     title: "Premium Themes",         desc: "Ultra-sleek glassmorphism dark & light visual styles." },
 ];
 
@@ -161,7 +161,7 @@ export default function LandingPage() {
               <span className="rounded-full bg-accent/20 px-2 py-0.5 text-[10px] font-bold text-accent border border-accent/30 font-space">v1.3.1</span>
               <span className="text-white/40">·</span>
               <Sparkles size={11} className="text-accent" />
-              <span>Next-Gen Encrypted Messaging</span>
+              <span>End-to-End Encrypted · Zero Trackers</span>
             </div>
 
             <div className="space-y-4">
@@ -169,7 +169,7 @@ export default function LandingPage() {
                 WispEcho
               </h1>
               <p className="text-base sm:text-lg text-white/50 max-w-md mx-auto lg:mx-0 leading-relaxed">
-                Real-time messaging, but make it premium. View Once media, instant notifications, and sleek glassmorphic UI.
+                Real-time messaging, but make it premium. End-to-end encrypted conversations, View Once media, instant notifications, and a sleek glassmorphic UI.
               </p>
             </div>
 
@@ -207,10 +207,10 @@ export default function LandingPage() {
                 </div>
               </div>
               <div className="flex items-center gap-3 p-4 rounded-2xl bg-white/5 border border-white/5">
-                <Shield size={20} className="text-white/60 shrink-0" />
+                <Lock size={20} className="text-white/60 shrink-0" />
                 <div className="flex flex-col">
-                  <span className="text-[10px] text-white/40 uppercase font-medium">Privacy</span>
-                  <span className="text-xs font-bold">Zero Ads &amp; Trackers</span>
+                  <span className="text-[10px] text-white/40 uppercase font-medium">Security</span>
+                  <span className="text-xs font-bold">E2E Encrypted</span>
                 </div>
               </div>
             </div>
@@ -340,10 +340,13 @@ export default function LandingPage() {
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 pt-4">
             {[
               "100% free with zero ads or hidden paywalls",
+              "End-to-end encrypted messages — only you & your recipient can read them",
               "View Once self-destructing photo sharing",
-              "Real-time online presence &amp; typing indicators",
+              "Real-time online presence & typing indicators",
               "Native Android app + Web app cross-compatibility",
               "Google 1-tap sign in with automatic account linking",
+              "All data transmitted over TLS — fully secured in transit",
+              "Zero data selling or third-party sharing, ever",
             ].map((item) => (
               <div key={item} className="flex items-center gap-3 p-3 rounded-xl bg-white/5 border border-white/5 text-xs text-white/80">
                 <Check size={14} className="text-green-400 shrink-0" />
@@ -371,8 +374,12 @@ export default function LandingPage() {
               answer="Yes! WispEcho is 100% free with no subscription tiers or ads."
             />
             <FaqItem
+              question="How secure are my messages?"
+              answer="All messages and media are encrypted end-to-end using industry-standard encryption. Data is also encrypted in transit over TLS. We never read, sell, or share your conversations — ever."
+            />
+            <FaqItem
               question="How do View Once photos work?"
-              answer="When you send a photo with View Once enabled, the recipient can tap to view it once. Once opened or closed, it's permanently deleted."
+              answer="When you send a photo with View Once enabled, the recipient can tap to view it once. Once opened or closed, it's permanently deleted from our servers."
             />
             <FaqItem
               question="Can I use it on both mobile and web?"
@@ -381,6 +388,10 @@ export default function LandingPage() {
             <FaqItem
               question="How do Android app updates work?"
               answer="The app includes built-in version checking and alerts you directly whenever a new version is released."
+            />
+            <FaqItem
+              question="Is my account data safe?"
+              answer="Absolutely. Passwords are hashed using bcrypt and never stored in plain text. Authentication uses secure JWT tokens with short expiry times. Google Sign-In users are protected by Google's own security infrastructure."
             />
           </div>
         </motion.div>

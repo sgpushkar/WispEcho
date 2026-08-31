@@ -8,6 +8,7 @@ import { api } from "@/lib/api";
 import { useAuthStore } from "@/store/useAuthStore";
 import GoogleSignInButton from "@/components/auth/GoogleSignInButton";
 import { useUIStore } from "@/store/useUIStore";
+import { ShieldCheck } from "lucide-react";
 
 export default function RegisterPage() {
   const router = useRouter();
@@ -121,6 +122,12 @@ export default function RegisterPage() {
             log in
           </Link>
         </p>
+
+        {/* Security badge */}
+        <div className="mt-4 flex items-center justify-center gap-1.5 text-[11px] text-white/25">
+          <ShieldCheck size={12} />
+          <span>end-to-end encrypted · we never store your password in plain text</span>
+        </div>
       </motion.form>
     </div>
   );

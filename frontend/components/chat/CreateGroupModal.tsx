@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { motion } from "framer-motion";
-import { X, Users, Check } from "lucide-react";
+import { X, Users, Check, ShieldCheck } from "lucide-react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { api } from "@/lib/api";
 import { useChatStore } from "@/store/useChatStore";
@@ -119,6 +119,10 @@ export function CreateGroupModal({ isOpen, onClose }: { isOpen: boolean; onClose
           >
             {createGroup.isPending ? "Creating..." : "Create Group"}
           </button>
+          <div className="mt-2 flex items-center justify-center gap-1.5 text-[11px] text-white/25">
+            <ShieldCheck size={11} />
+            <span>encrypted &amp; secure group chat</span>
+          </div>
         </div>
       </motion.div>
       </div>
