@@ -5,11 +5,12 @@ import { useSearchParams, useRouter } from "next/navigation";
 import { useQuery } from "@tanstack/react-query";
 import { api } from "@/lib/api";
 import { motion } from "framer-motion";
-import { ArrowLeft, User as UserIcon, Calendar, Circle, MessageSquare } from "lucide-react";
+import { ArrowLeft, User as UserIcon, Calendar, Circle, MessageSquare, Flag } from "lucide-react";
 import { format } from "date-fns";
 import { Avatar } from "@/components/ui/Avatar";
 import { useChatStore } from "@/store/useChatStore";
 import { useAuthStore } from "@/store/useAuthStore";
+import { useUIStore } from "@/store/useUIStore";
 
 function ProfileContent() {
   const searchParams = useSearchParams();
@@ -96,25 +97,44 @@ function ProfileContent() {
             <div className="-mt-16 sm:-mt-20 relative h-32 w-32 sm:h-40 sm:w-40 rounded-full border-4 border-[#0a0a0a] overflow-hidden shrink-0">
               <Avatar src={user.avatarUrl} name={user.displayName} className="h-full w-full border-none text-3xl font-bold" />
             </div>
-            <div className="pt-4">
+            <div className="pt-4 flex items-center gap-2">
               {currentUserId !== user.id && (
-                <button
-                  onClick={async () => {
-                    try {
-                      const { data: convData } = await api.get(`/messages/conversations/direct/${user.id}`);
-                      if (convData.conversation) {
-                        useChatStore.getState().setActiveConversation(convData.conversation.id);
-                        router.push("/chat");
+                <>
+                  <button
+                    onClick={async () => {
+                      try {
+                        const { data: convData } = await api.get(`/messages/conversations/direct/${user.id}`);
+                        if (convData.conversation) {
+                          useChatStore.getState().setActiveConversation(convData.conversation.id);
+                          router.push("/chat");
+                        }
+                      } catch (err) {
+                        console.error(err);
                       }
-                    } catch (err) {
-                      console.error(err);
-                    }
-                  }}
-                  className="flex items-center gap-2 px-4 py-2 rounded-xl bg-accent text-white font-medium text-sm hover:bg-accent/90 transition shadow-md"
-                >
-                  <MessageSquare size={16} />
-                  <span>Message</span>
-                </button>
+                    }}
+                    className="flex items-center gap-2 px-4 py-2 rounded-xl bg-accent text-white font-medium text-sm hover:bg-accent/90 transition shadow-md"
+                  >
+                    <MessageSquare size={16} />
+                    <span>Message</span>
+                  </button>
+
+                  <button
+                    onClick={() => {
+                      useUIStore.getState().openReportModal({
+                        type: "USER",
+                        userId: user.id,
+                        username: user.username,
+                        displayName: user.displayName,
+                        avatarUrl: user.avatarUrl,
+                      });
+                    }}
+                    className="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-white/5 hover:bg-red-500/15 text-white/70 hover:text-red-400 border border-white/10 hover:border-red-500/30 transition text-sm font-medium"
+                    title="Report Profile"
+                  >
+                    <Flag size={15} />
+                    <span>Report</span>
+                  </button>
+                </>
               )}
             </div>
           </div>
