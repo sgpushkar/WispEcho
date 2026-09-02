@@ -10,6 +10,8 @@ router.post("/subscribe", subscribe);
 router.post("/unsubscribe", unsubscribe);
 router.get("/", notificationsController.listNotifications);
 router.post("/mark-all-read", notificationsController.markAllNotificationsRead);
+router.delete("/clear-all", notificationsController.clearAllNotifications);
+router.post("/clear-all", notificationsController.clearAllNotifications);
 router.patch("/:notificationId/read", notificationsController.markNotificationRead);
 router.delete("/:notificationId", notificationsController.deleteNotification);
 

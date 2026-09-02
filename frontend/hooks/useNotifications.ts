@@ -2,6 +2,7 @@ import { useEffect } from "react";
 import { LocalNotifications } from "@capacitor/local-notifications";
 import { Capacitor } from "@capacitor/core";
 import { api } from "../lib/api";
+import { useChatStore } from "@/store/useChatStore";
 
 const urlBase64ToUint8Array = (base64String: string) => {
   const padding = "=".repeat((4 - (base64String.length % 4)) % 4);
@@ -47,12 +48,21 @@ export function useNotifications() {
             ],
           });
 
-          // Listen for action clicks (Reply/React)
+          // Listen for action clicks (Reply/React/Tap)
           listenerPromise = LocalNotifications.addListener("localNotificationActionPerformed", async (notificationAction) => {
             const { actionId, inputValue, notification } = notificationAction;
             const data = notification.extra;
             
-            if (!data || !data.messageId) return;
+            if (!data) return;
+
+            if (actionId === "tap") {
+              if (data.conversationId) {
+                useChatStore.getState().setActiveConversation(data.conversationId);
+              }
+              return;
+            }
+
+            if (!data.messageId) return;
 
             if (actionId === "reply" && inputValue) {
               await api.post(`/messages`, {
@@ -128,7 +138,13 @@ export function useNotifications() {
         });
       } else if (typeof window !== "undefined" && "Notification" in window) {
         if (Notification.permission === "granted") {
-          new Notification(title, { body, icon: "/logo.png" });
+          const notif = new Notification(title, { body, icon: "/logo.png" });
+          notif.onclick = () => {
+            window.focus();
+            if (data?.conversationId) {
+              useChatStore.getState().setActiveConversation(data.conversationId);
+            }
+          };
         }
       }
     } catch (err) {

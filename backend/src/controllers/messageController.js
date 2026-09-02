@@ -385,11 +385,36 @@ export async function sendMessage(req, res, next) {
             );
           }
 
-          usersToNotify.forEach(user => {
+          usersToNotify.forEach(async (user) => {
             notifyUser(user.id, "notification:mention", {
               conversationId,
               message: `${message.sender.displayName} mentioned you: ${data.content}`
             });
+            try {
+              await prisma.notification.create({
+                data: {
+                  userId: user.id,
+                  type: "MENTION",
+                  payload: {
+                    conversationId,
+                    messageId: message.id,
+                    from: message.sender.displayName,
+                    fromUsername: message.sender.username,
+                    avatarUrl: message.sender.avatarUrl,
+                    message: `${message.sender.displayName} mentioned you: ${data.content}`,
+                  },
+                },
+              });
+              notifyUser(user.id, "notification:new", {
+                type: "MENTION",
+                conversationId,
+                messageId: message.id,
+                from: message.sender.displayName,
+                message: `${message.sender.displayName} mentioned you: ${data.content}`,
+              });
+            } catch (notifErr) {
+              console.error("Failed to create mention notification:", notifErr);
+            }
           });
         }
       }
@@ -499,6 +524,42 @@ export async function reactToMessage(req, res, next) {
       data: { messageId, userId: req.userId, emoji },
     });
     emitToConversation(message.conversationId, "reaction:added", reaction);
+
+    if (message.senderId !== req.userId) {
+      try {
+        const userWhoReacted = await prisma.user.findUnique({
+          where: { id: req.userId },
+          select: { displayName: true, username: true, avatarUrl: true },
+        });
+
+        await prisma.notification.create({
+          data: {
+            userId: message.senderId,
+            type: "REACTION",
+            payload: {
+              conversationId: message.conversationId,
+              messageId: message.id,
+              emoji,
+              from: userWhoReacted?.displayName || "Someone",
+              fromUsername: userWhoReacted?.username,
+              avatarUrl: userWhoReacted?.avatarUrl,
+              message: `${userWhoReacted?.displayName || "Someone"} reacted ${emoji} to your message`,
+            },
+          },
+        });
+
+        notifyUser(message.senderId, "notification:new", {
+          type: "REACTION",
+          conversationId: message.conversationId,
+          messageId: message.id,
+          from: userWhoReacted?.displayName || "Someone",
+          message: `${userWhoReacted?.displayName || "Someone"} reacted ${emoji} to your message`,
+        });
+      } catch (err) {
+        console.error("Failed to create reaction notification:", err);
+      }
+    }
+
     res.status(201).json({ reaction });
   } catch (err) {
     next(err);

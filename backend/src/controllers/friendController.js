@@ -100,6 +100,36 @@ export async function respondFriendRequest(req, res, next) {
       });
 
       emitToConversation(conv.id, "message:new", message);
+
+      const acceptor = await prisma.user.findUnique({
+        where: { id: req.userId },
+        select: { id: true, username: true, displayName: true, avatarUrl: true },
+      });
+
+      try {
+        await prisma.notification.create({
+          data: {
+            userId: friendship.requesterId,
+            type: "FRIEND_ACCEPTED",
+            payload: {
+              friendshipId,
+              conversationId: conv.id,
+              from: acceptor?.displayName || "Someone",
+              fromUsername: acceptor?.username,
+              avatarUrl: acceptor?.avatarUrl,
+              message: `${acceptor?.displayName || "Someone"} accepted your friend request!`,
+            },
+          },
+        });
+        notifyUser(friendship.requesterId, "notification:new", {
+          type: "FRIEND_ACCEPTED",
+          conversationId: conv.id,
+          from: acceptor?.displayName || "Someone",
+          message: `${acceptor?.displayName || "Someone"} accepted your friend request!`,
+        });
+      } catch (err) {
+        console.error("Failed to create friend accepted notification:", err);
+      }
       
       return res.json({ friendship: updated });
     }

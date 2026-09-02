@@ -1,6 +1,6 @@
 import prisma from "../config/db.js";
 import { createGroupSchema } from "../utils/validators.js";
-import { emitToConversation } from "../sockets/index.js";
+import { emitToConversation, notifyUser } from "../sockets/index.js";
 import crypto from "crypto";
 
 export async function createGroup(req, res, next) {
@@ -76,6 +76,41 @@ export async function inviteMembers(req, res, next) {
     });
 
     emitToConversation(group.conversationId, "group:membersAdded", { groupId, userIds: validUserIds });
+
+    const inviter = await prisma.user.findUnique({
+      where: { id: req.userId },
+      select: { displayName: true, username: true, avatarUrl: true },
+    });
+
+    for (const memberId of validUserIds) {
+      try {
+        await prisma.notification.create({
+          data: {
+            userId: memberId,
+            type: "GROUP_INVITE",
+            payload: {
+              groupId,
+              conversationId: group.conversationId,
+              groupName: group.name,
+              from: inviter?.displayName || "Someone",
+              avatarUrl: group.avatarUrl || inviter?.avatarUrl,
+              message: `${inviter?.displayName || "Someone"} added you to ${group.name}`,
+            },
+          },
+        });
+        notifyUser(memberId, "notification:new", {
+          type: "GROUP_INVITE",
+          groupId,
+          conversationId: group.conversationId,
+          groupName: group.name,
+          from: inviter?.displayName || "Someone",
+          message: `${inviter?.displayName || "Someone"} added you to ${group.name}`,
+        });
+      } catch (err) {
+        console.error("Failed to create group invite notification:", err);
+      }
+    }
+
     res.json({ success: true });
   } catch (err) {
     next(err);

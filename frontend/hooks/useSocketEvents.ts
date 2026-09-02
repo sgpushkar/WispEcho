@@ -68,7 +68,10 @@ export function useSocketEvents() {
             msg.type === "VOICE" ? "🎤 Sent a voice note" :
             msg.type === "FILE"  ? "📎 Sent a file" :
             msg.content || "New message";
-          sendNotification(`New message from ${senderName}`, text);
+          sendNotification(`New message from ${senderName}`, text, {
+            conversationId: msg.conversationId,
+            messageId: msg.id,
+          });
         }
       }
     });
@@ -105,13 +108,46 @@ export function useSocketEvents() {
       }
     });
 
+    socket.on("notification:new", (payload) => {
+      playNotificationSound();
+      queryClient.invalidateQueries({ queryKey: ["inbox-notifications"] });
+      queryClient.invalidateQueries({ queryKey: ["friend-requests"] });
+      if (typeof window !== "undefined" && "Notification" in window && Notification.permission === "granted" && document.hidden) {
+        const title = payload.title || (
+          payload.type === "FRIEND_REQUEST" ? "New Friend Request" :
+          payload.type === "FRIEND_ACCEPTED" ? "Friend Request Accepted" :
+          payload.type === "MENTION" ? "You were mentioned!" :
+          payload.type === "REACTION" ? "New Reaction" :
+          payload.type === "GROUP_INVITE" ? "Added to Group" :
+          "New Notification"
+        );
+        const notif = new Notification(title, {
+          body: payload.message || "You have a new notification",
+          icon: "/logo.png",
+        });
+        notif.onclick = () => {
+          window.focus();
+          if (payload.conversationId) {
+            useChatStore.getState().setActiveConversation(payload.conversationId);
+          }
+        };
+      }
+    });
+
     socket.on("notification:mention", (payload) => {
       playNotificationSound();
-      if ("Notification" in window && Notification.permission === "granted") {
-        new Notification(`You were mentioned!`, {
+      queryClient.invalidateQueries({ queryKey: ["inbox-notifications"] });
+      if (typeof window !== "undefined" && "Notification" in window && Notification.permission === "granted" && document.hidden) {
+        const notif = new Notification(`You were mentioned!`, {
           body: payload.message,
           icon: "/logo.png"
         });
+        notif.onclick = () => {
+          window.focus();
+          if (payload.conversationId) {
+            useChatStore.getState().setActiveConversation(payload.conversationId);
+          }
+        };
       }
     });
 
@@ -184,6 +220,7 @@ export function useSocketEvents() {
 
     socket.on("notification:broadcast", (payload) => {
       playNotificationSound();
+      queryClient.invalidateQueries({ queryKey: ["inbox-notifications"] });
       if ("Notification" in window && Notification.permission === "granted") {
         new Notification(payload.title || "Admin Broadcast", {
           body: payload.body,
@@ -215,6 +252,7 @@ export function useSocketEvents() {
       socket.off("typing:stop");
       socket.off("presence:update");
       socket.off("conversation:read");
+      socket.off("notification:new");
       socket.off("notification:mention");
       socket.off("group:memberLeft");
       socket.off("group:membersAdded");

@@ -57,6 +57,18 @@ export async function deleteNotification(req, res, next) {
   }
 }
 
+/** DELETE /api/inbox/clear-all — delete all notifications for current user */
+export async function clearAllNotifications(req, res, next) {
+  try {
+    await prisma.notification.deleteMany({
+      where: { userId: req.userId },
+    });
+    res.json({ success: true });
+  } catch (err) {
+    next(err);
+  }
+}
+
 /** GET /api/inbox/preferences */
 export async function getConversationPreferences(req, res, next) {
   try {
