@@ -310,15 +310,51 @@ export async function deleteUser(req, res, next) {
 export async function getReports(req, res, next) {
   try {
     const { status = "PENDING" } = req.query;
+    const where = {};
+    if (status && status !== "ALL") {
+      if (status === "PENDING") {
+        where.status = { in: ["PENDING", "OPEN"] };
+      } else {
+        where.status = status;
+      }
+    }
+
     const reports = await prisma.report.findMany({
-      where: { status },
+      where,
       include: {
-        reporter: { select: { id: true, username: true, displayName: true } },
-        reported: { select: { id: true, username: true, displayName: true } },
+        reporter: { select: { id: true, username: true, displayName: true, avatarUrl: true } },
+        reported: { select: { id: true, username: true, displayName: true, avatarUrl: true } },
       },
       orderBy: { createdAt: "desc" },
     });
-    res.json({ reports });
+
+    // Fetch related messages for MESSAGE or MEDIA content types
+    const messageContentIds = reports
+      .filter((r) => (r.contentType === "MESSAGE" || r.contentType === "MEDIA") && r.contentId)
+      .map((r) => r.contentId);
+
+    let messageMap = new Map();
+    if (messageContentIds.length > 0) {
+      const messages = await prisma.message.findMany({
+        where: { id: { in: messageContentIds } },
+        select: {
+          id: true,
+          content: true,
+          mediaUrl: true,
+          type: true,
+          isDeleted: true,
+          createdAt: true,
+        },
+      });
+      messageMap = new Map(messages.map((m) => [m.id, m]));
+    }
+
+    const reportsWithContent = reports.map((r) => ({
+      ...r,
+      message: r.contentId ? messageMap.get(r.contentId) || null : null,
+    }));
+
+    res.json({ reports: reportsWithContent });
   } catch (err) {
     next(err);
   }
@@ -344,7 +380,7 @@ export async function deleteReportedContent(req, res, next) {
     const report = await prisma.report.findUnique({ where: { id } });
     if (!report) return res.status(404).json({ error: "Report not found" });
 
-    if (report.contentType === "MESSAGE" && report.contentId) {
+    if ((report.contentType === "MESSAGE" || report.contentType === "MEDIA") && report.contentId) {
       await prisma.message.update({
         where: { id: report.contentId },
         data: { isDeleted: true, content: null, mediaUrl: null, mediaPublicId: null },
