@@ -158,7 +158,7 @@ export default function LandingPage() {
             className="flex flex-col items-center lg:items-start space-y-6 text-center lg:text-left"
           >
             <div className="flex items-center gap-2 bg-white/5 rounded-full px-4 py-1.5 border border-white/5 text-[11px] font-medium text-white/80 backdrop-blur-md">
-              <span className="rounded-full bg-accent/20 px-2 py-0.5 text-[10px] font-bold text-accent border border-accent/30 font-space">v1.3.1</span>
+              <span className="rounded-full bg-accent/20 px-2 py-0.5 text-[10px] font-bold text-accent border border-accent/30 font-space">v1.4.0</span>
               <span className="text-white/40">·</span>
               <Sparkles size={11} className="text-accent" />
               <span>End-to-End Encrypted · Zero Trackers</span>
@@ -398,7 +398,7 @@ export default function LandingPage() {
 
         {/* Footer */}
         <footer className="pt-6 border-t border-white/5 w-full flex flex-col md:flex-row items-center justify-between gap-4 text-[11px] text-white/30">
-          <p>© 2026 WispEcho v1.3.1 · Built for the next generation</p>
+          <p>© 2026 WispEcho v1.4.0 · Built for the next generation</p>
           <div className="flex flex-wrap justify-center gap-4">
             <Link href="/privacy" className="hover:text-white/60 transition">Privacy Policy</Link>
             <Link href="/terms" className="hover:text-white/60 transition">Terms of Service</Link>
