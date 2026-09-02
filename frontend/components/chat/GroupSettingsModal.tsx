@@ -140,35 +140,35 @@ export function GroupSettingsModal() {
         initial={{ opacity: 0, scale: 0.95, y: 20 }}
         animate={{ opacity: 1, scale: 1, y: 0 }}
         exit={{ opacity: 0, scale: 0.95, y: 20 }}
-        className="glass relative flex h-[600px] max-h-[88vh] w-full max-w-md flex-col overflow-hidden rounded-2xl border border-white/10"
+        className="glass relative flex h-[600px] max-h-[88vh] w-full max-w-md flex-col overflow-hidden rounded-2xl border border-[var(--glass-border-strong)]"
       >
-        <div className="flex items-center justify-between border-b border-white/5 p-4">
-          <h2 className="text-lg font-semibold flex items-center gap-2">
+        <div className="flex items-center justify-between border-b border-[var(--glass-border)] p-4">
+          <h2 className="text-lg font-semibold flex items-center gap-2 text-[var(--ink)]">
             <Users size={18} /> Group Settings
           </h2>
-          <button onClick={() => setGroupSettingsOpen(false)} className="rounded-full p-1 text-white/40 hover:bg-white/5 hover:text-white transition">
+          <button onClick={() => setGroupSettingsOpen(false)} className="rounded-full p-1 text-[var(--ink-faint)] hover:bg-[var(--hover-bg)] hover:text-[var(--ink)] transition">
             <X size={20} />
           </button>
         </div>
 
         {/* Tabs */}
-        <div className="flex border-b border-white/5">
+        <div className="flex border-b border-[var(--glass-border)]">
           <button
             onClick={() => setActiveTab("details")}
-            className={`flex-1 py-3 text-sm font-medium transition ${activeTab === "details" ? "border-b-2 border-white text-white" : "text-white/40 hover:text-white/80"}`}
+            className={`flex-1 py-3 text-sm font-medium transition ${activeTab === "details" ? "border-b-2 border-[var(--ink)] text-[var(--ink)] font-semibold" : "text-[var(--ink-faint)] hover:text-[var(--ink)]"}`}
           >
             Details
           </button>
           <button
             onClick={() => setActiveTab("members")}
-            className={`flex-1 py-3 text-sm font-medium transition ${activeTab === "members" ? "border-b-2 border-white text-white" : "text-white/40 hover:text-white/80"}`}
+            className={`flex-1 py-3 text-sm font-medium transition ${activeTab === "members" ? "border-b-2 border-[var(--ink)] text-[var(--ink)] font-semibold" : "text-[var(--ink-faint)] hover:text-[var(--ink)]"}`}
           >
             Members
           </button>
           {canEdit && (
             <button
               onClick={() => setActiveTab("settings")}
-              className={`flex-1 py-3 text-sm font-medium transition ${activeTab === "settings" ? "border-b-2 border-white text-white" : "text-white/40 hover:text-white/80"}`}
+              className={`flex-1 py-3 text-sm font-medium transition ${activeTab === "settings" ? "border-b-2 border-[var(--ink)] text-[var(--ink)] font-semibold" : "text-[var(--ink-faint)] hover:text-[var(--ink)]"}`}
             >
               Settings
             </button>
@@ -185,49 +185,49 @@ export function GroupSettingsModal() {
               </div>
 
               <div className="space-y-2">
-                <label className="text-sm font-medium text-white/60">Group Name</label>
+                <label className="text-sm font-medium text-[var(--ink-dim)]">Group Name</label>
                 <input
                   value={name}
                   onChange={(e) => setName(e.target.value)}
                   disabled={!canEdit}
                   placeholder="Group Name"
-                  className="w-full rounded-xl border border-white/10 bg-white/5 px-3 py-2 text-sm outline-none placeholder:text-white/30 text-white disabled:opacity-50"
+                  className="w-full rounded-xl border border-[var(--glass-border)] bg-[var(--hover-bg)] px-3 py-2 text-sm outline-none placeholder:text-[var(--ink-faint)] text-[var(--ink)] disabled:opacity-50"
                 />
               </div>
 
               <div className="space-y-2">
-                <label className="text-sm font-medium text-white/60">Description</label>
+                <label className="text-sm font-medium text-[var(--ink-dim)]">Description</label>
                 <textarea
                   value={description}
                   onChange={(e) => setDescription(e.target.value)}
                   disabled={!canEdit}
                   placeholder="What's this group about?"
                   rows={3}
-                  className="w-full rounded-xl border border-white/10 bg-white/5 px-3 py-2 text-sm outline-none placeholder:text-white/30 text-white resize-none disabled:opacity-50"
+                  className="w-full rounded-xl border border-[var(--glass-border)] bg-[var(--hover-bg)] px-3 py-2 text-sm outline-none placeholder:text-[var(--ink-faint)] text-[var(--ink)] resize-none disabled:opacity-50"
                 />
               </div>
 
               <div className="space-y-2">
-                <label className="text-sm font-medium text-white/60">Avatar URL</label>
+                <label className="text-sm font-medium text-[var(--ink-dim)]">Avatar URL</label>
                 <input
                   value={avatarUrl}
                   onChange={(e) => setAvatarUrl(e.target.value)}
                   disabled={!canEdit}
                   placeholder="https://..."
-                  className="w-full rounded-xl border border-white/10 bg-white/5 px-3 py-2 text-sm outline-none placeholder:text-white/30 text-white disabled:opacity-50"
+                  className="w-full rounded-xl border border-[var(--glass-border)] bg-[var(--hover-bg)] px-3 py-2 text-sm outline-none placeholder:text-[var(--ink-faint)] text-[var(--ink)] disabled:opacity-50"
                 />
               </div>
 
-              <div className="pt-2 border-t border-white/5">
+              <div className="pt-2 border-t border-[var(--glass-border)]">
                 <button
                   onClick={() => setShowSharedMedia(true)}
-                  className="w-full flex items-center justify-between rounded-xl bg-white/5 border border-white/10 px-4 py-3 text-sm font-medium text-white hover:bg-white/10 transition"
+                  className="w-full flex items-center justify-between rounded-xl bg-[var(--hover-bg)] border border-[var(--glass-border)] px-4 py-3 text-sm font-medium text-[var(--ink)] hover:bg-[var(--active-bg)] transition"
                 >
                   <span className="flex items-center gap-2">
-                    <ImageIcon size={16} className="text-white/60" />
+                    <ImageIcon size={16} className="text-[var(--ink-dim)]" />
                     Shared Media
                   </span>
-                  <span className="text-white/40">&rarr;</span>
+                  <span className="text-[var(--ink-faint)]">&rarr;</span>
                 </button>
               </div>
             </div>
@@ -235,36 +235,36 @@ export function GroupSettingsModal() {
 
           {!isLoading && activeTab === "members" && (
             <div className="space-y-6">
-              {/* Add Member Section */}
+              {/* Add Member (Admin Only) */}
               {canEdit && (
                 <div className="space-y-3">
-                  <label className="text-sm font-medium text-white/60">Add New Member</label>
+                  <label className="text-sm font-medium text-[var(--ink-dim)]">Add New Member</label>
                   <div className="relative">
-                    <Search size={16} className="absolute left-3 top-2.5 text-white/40" />
+                    <Search size={16} className="absolute left-3 top-2.5 text-[var(--ink-faint)]" />
                     <input
                       value={searchQuery}
                       onChange={(e) => setSearchQuery(e.target.value)}
                       placeholder="Search users..."
-                      className="w-full rounded-xl border border-white/10 bg-white/5 pl-9 pr-3 py-2 text-sm outline-none placeholder:text-white/30 text-white"
+                      className="w-full rounded-xl border border-[var(--glass-border)] bg-[var(--hover-bg)] pl-9 pr-3 py-2 text-sm outline-none placeholder:text-[var(--ink-faint)] text-[var(--ink)]"
                     />
                   </div>
                   {searchResults && searchResults.length > 0 && (
-                    <div className="rounded-xl border border-white/10 bg-white/5 p-2 space-y-1">
+                    <div className="rounded-xl border border-[var(--glass-border)] bg-[var(--hover-bg)] p-2 space-y-1">
                       {searchResults.map((su: any) => {
                         const isAlreadyMember = groupData?.members?.some((m: any) => m.userId === su.id);
                         return (
-                          <div key={su.id} className="flex items-center justify-between p-2 rounded-lg hover:bg-white/5 transition">
+                          <div key={su.id} className="flex items-center justify-between p-2 rounded-lg hover:bg-[var(--active-bg)] transition">
                             <div className="flex items-center gap-3">
                               <Avatar src={su.avatarUrl} name={su.displayName} className="h-8 w-8 rounded-full text-[10px] border-none" />
                               <div className="text-sm">
-                                <p className="font-medium text-white">{su.displayName}</p>
-                                <p className="text-xs text-white/40">@{su.username}</p>
+                                <p className="font-medium text-[var(--ink)]">{su.displayName}</p>
+                                <p className="text-xs text-[var(--ink-faint)]">@{su.username}</p>
                               </div>
                             </div>
                             <button
                               onClick={() => inviteMember.mutate(su.id)}
                               disabled={isAlreadyMember || inviteMember.isPending}
-                              className="px-3 py-1 text-xs font-medium rounded-full bg-white/10 hover:bg-white/20 transition disabled:opacity-50"
+                              className="px-3 py-1 text-xs font-medium rounded-full bg-accent text-white hover:bg-accent/90 transition disabled:opacity-50"
                             >
                               {isAlreadyMember ? "Added" : "Add"}
                             </button>
@@ -278,10 +278,10 @@ export function GroupSettingsModal() {
 
               {/* Member List */}
               <div className="space-y-3">
-                <label className="text-sm font-medium text-white/60">Current Members ({groupData?.members?.length || 0})</label>
+                <label className="text-sm font-medium text-[var(--ink-dim)]">Current Members ({groupData?.members?.length || 0})</label>
                 <div className="space-y-2">
                   {groupData?.members?.map((member: any) => (
-                    <div key={member.id} className="flex items-center justify-between p-2 rounded-xl bg-white/5 border border-white/5">
+                    <div key={member.id} className="flex items-center justify-between p-2 rounded-xl bg-[var(--hover-bg)] border border-[var(--glass-border)]">
                       <Link
                         href={`/profile?u=${member.user.username}`}
                         onClick={() => {
@@ -291,11 +291,11 @@ export function GroupSettingsModal() {
                       >
                         <Avatar src={member.user.avatarUrl} name={member.user.displayName} className="h-10 w-10 rounded-full text-xs border-none" />
                         <div className="text-sm">
-                          <p className="font-medium text-white">{member.user.displayName}</p>
-                          <p className="text-xs text-white/40">@{member.user.username}</p>
+                          <p className="font-medium text-[var(--ink)]">{member.user.displayName}</p>
+                          <p className="text-xs text-[var(--ink-faint)]">@{member.user.username}</p>
                         </div>
                       </Link>
-                      <div className="text-[10px] font-medium tracking-wider uppercase px-2 py-1 rounded bg-white/10 text-white/60">
+                      <div className="text-[10px] font-medium tracking-wider uppercase px-2 py-1 rounded bg-[var(--active-bg)] text-[var(--ink-dim)] border border-[var(--glass-border)]">
                         {member.role}
                       </div>
                     </div>
@@ -308,18 +308,18 @@ export function GroupSettingsModal() {
           {!isLoading && activeTab === "settings" && canEdit && (
             <div className="space-y-6">
               <div className="space-y-2">
-                <label className="text-sm font-medium text-white/60">Invite Link</label>
+                <label className="text-sm font-medium text-[var(--ink-dim)]">Invite Link</label>
                 <div className="flex gap-2">
                   <input
                     value={joinLink}
                     readOnly
                     placeholder="No link generated"
-                    className="flex-1 rounded-xl border border-white/10 bg-white/5 px-3 py-2 text-sm outline-none placeholder:text-white/30 text-white disabled:opacity-50"
+                    className="flex-1 rounded-xl border border-[var(--glass-border)] bg-[var(--hover-bg)] px-3 py-2 text-sm outline-none placeholder:text-[var(--ink-faint)] text-[var(--ink)] disabled:opacity-50"
                   />
                   <button 
                     onClick={() => generateJoinLink.mutate()} 
                     disabled={generateJoinLink.isPending}
-                    className="bg-white/10 px-3 py-2 rounded-xl text-sm font-medium hover:bg-white/20 transition disabled:opacity-50"
+                    className="bg-[var(--hover-bg)] border border-[var(--glass-border)] px-3 py-2 rounded-xl text-sm font-medium text-[var(--ink)] hover:bg-[var(--active-bg)] transition disabled:opacity-50"
                   >
                     {joinLink ? "Rotate" : "Generate"}
                   </button>
@@ -328,29 +328,29 @@ export function GroupSettingsModal() {
 
               <div className="space-y-4">
                 <label className="flex items-center gap-3 cursor-pointer group">
-                  <div className={`w-10 h-6 rounded-full p-1 transition-colors ${requireJoinApproval ? 'bg-accent' : 'bg-white/10'}`}>
+                  <div className={`w-10 h-6 rounded-full p-1 transition-colors ${requireJoinApproval ? 'bg-accent' : 'bg-[var(--hover-bg)] border border-[var(--glass-border)]'}`}>
                     <div className={`w-4 h-4 rounded-full bg-white transition-transform ${requireJoinApproval ? 'translate-x-4' : 'translate-x-0'}`} />
                   </div>
                   <div>
-                    <div className="text-sm font-medium text-white group-hover:text-white/90">Require Join Approval</div>
-                    <div className="text-xs text-white/50">New members must be approved by admins</div>
+                    <div className="text-sm font-medium text-[var(--ink)] group-hover:opacity-90">Require Join Approval</div>
+                    <div className="text-xs text-[var(--ink-dim)]">New members must be approved by admins</div>
                   </div>
                   <input type="checkbox" className="hidden" checked={requireJoinApproval} onChange={(e) => setRequireJoinApproval(e.target.checked)} />
                 </label>
 
                 <label className="flex items-center gap-3 cursor-pointer group">
-                  <div className={`w-10 h-6 rounded-full p-1 transition-colors ${isAnnouncementOnly ? 'bg-accent' : 'bg-white/10'}`}>
+                  <div className={`w-10 h-6 rounded-full p-1 transition-colors ${isAnnouncementOnly ? 'bg-accent' : 'bg-[var(--hover-bg)] border border-[var(--glass-border)]'}`}>
                     <div className={`w-4 h-4 rounded-full bg-white transition-transform ${isAnnouncementOnly ? 'translate-x-4' : 'translate-x-0'}`} />
                   </div>
                   <div>
-                    <div className="text-sm font-medium text-white group-hover:text-white/90">Announcement Mode</div>
-                    <div className="text-xs text-white/50">Only admins can send messages</div>
+                    <div className="text-sm font-medium text-[var(--ink)] group-hover:opacity-90">Announcement Mode</div>
+                    <div className="text-xs text-[var(--ink-dim)]">Only admins can send messages</div>
                   </div>
                   <input type="checkbox" className="hidden" checked={isAnnouncementOnly} onChange={(e) => setIsAnnouncementOnly(e.target.checked)} />
                 </label>
                 
                 <div className="space-y-2">
-                  <label className="text-sm font-medium text-white/60">Max Members ({maxMembers})</label>
+                  <label className="text-sm font-medium text-[var(--ink-dim)]">Max Members ({maxMembers})</label>
                   <input
                     type="range"
                     min="2"
@@ -366,13 +366,13 @@ export function GroupSettingsModal() {
         </div>
 
         {/* Footer */}
-        <div className="border-t border-white/5 p-4 space-y-2 shrink-0">
+        <div className="border-t border-[var(--glass-border)] p-4 space-y-2 shrink-0">
           {/* Save Changes — details tab + editor */}
           {activeTab === "details" && canEdit && (
             <button
               onClick={() => updateGroup.mutate()}
               disabled={!name || updateGroup.isPending}
-              className="w-full flex items-center justify-center gap-2 rounded-xl bg-white/10 border border-white/10 px-4 py-2 font-medium text-white hover:bg-white/20 transition disabled:opacity-50"
+              className="w-full flex items-center justify-center gap-2 rounded-xl bg-accent text-white px-4 py-2 font-medium hover:bg-accent/90 transition disabled:opacity-50"
             >
               <Save size={16} /> {updateGroup.isPending ? "Saving..." : "Save Details"}
             </button>
