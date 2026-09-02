@@ -2,7 +2,7 @@
 
 import { useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Reply, SmilePlus, Copy, Edit2, Trash2, Forward, Bookmark } from "lucide-react";
+import { Reply, SmilePlus, Copy, Edit2, Trash2, Forward, Bookmark, Flag } from "lucide-react";
 import { createPortal } from "react-dom";
 import { Message } from "@/store/useChatStore";
 import { useAuthStore } from "@/store/useAuthStore";
@@ -22,9 +22,10 @@ interface ContextMenuProps {
   onEdit: (m: Message) => void;
   onForward: (m: Message) => void;
   onSave: (m: Message) => void;
+  onReport?: (m: Message) => void;
 }
 
-export function ContextMenu({ position, message, onClose, onReply, onReact, onDelete, onEdit, onForward, onSave }: ContextMenuProps) {
+export function ContextMenu({ position, message, onClose, onReply, onReact, onDelete, onEdit, onForward, onSave, onReport }: ContextMenuProps) {
   const menuRef = useRef<HTMLDivElement>(null);
   const currentUserId = useAuthStore(s => s.user?.id);
 
@@ -79,6 +80,17 @@ export function ContextMenu({ position, message, onClose, onReply, onReact, onDe
         <ContextItem icon={<Trash2 size={14} />} label="Delete for me" onClick={() => { onDelete(message, false); onClose(); }} danger />
         {currentUserId === message.senderId && (
           <ContextItem icon={<Trash2 size={14} />} label="Delete for everyone" onClick={() => { onDelete(message, true); onClose(); }} danger />
+        )}
+        {currentUserId !== message.senderId && onReport && (
+          <>
+            <div className="h-[1px] bg-white/5 my-1 mx-2" />
+            <ContextItem
+              icon={<Flag size={14} />}
+              label={message.type === "IMAGE" || message.type === "VIDEO" ? "Report Media" : "Report Message"}
+              onClick={() => { onReport(message); onClose(); }}
+              danger
+            />
+          </>
         )}
       </motion.div>
     </div>
