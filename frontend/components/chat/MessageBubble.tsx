@@ -405,8 +405,6 @@ export const MessageBubble = memo(function MessageBubble(props: MessageBubblePro
           className={`flex flex-col max-w-[85%] sm:max-w-[75%] md:max-w-[70%] relative group ${!isMine && !pendingUpload ? "touch-pan-y" : ""}`}
           onContextMenu={(e) => {
             if (pendingUpload) return;
-            // Block context menu on images for privacy
-            if (isImageMessage) return;
             e.preventDefault();
             setContextMenuPos({ x: e.clientX, y: e.clientY });
           }}
@@ -565,6 +563,18 @@ export const MessageBubble = memo(function MessageBubble(props: MessageBubblePro
           onEdit={(m) => onEdit?.(m)}
           onForward={(m) => openForwardModal(m)}
           onSave={saveMessage}
+          onReport={(m) => {
+            useUIStore.getState().openReportModal({
+              type: m.type === "IMAGE" || m.type === "VIDEO" ? "MEDIA" : "MESSAGE",
+              userId: m.senderId,
+              username: m.sender?.username,
+              displayName: m.sender?.displayName,
+              avatarUrl: m.sender?.avatarUrl,
+              messageId: m.id,
+              mediaUrl: displayImageUrl || m.mediaUrl || undefined,
+              messageContent: m.content || undefined,
+            });
+          }}
         />
       )}
 
@@ -576,6 +586,18 @@ export const MessageBubble = memo(function MessageBubble(props: MessageBubblePro
             caption={message.content || undefined}
             onClose={() => setIsFullscreen(false)}
             isViewOnce={Boolean(message.isViewOnce)}
+            onReport={() => {
+              useUIStore.getState().openReportModal({
+                type: "MEDIA",
+                userId: message.senderId,
+                username: message.sender?.username,
+                displayName: message.sender?.displayName,
+                avatarUrl: message.sender?.avatarUrl,
+                messageId: message.id,
+                mediaUrl: displayImageUrl,
+                messageContent: message.content || undefined,
+              });
+            }}
           />
         )}
       </AnimatePresence>
