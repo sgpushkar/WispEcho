@@ -79,6 +79,8 @@ export function Providers({ children }: { children: React.ReactNode }) {
               uiState.setSettingsOpen(false);
             } else if (uiState.forwardModalOpen) {
               uiState.closeForwardModal();
+            } else if (uiState.reportModalOpen) {
+              uiState.closeReportModal();
             }
             // 2. If there is an active conversation, close it (go back to list on mobile)
             else if (chatState.activeConversationId) {
