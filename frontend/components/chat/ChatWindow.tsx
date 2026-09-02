@@ -25,6 +25,7 @@ import {
   Users,
   Bookmark,
   Compass,
+  Flag,
 } from "lucide-react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { api } from "@/lib/api";
@@ -931,6 +932,30 @@ export function ChatWindow() {
                         </button>
                       ))}
                     </div>
+
+                    {!conversation.isGroup && conversation.otherUser && (
+                      <>
+                        <div className="h-[1px] bg-white/5 my-1" />
+                        <button
+                          onClick={() => {
+                            setShowMenu(false);
+                            if (conversation.otherUser) {
+                              useUIStore.getState().openReportModal({
+                                type: "USER",
+                                userId: conversation.otherUser.id,
+                                username: conversation.otherUser.username,
+                                displayName: conversation.otherUser.displayName,
+                                avatarUrl: conversation.otherUser.avatarUrl,
+                              });
+                            }
+                          }}
+                          className="flex items-center gap-2.5 px-3 py-2.5 text-xs font-medium text-red-400 hover:text-red-300 hover:bg-red-500/10 rounded-xl transition text-left"
+                        >
+                          <Flag size={15} className="shrink-0 text-red-400" />
+                          <span>Report @{conversation.otherUser.username}</span>
+                        </button>
+                      </>
+                    )}
                   </motion.div>
                 )}
               </AnimatePresence>
