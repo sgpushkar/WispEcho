@@ -598,8 +598,8 @@ export function ChatWindow() {
             <Sparkles size={28} />
           </motion.div>
 
-          <h2 className="text-xl font-bold text-white tracking-tight mb-1.5">Welcome to WispEcho</h2>
-          <p className="text-xs text-white/50 mb-7 max-w-xs leading-relaxed">
+          <h2 className="text-xl font-bold text-[var(--ink)] tracking-tight mb-1.5">Welcome to WispEcho</h2>
+          <p className="text-xs text-[var(--ink-dim)] mb-7 max-w-xs leading-relaxed">
             Select a conversation from the sidebar or jump right into action.
           </p>
 
@@ -607,52 +607,52 @@ export function ChatWindow() {
           <div className="grid grid-cols-2 gap-2.5 w-full">
             <button
               onClick={() => setGroupOpen(true)}
-              className="flex items-center gap-3 p-3 rounded-2xl bg-white/5 hover:bg-white/10 border border-white/10 text-left transition group shadow-sm hover:scale-[1.02] cursor-pointer"
+              className="flex items-center gap-3 p-3 rounded-2xl bg-[var(--hover-bg)] hover:bg-[var(--active-bg)] border border-[var(--glass-border)] hover:border-[var(--glass-border-strong)] text-left transition group shadow-sm hover:scale-[1.02] cursor-pointer"
             >
               <div className="h-9 w-9 rounded-xl bg-violet-500/20 text-violet-400 flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform">
                 <Users size={18} />
               </div>
               <div className="min-w-0">
-                <div className="text-xs font-semibold text-white">Create Group</div>
-                <div className="text-[10.5px] text-white/40 truncate">Start a squad chat</div>
+                <div className="text-xs font-semibold text-[var(--ink)]">Create Group</div>
+                <div className="text-[10.5px] text-[var(--ink-faint)] truncate">Start a squad chat</div>
               </div>
             </button>
 
             <button
               onClick={() => setFriendsOpen(true)}
-              className="flex items-center gap-3 p-3 rounded-2xl bg-white/5 hover:bg-white/10 border border-white/10 text-left transition group shadow-sm hover:scale-[1.02] cursor-pointer"
+              className="flex items-center gap-3 p-3 rounded-2xl bg-[var(--hover-bg)] hover:bg-[var(--active-bg)] border border-[var(--glass-border)] hover:border-[var(--glass-border-strong)] text-left transition group shadow-sm hover:scale-[1.02] cursor-pointer"
             >
               <div className="h-9 w-9 rounded-xl bg-emerald-500/20 text-emerald-400 flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform">
                 <Compass size={18} />
               </div>
               <div className="min-w-0">
-                <div className="text-xs font-semibold text-white">Find Friends</div>
-                <div className="text-[10.5px] text-white/40 truncate">Add new contacts</div>
+                <div className="text-xs font-semibold text-[var(--ink)]">Find Friends</div>
+                <div className="text-[10.5px] text-[var(--ink-faint)] truncate">Add new contacts</div>
               </div>
             </button>
 
             <button
               onClick={() => setSettingsOpen(true)}
-              className="flex items-center gap-3 p-3 rounded-2xl bg-white/5 hover:bg-white/10 border border-white/10 text-left transition group shadow-sm hover:scale-[1.02] cursor-pointer"
+              className="flex items-center gap-3 p-3 rounded-2xl bg-[var(--hover-bg)] hover:bg-[var(--active-bg)] border border-[var(--glass-border)] hover:border-[var(--glass-border-strong)] text-left transition group shadow-sm hover:scale-[1.02] cursor-pointer"
             >
               <div className="h-9 w-9 rounded-xl bg-fuchsia-500/20 text-fuchsia-400 flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform">
                 <Palette size={18} />
               </div>
               <div className="min-w-0">
-                <div className="text-xs font-semibold text-white">Themes & UI</div>
-                <div className="text-[10.5px] text-white/40 truncate">Customize look</div>
+                <div className="text-xs font-semibold text-[var(--ink)]">Themes & UI</div>
+                <div className="text-[10.5px] text-[var(--ink-faint)] truncate">Customize look</div>
               </div>
             </button>
 
             <div
-              className="flex items-center gap-3 p-3 rounded-2xl bg-white/5 border border-white/10 text-left opacity-80 select-none"
+              className="flex items-center gap-3 p-3 rounded-2xl bg-[var(--hover-bg)] border border-[var(--glass-border)] text-left opacity-80 select-none"
             >
               <div className="h-9 w-9 rounded-xl bg-sky-500/20 text-sky-400 flex items-center justify-center shrink-0">
                 <Send size={16} />
               </div>
               <div className="min-w-0">
-                <div className="text-xs font-semibold text-white">Quick Jump</div>
-                <div className="text-[10.5px] text-white/40 truncate">Press ⌘K / Ctrl+K</div>
+                <div className="text-xs font-semibold text-[var(--ink)]">Quick Jump</div>
+                <div className="text-[10.5px] text-[var(--ink-faint)] truncate">Press ⌘K / Ctrl+K</div>
               </div>
             </div>
           </div>
@@ -736,8 +736,8 @@ export function ChatWindow() {
               }
             }}
           >
-            <div className="chat-title font-semibold text-white text-sm sm:text-base leading-tight truncate hover:underline">{name}</div>
-            <div className="chat-sub text-xs text-white/50 truncate mt-0.5">
+            <div className="chat-title font-semibold text-[var(--ink)] text-sm sm:text-base leading-tight truncate hover:underline">{name}</div>
+            <div className="chat-sub text-xs text-[var(--ink-dim)] truncate mt-0.5">
               {typingInThisChat.length > 0 ? (
                 <span className="text-accent font-medium animate-pulse">typing...</span>
               ) : conversation.isGroup ? (
@@ -754,7 +754,7 @@ export function ChatWindow() {
         <div className="flex items-center gap-1 shrink-0 relative">
           {isMultiSelectMode ? (
             <div className="flex items-center gap-2">
-              <span className="text-xs text-white/60 font-medium mr-1 hidden sm:inline">
+              <span className="text-xs text-[var(--ink-dim)] font-medium mr-1 hidden sm:inline">
                 {selectedMessageIds.size} selected
               </span>
               <button 
@@ -762,7 +762,7 @@ export function ChatWindow() {
                   setIsMultiSelectMode(false);
                   setSelectedMessageIds(new Set());
                 }}
-                className="text-xs bg-white/10 px-3 py-1.5 rounded-full text-white/70 hover:text-white transition"
+                className="text-xs bg-[var(--hover-bg)] px-3 py-1.5 rounded-full text-[var(--ink-dim)] hover:text-[var(--ink)] border border-[var(--glass-border)] transition"
               >
                 Cancel
               </button>
@@ -815,7 +815,7 @@ export function ChatWindow() {
             <div className="relative" ref={menuRef}>
               <button
                 onClick={() => setShowMenu((prev) => !prev)}
-                className={`p-2 rounded-full transition ${showMenu ? "bg-white/15 text-white" : "hover:bg-white/10 text-white/60 hover:text-white"}`}
+                className={`p-2 rounded-full transition ${showMenu ? "bg-[var(--active-bg)] text-[var(--ink)]" : "hover:bg-[var(--hover-bg)] text-[var(--ink-dim)] hover:text-[var(--ink)]"}`}
                 title="Options"
               >
                 <MoreVertical size={20} />
@@ -828,7 +828,7 @@ export function ChatWindow() {
                     animate={{ opacity: 1, scale: 1, y: 0 }}
                     exit={{ opacity: 0, scale: 0.95, y: -6 }}
                     transition={{ duration: 0.15 }}
-                    className="absolute right-0 top-full mt-2 w-60 rounded-2xl bg-[#141416]/95 backdrop-blur-2xl border border-white/10 shadow-[0_20px_50px_rgba(0,0,0,0.5)] p-1.5 z-50 flex flex-col gap-0.5"
+                    className="absolute right-0 top-full mt-2 w-60 rounded-2xl glass-strong border border-[var(--glass-border-strong)] shadow-2xl p-1.5 z-50 flex flex-col gap-0.5"
                   >
                     <button
                       onClick={() => {
@@ -839,9 +839,9 @@ export function ChatWindow() {
                           router.push(`/profile?u=${conversation.otherUser.username}`);
                         }
                       }}
-                      className="flex items-center gap-2.5 px-3 py-2.5 text-xs font-medium text-white/80 hover:text-white hover:bg-white/10 rounded-xl transition text-left"
+                      className="flex items-center gap-2.5 px-3 py-2.5 text-xs font-medium text-[var(--ink-dim)] hover:text-[var(--ink)] hover:bg-[var(--hover-bg)] rounded-xl transition text-left"
                     >
-                      <User size={15} className="text-white/50 shrink-0" />
+                      <User size={15} className="text-[var(--ink-faint)] shrink-0" />
                       <span>{conversation.isGroup ? "Group Details" : "View Profile"}</span>
                     </button>
 
@@ -850,9 +850,9 @@ export function ChatWindow() {
                         setShowMenu(false);
                         setShowSharedMedia(true);
                       }}
-                      className="flex items-center gap-2.5 px-3 py-2.5 text-xs font-medium text-white/80 hover:text-white hover:bg-white/10 rounded-xl transition text-left"
+                      className="flex items-center gap-2.5 px-3 py-2.5 text-xs font-medium text-[var(--ink-dim)] hover:text-[var(--ink)] hover:bg-[var(--hover-bg)] rounded-xl transition text-left"
                     >
-                      <ImageIcon size={15} className="text-white/50 shrink-0" />
+                      <ImageIcon size={15} className="text-[var(--ink-faint)] shrink-0" />
                       <span>Shared Media</span>
                     </button>
 
@@ -861,9 +861,9 @@ export function ChatWindow() {
                         setShowMenu(false);
                         setShowWallpaperPicker(true);
                       }}
-                      className="flex items-center gap-2.5 px-3 py-2.5 text-xs font-medium text-white/80 hover:text-white hover:bg-white/10 rounded-xl transition text-left"
+                      className="flex items-center gap-2.5 px-3 py-2.5 text-xs font-medium text-[var(--ink-dim)] hover:text-[var(--ink)] hover:bg-[var(--hover-bg)] rounded-xl transition text-left"
                     >
-                      <Palette size={15} className="text-white/50 shrink-0" />
+                      <Palette size={15} className="text-[var(--ink-faint)] shrink-0" />
                       <span>Chat Wallpaper</span>
                     </button>
 
@@ -872,9 +872,9 @@ export function ChatWindow() {
                         setShowMenu(false);
                         setIsMultiSelectMode(true);
                       }}
-                      className="flex items-center gap-2.5 px-3 py-2.5 text-xs font-medium text-white/80 hover:text-white hover:bg-white/10 rounded-xl transition text-left"
+                      className="flex items-center gap-2.5 px-3 py-2.5 text-xs font-medium text-[var(--ink-dim)] hover:text-[var(--ink)] hover:bg-[var(--hover-bg)] rounded-xl transition text-left"
                     >
-                      <CheckSquare size={15} className="text-white/50 shrink-0" />
+                      <CheckSquare size={15} className="text-[var(--ink-faint)] shrink-0" />
                       <span>Select Messages</span>
                     </button>
 
@@ -888,19 +888,19 @@ export function ChatWindow() {
                           console.error(e);
                         }
                       }}
-                      className="flex items-center justify-between px-3 py-2.5 text-xs font-medium text-white/80 hover:text-white hover:bg-white/10 rounded-xl transition text-left"
+                      className="flex items-center justify-between px-3 py-2.5 text-xs font-medium text-[var(--ink-dim)] hover:text-[var(--ink)] hover:bg-[var(--hover-bg)] rounded-xl transition text-left"
                     >
                       <div className="flex items-center gap-2.5">
-                        {isMuted ? <BellOff size={15} className="text-red-400 shrink-0" /> : <Bell size={15} className="text-white/50 shrink-0" />}
+                        {isMuted ? <BellOff size={15} className="text-red-400 shrink-0" /> : <Bell size={15} className="text-[var(--ink-faint)] shrink-0" />}
                         <span>{isMuted ? "Unmute Notifications" : "Mute Notifications"}</span>
                       </div>
                       {isMuted && <span className="text-[10px] bg-red-500/20 text-red-400 px-1.5 py-0.5 rounded font-semibold">MUTED</span>}
                     </button>
 
-                    <div className="h-[1px] bg-white/5 my-1" />
+                    <div className="h-[1px] bg-[var(--glass-border)] my-1" />
 
-                    <div className="px-3 py-1.5 text-[10px] font-bold uppercase tracking-wider text-white/40 flex items-center gap-1.5">
-                      <Timer size={12} className="text-white/40" />
+                    <div className="px-3 py-1.5 text-[10px] font-bold uppercase tracking-wider text-[var(--ink-faint)] flex items-center gap-1.5">
+                      <Timer size={12} className="text-[var(--ink-faint)]" />
                       <span>Disappearing Messages</span>
                     </div>
 
@@ -925,7 +925,7 @@ export function ChatWindow() {
                           className={`py-1 text-center rounded-lg text-xs font-medium transition ${
                             disappearAfter === opt.val
                               ? "bg-accent text-white"
-                              : "bg-white/5 text-white/60 hover:bg-white/10 hover:text-white"
+                              : "bg-[var(--hover-bg)] text-[var(--ink-dim)] hover:bg-[var(--active-bg)] hover:text-[var(--ink)]"
                           }`}
                         >
                           {opt.label}
@@ -986,24 +986,24 @@ export function ChatWindow() {
                 <div className="mb-4 h-12 w-12 rounded-2xl bg-accent/15 border border-accent/20 flex items-center justify-center text-accent shadow-[0_0_20px_rgba(139,92,246,0.15)]">
                   <Sparkles size={22} />
                 </div>
-                <h3 className="text-sm font-semibold text-white mb-1">No messages yet</h3>
-                <p className="text-xs text-white/50 mb-4 max-w-xs">Start the conversation with an icebreaker</p>
+                <h3 className="text-sm font-semibold text-[var(--ink)] mb-1">No messages yet</h3>
+                <p className="text-xs text-[var(--ink-dim)] mb-4 max-w-xs">Start the conversation with an icebreaker</p>
                 <div className="flex flex-wrap items-center justify-center gap-2 max-w-sm">
                   <button
                     onClick={() => sendMessage("Hey! 👋", "TEXT")}
-                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-white/5 hover:bg-white/10 border border-white/10 text-xs font-medium text-white transition hover:scale-105 cursor-pointer"
+                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-[var(--hover-bg)] hover:bg-[var(--active-bg)] border border-[var(--glass-border)] text-xs font-medium text-[var(--ink)] transition hover:scale-105 cursor-pointer"
                   >
                     <span>Say hi</span> <span>👋</span>
                   </button>
                   <button
                     onClick={handleImageIconClick}
-                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-white/5 hover:bg-white/10 border border-white/10 text-xs font-medium text-white transition hover:scale-105 cursor-pointer"
+                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-[var(--hover-bg)] hover:bg-[var(--active-bg)] border border-[var(--glass-border)] text-xs font-medium text-[var(--ink)] transition hover:scale-105 cursor-pointer"
                   >
                     <span>Send photo</span> <span>📸</span>
                   </button>
                   <button
                     onClick={() => setShowPollCreator(true)}
-                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-white/5 hover:bg-white/10 border border-white/10 text-xs font-medium text-white transition hover:scale-105 cursor-pointer"
+                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-[var(--hover-bg)] hover:bg-[var(--active-bg)] border border-[var(--glass-border)] text-xs font-medium text-[var(--ink)] transition hover:scale-105 cursor-pointer"
                   >
                     <span>Create poll</span> <span>📊</span>
                   </button>
@@ -1030,7 +1030,7 @@ export function ChatWindow() {
                 <div key={msg.id} className="flex flex-col">
                   {showDateDivider && (
                     <div className="flex items-center justify-center my-3 select-none">
-                      <span className="bg-white/10 backdrop-blur-md border border-white/10 px-3.5 py-1 rounded-full text-[11px] font-medium text-white/70 shadow-sm">
+                      <span className="bg-[var(--glass-bg-strong)] backdrop-blur-md border border-[var(--glass-border-strong)] px-3.5 py-1 rounded-full text-[11px] font-medium text-[var(--ink-dim)] shadow-sm">
                         {formatDayDivider(msg.createdAt)}
                       </span>
                     </div>
@@ -1100,23 +1100,23 @@ export function ChatWindow() {
 
       <div className="composer max-w-4xl mx-auto w-full px-3.5 pb-3.5 sm:px-6 sm:pb-5">
         {replyToMessage && (
-          <div className="mb-3 flex items-center justify-between rounded-2xl bg-white/5 border border-white/10 px-4 py-2.5 text-[13px] text-white/60 backdrop-blur-md">
+          <div className="mb-3 flex items-center justify-between rounded-2xl bg-[var(--hover-bg)] border border-[var(--glass-border)] px-4 py-2.5 text-[13px] text-[var(--ink-dim)] backdrop-blur-md">
             <div className="flex flex-col min-w-0 pr-2">
-              <span className="text-white font-medium text-xs mb-0.5 truncate">Replying to {replyToMessage.sender?.displayName}</span>
-              <span className="truncate text-xs text-white/70">{replyToMessage.content}</span>
+              <span className="text-[var(--ink)] font-medium text-xs mb-0.5 truncate">Replying to {replyToMessage.sender?.displayName}</span>
+              <span className="truncate text-xs text-[var(--ink-dim)]">{replyToMessage.content}</span>
             </div>
-            <button onClick={() => setReplyToMessage(null)} className="hover:text-white transition bg-white/5 hover:bg-white/10 p-1.5 rounded-full shrink-0">
+            <button onClick={() => setReplyToMessage(null)} className="hover:text-[var(--ink)] text-[var(--ink-faint)] transition bg-[var(--hover-bg)] hover:bg-[var(--active-bg)] p-1.5 rounded-full shrink-0">
               <X size={14} />
             </button>
           </div>
         )}
         {editingMessage && (
-          <div className="mb-3 flex items-center justify-between rounded-2xl bg-white/5 border border-white/10 px-4 py-2.5 text-[13px] text-white/60 backdrop-blur-md">
+          <div className="mb-3 flex items-center justify-between rounded-2xl bg-[var(--hover-bg)] border border-[var(--glass-border)] px-4 py-2.5 text-[13px] text-[var(--ink-dim)] backdrop-blur-md">
             <div className="flex flex-col min-w-0 pr-2">
-              <span className="text-white font-medium text-xs mb-0.5 flex items-center gap-1.5"><Edit2 size={12} className="text-accent"/> Editing Message</span>
-              <span className="truncate text-xs text-white/70">{editingMessage.content}</span>
+              <span className="text-[var(--ink)] font-medium text-xs mb-0.5 flex items-center gap-1.5"><Edit2 size={12} className="text-accent"/> Editing Message</span>
+              <span className="truncate text-xs text-[var(--ink-dim)]">{editingMessage.content}</span>
             </div>
-            <button onClick={() => { setEditingMessage(null); setDraft(""); }} className="hover:text-white transition bg-white/5 hover:bg-white/10 p-1.5 rounded-full shrink-0">
+            <button onClick={() => { setEditingMessage(null); setDraft(""); }} className="hover:text-[var(--ink)] text-[var(--ink-faint)] transition bg-[var(--hover-bg)] hover:bg-[var(--active-bg)] p-1.5 rounded-full shrink-0">
               <X size={14} />
             </button>
           </div>
@@ -1135,7 +1135,7 @@ export function ChatWindow() {
             <button
               type="button"
               className={`icon-btn shrink-0 transition-transform duration-200 ${
-                showShareMenu ? "bg-white/15 text-white rotate-45" : "hover:bg-white/10 text-white/70 hover:text-white"
+                showShareMenu ? "bg-[var(--active-bg)] text-[var(--ink)] rotate-45" : "hover:bg-[var(--hover-bg)] text-[var(--ink-dim)] hover:text-[var(--ink)]"
               }`}
               onClick={() => setShowShareMenu((prev) => !prev)}
               title="Share content (Image, Poll, Schedule, Voice)"
@@ -1150,9 +1150,9 @@ export function ChatWindow() {
                   animate={{ opacity: 1, scale: 1, y: -8 }}
                   exit={{ opacity: 0, scale: 0.92, y: 10 }}
                   transition={{ duration: 0.18, ease: "easeOut" }}
-                  className="absolute bottom-full left-0 mb-2 w-64 sm:w-72 rounded-2xl bg-[#151518]/95 backdrop-blur-2xl border border-white/10 shadow-[0_20px_50px_rgba(0,0,0,0.6)] p-2 z-50 flex flex-col gap-1 select-none"
+                  className="absolute bottom-full left-0 mb-2 w-64 sm:w-72 rounded-2xl glass-strong border border-[var(--glass-border-strong)] shadow-[0_20px_50px_rgba(0,0,0,0.6)] p-2 z-50 flex flex-col gap-1 select-none"
                 >
-                  <div className="px-3 py-1 text-[10px] font-bold uppercase tracking-wider text-white/40">
+                  <div className="px-3 py-1 text-[10px] font-bold uppercase tracking-wider text-[var(--ink-faint)]">
                     Share Content
                   </div>
 
@@ -1162,14 +1162,14 @@ export function ChatWindow() {
                       setShowShareMenu(false);
                       handleImageIconClick();
                     }}
-                    className="flex items-center gap-3 p-2.5 rounded-xl hover:bg-white/10 transition text-left group"
+                    className="flex items-center gap-3 p-2.5 rounded-xl hover:bg-[var(--hover-bg)] transition text-left group"
                   >
                     <div className="w-9 h-9 rounded-xl bg-violet-500/20 text-violet-400 flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform">
                       <ImageIcon size={18} />
                     </div>
                     <div className="flex flex-col min-w-0">
-                      <span className="text-xs font-semibold text-white group-hover:text-white">Photo & Video</span>
-                      <span className="text-[11px] text-white/50 truncate">Share images and screenshots</span>
+                      <span className="text-xs font-semibold text-[var(--ink)] group-hover:text-[var(--ink)]">Photo & Video</span>
+                      <span className="text-[11px] text-[var(--ink-dim)] truncate">Share images and screenshots</span>
                     </div>
                   </button>
 
@@ -1179,14 +1179,14 @@ export function ChatWindow() {
                       setShowShareMenu(false);
                       setShowPollCreator(true);
                     }}
-                    className="flex items-center gap-3 p-2.5 rounded-xl hover:bg-white/10 transition text-left group"
+                    className="flex items-center gap-3 p-2.5 rounded-xl hover:bg-[var(--hover-bg)] transition text-left group"
                   >
                     <div className="w-9 h-9 rounded-xl bg-amber-500/20 text-amber-400 flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform">
                       <BarChart2 size={18} />
                     </div>
                     <div className="flex flex-col min-w-0">
-                      <span className="text-xs font-semibold text-white group-hover:text-white">Create Poll</span>
-                      <span className="text-[11px] text-white/50 truncate">Ask a question and collect votes</span>
+                      <span className="text-xs font-semibold text-[var(--ink)] group-hover:text-[var(--ink)]">Create Poll</span>
+                      <span className="text-[11px] text-[var(--ink-dim)] truncate">Ask a question and collect votes</span>
                     </div>
                   </button>
 
@@ -1196,14 +1196,14 @@ export function ChatWindow() {
                       setShowShareMenu(false);
                       setShowScheduler(true);
                     }}
-                    className="flex items-center gap-3 p-2.5 rounded-xl hover:bg-white/10 transition text-left group"
+                    className="flex items-center gap-3 p-2.5 rounded-xl hover:bg-[var(--hover-bg)] transition text-left group"
                   >
                     <div className="w-9 h-9 rounded-xl bg-sky-500/20 text-sky-400 flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform">
                       <Clock size={18} />
                     </div>
                     <div className="flex flex-col min-w-0">
-                      <span className="text-xs font-semibold text-white group-hover:text-white">Schedule Message</span>
-                      <span className="text-[11px] text-white/50 truncate">Send at a specific date & time</span>
+                      <span className="text-xs font-semibold text-[var(--ink)] group-hover:text-[var(--ink)]">Schedule Message</span>
+                      <span className="text-[11px] text-[var(--ink-dim)] truncate">Send at a specific date & time</span>
                     </div>
                   </button>
 
@@ -1213,14 +1213,14 @@ export function ChatWindow() {
                       setShowShareMenu(false);
                       startRecording();
                     }}
-                    className="flex items-center gap-3 p-2.5 rounded-xl hover:bg-white/10 transition text-left group"
+                    className="flex items-center gap-3 p-2.5 rounded-xl hover:bg-[var(--hover-bg)] transition text-left group"
                   >
                     <div className="w-9 h-9 rounded-xl bg-rose-500/20 text-rose-400 flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform">
                       <Mic size={18} />
                     </div>
                     <div className="flex flex-col min-w-0">
-                      <span className="text-xs font-semibold text-white group-hover:text-white">Voice Note</span>
-                      <span className="text-[11px] text-white/50 truncate">Record and send audio</span>
+                      <span className="text-xs font-semibold text-[var(--ink)] group-hover:text-[var(--ink)]">Voice Note</span>
+                      <span className="text-[11px] text-[var(--ink-dim)] truncate">Record and send audio</span>
                     </div>
                   </button>
                 </motion.div>
