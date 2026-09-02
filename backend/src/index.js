@@ -24,6 +24,7 @@ import pushRoutes from "./routes/push.routes.js";
 import notificationsRoutes from "./routes/notifications.routes.js";
 import themeRoutes from "./routes/theme.routes.js";
 import subscriptionRoutes from "./routes/subscription.routes.js";
+import reportRoutes from "./routes/report.routes.js";
 import adminRoutes from "./routes/admin.routes.js";
 import { getVersion } from "./controllers/versionController.js";
 import { notFound, errorHandler } from "./middleware/errorHandler.js";
@@ -90,6 +91,7 @@ app.use("/api/notifications", notificationsRoutes);
 app.use("/api/inbox", notificationsRoutes);
 app.use("/api/themes", themeRoutes);
 app.use("/api/subscription", subscriptionRoutes);
+app.use("/api/reports", reportRoutes);
 app.use("/api/admin", adminRoutes);
 
 app.use(notFound);
