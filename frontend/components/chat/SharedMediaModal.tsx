@@ -5,6 +5,7 @@ import { api } from "@/lib/api";
 import { ProgressiveImage } from "../ui/ProgressiveImage";
 import { FullscreenImageViewer } from "../ui/FullscreenImageViewer";
 import { useSecureImage } from "@/hooks/useSecureImage";
+import { useUIStore } from "@/store/useUIStore";
 
 interface SharedMediaModalProps {
   conversationId: string;
@@ -62,7 +63,7 @@ function SecureSharedMediaItem({ item, onClick }: { item: SharedMediaItem; onCli
 export function SharedMediaModal({ conversationId, onClose }: SharedMediaModalProps) {
   const [media, setMedia] = useState<SharedMediaItem[]>([]);
   const [loading, setLoading] = useState(true);
-  const [selectedImage, setSelectedImage] = useState<string | null>(null);
+  const [selectedMedia, setSelectedMedia] = useState<{ url: string; item: SharedMediaItem } | null>(null);
 
   useEffect(() => {
     let mounted = true;
@@ -113,7 +114,7 @@ export function SharedMediaModal({ conversationId, onClose }: SharedMediaModalPr
                   <SecureSharedMediaItem 
                     key={item.id} 
                     item={item} 
-                    onClick={(url) => setSelectedImage(url)} 
+                    onClick={(url) => setSelectedMedia({ url, item })} 
                   />
                 ))}
               </div>
@@ -123,10 +124,17 @@ export function SharedMediaModal({ conversationId, onClose }: SharedMediaModalPr
       </div>
 
       <AnimatePresence>
-        {selectedImage && (
+        {selectedMedia && (
           <FullscreenImageViewer
-            url={selectedImage}
-            onClose={() => setSelectedImage(null)}
+            url={selectedMedia.url}
+            onClose={() => setSelectedMedia(null)}
+            onReport={() => {
+              useUIStore.getState().openReportModal({
+                type: "MEDIA",
+                messageId: selectedMedia.item.id,
+                mediaUrl: selectedMedia.url,
+              });
+            }}
           />
         )}
       </AnimatePresence>
