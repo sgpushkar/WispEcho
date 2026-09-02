@@ -11,6 +11,7 @@ import { useAuthStore } from "@/store/useAuthStore";
 import { Avatar } from "../ui/Avatar";
 import { useUIStore } from "@/store/useUIStore";
 import { VersionSettings } from "../ui/VersionSettings";
+import { CURRENT_VERSION } from "@/hooks/useUpdateChecker";
 import { SessionManager } from "./SessionManager";
 import { themes, THEME_ORDER, type ThemeDefinition } from "@/lib/themes";
 import { ThemeEditor } from "./ThemeEditor";
@@ -827,7 +828,7 @@ export function SettingsModal({ isOpen, onClose }: { isOpen: boolean; onClose: (
             </button>
           </div>
           <p className="text-center text-[10px] font-semibold tracking-wider uppercase" style={{ color: "var(--ink-faint)" }}>
-            WispEcho App v1.3.1
+            WispEcho App v{CURRENT_VERSION}
           </p>
           </div>
         </motion.div>
