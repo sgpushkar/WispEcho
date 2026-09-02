@@ -90,6 +90,23 @@
     overscroll-behavior-x: none;
   }
 
+  input, textarea, select {
+    color: var(--ink);
+  }
+  input::placeholder, textarea::placeholder {
+    color: var(--ink-faint);
+  }
+
+  .light input,
+  .light textarea,
+  .light select {
+    color: var(--ink);
+  }
+  .light input::placeholder,
+  .light textarea::placeholder {
+    color: var(--ink-faint);
+  }
+
   /* Lock scroll only for the chat app shell — landing page scrolls naturally */
   body:has(.app) {
     overflow: hidden;
@@ -177,6 +194,9 @@
     transition: color 0.3s ease;
     text-shadow: 0 1px 12px var(--glass-border-strong);
   }
+  .light .brand-name {
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.08);
+  }
   .avatar-font { font-family: var(--font-space), sans-serif; font-weight: 500; }
   .info-name { font-family: var(--font-space), sans-serif; font-size: 16px; font-weight: 500; }
 
@@ -204,23 +224,36 @@
 
   .brand { display: flex; align-items: center; gap: 10px; padding: 0 4px; }
   
-  /* Dark mode logo (shown by default in dark themes) with radiant inverted contrast */
+  /* Dark mode logo (shown by default in dark themes) with solid high-contrast white fill */
   .logo-dark {
     display: block;
     border-radius: 8px;
-    filter: invert(1) brightness(1.25) drop-shadow(0 0 10px rgba(255,255,255,0.3));
+    filter: brightness(0) invert(1) drop-shadow(0 0 10px rgba(255,255,255,0.35));
     transition: filter 0.3s ease, opacity 0.3s ease;
   }
   .logo-light {
     display: none;
     border-radius: 8px;
-    filter: drop-shadow(0 2px 6px rgba(0,0,0,0.15));
+    filter: brightness(0) drop-shadow(0 1px 4px rgba(0,0,0,0.25));
     transition: filter 0.3s ease, opacity 0.3s ease;
   }
 
   /* Light mode: swap which logo is visible */
   .light .logo-dark { display: none; }
   .light .logo-light { display: block; }
+
+  /* High-contrast brand icon badge across all themes */
+  .brand-badge {
+    background: var(--hover-bg);
+    border: 1px solid var(--glass-border-strong);
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.15);
+    transition: all 0.3s ease;
+  }
+  .light .brand-badge {
+    background: rgba(0, 0, 0, 0.04);
+    border-color: rgba(0, 0, 0, 0.1);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+  }
 
   /* Universal Brand Logo styling for auth & marketing cards */
   .brand-logo {
@@ -232,6 +265,7 @@
   }
   .light .brand-logo {
     background: rgba(0, 0, 0, 0.04);
+    border-color: rgba(0, 0, 0, 0.12);
     box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
   }
 
