@@ -59,7 +59,7 @@ const ConversationItem = memo(({
     <div
       onClick={onClick}
       onContextMenu={(e) => onContextMenu(e, conv.id)}
-      className={`conv ${active ? "active !border-white/15 !bg-white/10 shadow-sm" : ""} ${conv.isPinned ? "border-l-2 !border-l-accent/70 bg-accent/[0.02]" : ""} ${conv.isFavorite ? "ring-1 ring-yellow-400/20" : ""}`}
+      className={`conv ${active ? "active shadow-sm" : ""} ${conv.isPinned ? "border-l-2 !border-l-accent/70 bg-accent/[0.02]" : ""} ${conv.isFavorite ? "ring-1 ring-yellow-400/20" : ""}`}
     >
       <div className="relative shrink-0">
         <Avatar src={avatar} name={name} className="h-10 w-10 rounded-[14px]" />
@@ -72,7 +72,7 @@ const ConversationItem = memo(({
       <div className="conv-meta">
         <div className="flex items-center gap-1.5">
           <span className="conv-name truncate">{name}</span>
-          {conv.isPinned && <Pin size={10} className="text-white/40 shrink-0 rotate-45" />}
+          {conv.isPinned && <Pin size={10} className="text-[var(--ink-faint)] shrink-0 rotate-45" />}
         </div>
         <div className="conv-preview">
           {isTyping ? (
@@ -95,14 +95,14 @@ const ConversationItem = memo(({
         <div className="absolute top-0 right-0 opacity-0 group-hover:opacity-100 transition-opacity flex items-center gap-0.5">
           <button
             onClick={(e) => onTogglePin(e, conv.id)}
-            className="text-white/50 hover:text-white p-0.5"
+            className="text-[var(--ink-faint)] hover:text-[var(--ink)] p-0.5"
             title={conv.isPinned ? "Unpin" : "Pin"}
           >
             {conv.isPinned ? <PinOff size={12} /> : <Pin size={12} />}
           </button>
           <button
             onClick={(e) => { e.stopPropagation(); onOpenContextMenu(conv.id); }}
-            className="text-white/50 hover:text-white p-0.5"
+            className="text-[var(--ink-faint)] hover:text-[var(--ink)] p-0.5"
             title="More options"
           >
             <MoreHorizontal size={12} />
@@ -254,8 +254,8 @@ export function Sidebar() {
   const tabClass = (tab: FilterTab) =>
     `px-3 py-1 rounded-full text-[11px] font-medium transition-all ${
       filterTab === tab
-        ? "bg-white/15 text-white"
-        : "text-white/40 hover:text-white/70"
+        ? "bg-[var(--active-bg)] text-[var(--ink)] border border-[var(--active-border)] shadow-sm"
+        : "text-[var(--ink-faint)] hover:text-[var(--ink)] hover:bg-[var(--hover-bg)]"
     }`;
 
   const contextConv = contextMenu
@@ -268,8 +268,8 @@ export function Sidebar() {
         {/* Header / Brand */}
         <div className="flex items-center justify-between pb-1 relative z-[9999]">
           <div className="flex items-center gap-2.5">
-            <div className="relative flex h-8 w-8 items-center justify-center rounded-xl bg-white/5 border border-white/10 overflow-hidden shadow-sm shrink-0">
-              <img src="/logo-dark.png" alt="WispEcho" className="h-5 w-auto object-contain logo-dark" />
+            <div className="brand-badge relative flex h-8 w-8 items-center justify-center rounded-xl overflow-hidden shadow-sm shrink-0">
+              <img src="/logo-light.png" alt="WispEcho" className="h-5 w-auto object-contain logo-dark" />
               <img src="/logo-light.png" alt="WispEcho" className="h-5 w-auto object-contain logo-light" />
             </div>
             <span className="brand-name text-base font-bold tracking-tight">WispEcho</span>
@@ -286,7 +286,7 @@ export function Sidebar() {
               >
                 <Bell size={16} />
                 {unreadNotifCount > 0 && (
-                  <span className="absolute -top-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full bg-red-500 text-[10px] font-bold text-white shadow-sm ring-2 ring-[#0f0f11] z-[9999]">
+                  <span className="absolute -top-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full bg-red-500 text-[10px] font-bold text-white shadow-sm ring-2 ring-[var(--bg)] z-[9999]">
                     {unreadNotifCount > 9 ? "9+" : unreadNotifCount}
                   </span>
                 )}
@@ -297,7 +297,7 @@ export function Sidebar() {
             <button onClick={() => setFriendsOpen(true)} className="icon-btn relative z-[9999]" title="Friends">
               <Users size={16} />
               {incomingRequestsCount > 0 && (
-                <span className="absolute -top-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full bg-red-500 text-[10px] font-bold text-white shadow-sm ring-2 ring-[#0f0f11] z-[9999]">
+                <span className="absolute -top-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full bg-red-500 text-[10px] font-bold text-white shadow-sm ring-2 ring-[var(--bg)] z-[9999]">
                   {incomingRequestsCount > 9 ? "9+" : incomingRequestsCount}
                 </span>
               )}
@@ -317,7 +317,7 @@ export function Sidebar() {
               >
                 <Bell size={18} />
                 {unreadNotifCount > 0 && (
-                  <span className="absolute -top-0.5 -right-0.5 flex h-4 w-4 items-center justify-center rounded-full bg-red-500 text-[10px] font-bold text-white shadow-sm ring-2 ring-[#0f0f11] z-[9999]">
+                  <span className="absolute -top-0.5 -right-0.5 flex h-4 w-4 items-center justify-center rounded-full bg-red-500 text-[10px] font-bold text-white shadow-sm ring-2 ring-[var(--bg)] z-[9999]">
                     {unreadNotifCount > 9 ? "9+" : unreadNotifCount}
                   </span>
                 )}
@@ -327,7 +327,7 @@ export function Sidebar() {
             <button onClick={() => setFriendsOpen(true)} className="icon-btn relative z-[9999]" title="Friends">
               <Users size={18} />
               {incomingRequestsCount > 0 && (
-                <span className="absolute -top-0.5 -right-0.5 flex h-4 w-4 items-center justify-center rounded-full bg-red-500 text-[10px] font-bold text-white shadow-sm ring-2 ring-[#0f0f11] z-[9999]">
+                <span className="absolute -top-0.5 -right-0.5 flex h-4 w-4 items-center justify-center rounded-full bg-red-500 text-[10px] font-bold text-white shadow-sm ring-2 ring-[var(--bg)] z-[9999]">
                   {incomingRequestsCount > 9 ? "9+" : incomingRequestsCount}
                 </span>
               )}
@@ -378,7 +378,7 @@ export function Sidebar() {
           ))}
 
           {filtered.length === 0 && (
-            <div className="text-center text-white/30 text-[12px] py-8 px-4">
+            <div className="text-center text-[var(--ink-faint)] text-[12px] py-8 px-4">
               {filterTab === "favorites" ? "No favourite chats yet" :
                filterTab === "archived" ? "No archived chats" :
                "No conversations yet"}
@@ -433,7 +433,7 @@ export function Sidebar() {
             animate={{ opacity: 1, scale: 1 }}
             exit={{ opacity: 0, scale: 0.95 }}
             transition={{ duration: 0.12 }}
-            className="fixed z-[200] glass-strong border border-white/10 rounded-xl shadow-2xl overflow-hidden py-1 min-w-[160px]"
+            className="fixed z-[200] glass-strong border border-[var(--glass-border-strong)] rounded-xl shadow-2xl overflow-hidden py-1 min-w-[160px]"
             style={{
               left: contextMenu.x > 0 ? Math.min(contextMenu.x, window.innerWidth - 180) : 160,
               top: contextMenu.y > 0 ? Math.min(contextMenu.y, window.innerHeight - 120) : 80,
@@ -444,9 +444,9 @@ export function Sidebar() {
                 favoriteMutation.mutate(contextMenu.conversationId);
                 setContextMenu(null);
               }}
-              className="w-full flex items-center gap-3 px-4 py-2.5 text-[13px] text-white/80 hover:bg-white/5 hover:text-white transition"
+              className="w-full flex items-center gap-3 px-4 py-2.5 text-[13px] text-[var(--ink-dim)] hover:bg-[var(--hover-bg)] hover:text-[var(--ink)] transition"
             >
-              <Star size={14} className={contextConv.isFavorite ? "text-yellow-400" : "text-white/40"} />
+              <Star size={14} className={contextConv.isFavorite ? "text-yellow-400" : "text-[var(--ink-faint)]"} />
               {contextConv.isFavorite ? "Unfavorite" : "Favorite"}
             </button>
             <button
@@ -454,9 +454,9 @@ export function Sidebar() {
                 archiveMutation.mutate(contextMenu.conversationId);
                 setContextMenu(null);
               }}
-              className="w-full flex items-center gap-3 px-4 py-2.5 text-[13px] text-white/80 hover:bg-white/5 hover:text-white transition"
+              className="w-full flex items-center gap-3 px-4 py-2.5 text-[13px] text-[var(--ink-dim)] hover:bg-[var(--hover-bg)] hover:text-[var(--ink)] transition"
             >
-              <Archive size={14} className={contextConv.isArchived ? "text-blue-400" : "text-white/40"} />
+              <Archive size={14} className={contextConv.isArchived ? "text-blue-400" : "text-[var(--ink-faint)]"} />
               {contextConv.isArchived ? "Unarchive" : "Archive"}
             </button>
             <button
@@ -464,9 +464,9 @@ export function Sidebar() {
                 handleTogglePin(e, contextMenu.conversationId);
                 setContextMenu(null);
               }}
-              className="w-full flex items-center gap-3 px-4 py-2.5 text-[13px] text-white/80 hover:bg-white/5 hover:text-white transition"
+              className="w-full flex items-center gap-3 px-4 py-2.5 text-[13px] text-[var(--ink-dim)] hover:bg-[var(--hover-bg)] hover:text-[var(--ink)] transition"
             >
-              {contextConv.isPinned ? <PinOff size={14} className="text-white/40" /> : <Pin size={14} className="text-white/40" />}
+              {contextConv.isPinned ? <PinOff size={14} className="text-[var(--ink-faint)]" /> : <Pin size={14} className="text-[var(--ink-faint)]" />}
               {contextConv.isPinned ? "Unpin" : "Pin"}
             </button>
           </motion.div>
