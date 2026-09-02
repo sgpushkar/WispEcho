@@ -6,6 +6,7 @@ import {
   X, 
   Flag, 
   ShieldAlert, 
+  ShieldCheck,
   AlertTriangle, 
   CheckCircle2, 
   MessageSquare, 
@@ -319,6 +320,14 @@ export function ReportModal() {
                     rows={3}
                     className="w-full rounded-2xl bg-white/5 border border-white/10 p-3 text-xs text-white placeholder:text-white/30 focus:outline-none focus:border-red-500/50 focus:ring-1 focus:ring-red-500/50 resize-none transition"
                   />
+                </div>
+
+                {/* Privacy Guarantee Note */}
+                <div className="flex items-start gap-2 p-2.5 rounded-xl bg-white/[0.03] border border-white/5 text-[11px] text-white/50">
+                  <ShieldCheck size={14} className="shrink-0 text-emerald-400 mt-0.5" />
+                  <span>
+                    <strong className="text-white/80 font-medium">Privacy Guaranteed:</strong> Admins can only view the specific reported content. Your regular chats, messages, and calls remain strictly confidential and are never monitored.
+                  </span>
                 </div>
 
                 {/* Error Banner */}
