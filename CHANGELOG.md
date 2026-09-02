@@ -7,6 +7,28 @@ Versioning follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ---
 
+## [1.4.0] — 2026-09-03
+
+### New
+- **Real-Time Notification Center** — dedicated in-app notification center with filter tabs, unread count badge, mark-all-as-read, delete actions, and real-time socket updates for friend requests, group invites, mentions, reactions, and direct messages
+- **Multi-Level Content & User Reporting** — comprehensive reporting system allowing users to report abusive accounts, inappropriate messages, and offensive media with structured categorized reasons
+- **Privacy-First Moderation Architecture** — admins can **only** view content and messages that have been explicitly reported by users; general conversations remain end-to-end confidential with zero background snooping
+- **Universal Reporting Triggers** — seamless report action integrations across User Profiles, Chat Header menu, Message Context Menus, Message Bubbles, Fullscreen Image Viewer, and Shared Media galleries
+- **Admin Moderation Center with Media Previews** — enhanced admin dashboard featuring live media previews (images, audio notes, video), report type tags, and streamlined resolution workflows
+
+### Improved
+- **Android Hardware Back-Button Handling** — native back-gesture support for all overlay dialogs including the Report Modal
+- **Authentication & Onboarding Flow** — refreshed login and registration views with responsive glass styling and enhanced validation feedback
+- **Group Creation Experience** — streamlined new group creation flow with optimized member picker and modal controls
+- **Landing Page Streamlining** — refined hero section, updated version tags, and sleek modern aesthetic
+
+### Fixed
+- Notification unread counter synchronization across multiple active sessions
+- Report modal dismiss state handling on navigation and back button events
+- Admin report list media type detection and preview rendering
+
+---
+
 ## [1.3.1] — 2026-08-19
 
 ### New
