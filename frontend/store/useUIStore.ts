@@ -1,6 +1,17 @@
 import { create } from "zustand";
 import { themes, applyThemeToDOM, buildCustomTheme, type ThemeDefinition, type ThemeColors, type ThemeEffects, type ChatBackground } from "@/lib/themes";
 
+export interface ReportTarget {
+  type: "USER" | "MEDIA" | "MESSAGE";
+  userId?: string | null;
+  username?: string | null;
+  displayName?: string | null;
+  avatarUrl?: string | null;
+  messageId?: string | null;
+  mediaUrl?: string | null;
+  messageContent?: string | null;
+}
+
 interface UIState {
   friendsOpen: boolean;
   groupOpen: boolean;
@@ -9,6 +20,8 @@ interface UIState {
   settingsOpen: boolean;
   forwardModalOpen: boolean;
   messageToForward: any | null; // using any for now, will cast to Message
+  reportModalOpen: boolean;
+  reportTarget: ReportTarget | null;
   themeId: string;
 
   setFriendsOpen: (open: boolean) => void;
@@ -17,6 +30,8 @@ interface UIState {
   setSettingsOpen: (open: boolean) => void;
   openForwardModal: (message: any) => void;
   closeForwardModal: () => void;
+  openReportModal: (target: ReportTarget) => void;
+  closeReportModal: () => void;
   applyTheme: (themeId: string) => void;
   applyCustomTheme: (customTheme: { id: string; name: string; colors: Partial<ThemeColors>; effects?: Partial<ThemeEffects>; chatBg?: ChatBackground | null }) => void;
   getActiveTheme: () => ThemeDefinition;
@@ -30,6 +45,8 @@ export const useUIStore = create<UIState>((set, get) => ({
   settingsOpen: false,
   forwardModalOpen: false,
   messageToForward: null,
+  reportModalOpen: false,
+  reportTarget: null,
   themeId: "default",
 
   setFriendsOpen: (open) => set({ friendsOpen: open }),
@@ -38,6 +55,8 @@ export const useUIStore = create<UIState>((set, get) => ({
   setSettingsOpen: (open) => set({ settingsOpen: open }),
   openForwardModal: (message) => set({ forwardModalOpen: true, messageToForward: message }),
   closeForwardModal: () => set({ forwardModalOpen: false, messageToForward: null }),
+  openReportModal: (target) => set({ reportModalOpen: true, reportTarget: target }),
+  closeReportModal: () => set({ reportModalOpen: false, reportTarget: null }),
 
   applyTheme: (themeId: string) => {
     const theme = themes[themeId];
