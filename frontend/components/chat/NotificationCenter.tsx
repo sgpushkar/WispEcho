@@ -159,13 +159,13 @@ export function NotificationCenter({ isOpen, onClose }: Props) {
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.95, y: 20 }}
             transition={{ duration: 0.18, ease: "easeOut" }}
-            className="glass-strong bg-[#0f0f11]/90 relative flex h-[80vh] max-h-[620px] w-full max-w-2xl flex-col overflow-hidden rounded-2xl border border-white/10 shadow-2xl"
+            className="glass-strong relative flex h-[80vh] max-h-[620px] w-full max-w-2xl flex-col overflow-hidden rounded-2xl border border-[var(--glass-border-strong)] shadow-2xl"
           >
             {/* Header */}
-            <div className="flex items-center justify-between px-5 py-3.5 border-b border-white/5 shrink-0 bg-white/[0.02]">
-              <h3 className="text-sm font-semibold text-white flex items-center gap-2.5">
-                <div className="h-6 w-6 rounded-lg bg-white/10 flex items-center justify-center">
-                  <Bell size={13} className="text-white/80" />
+            <div className="flex items-center justify-between px-5 py-3.5 border-b border-[var(--glass-border)] shrink-0 bg-[var(--hover-bg)]">
+              <h3 className="text-sm font-semibold text-[var(--ink)] flex items-center gap-2.5">
+                <div className="h-6 w-6 rounded-lg bg-[var(--hover-bg)] border border-[var(--glass-border)] flex items-center justify-center">
+                  <Bell size={13} className="text-[var(--ink)]" />
                 </div>
                 <span>Notifications</span>
                 {unreadCount > 0 && (
@@ -179,7 +179,7 @@ export function NotificationCenter({ isOpen, onClose }: Props) {
                   <button
                     onClick={() => markAllRead.mutate()}
                     disabled={markAllRead.isPending}
-                    className="text-[11px] text-white/50 hover:text-white flex items-center gap-1.5 transition px-2 py-1 rounded-lg hover:bg-white/5"
+                    className="text-[11px] text-[var(--ink-dim)] hover:text-[var(--ink)] flex items-center gap-1.5 transition px-2 py-1 rounded-lg hover:bg-[var(--hover-bg)]"
                   >
                     <CheckCheck size={13} />
                     <span>Mark all read</span>
@@ -198,7 +198,7 @@ export function NotificationCenter({ isOpen, onClose }: Props) {
                       </button>
                       <button
                         onClick={() => setConfirmClear(false)}
-                        className="text-[10px] text-white/40 hover:text-white"
+                        className="text-[10px] text-[var(--ink-faint)] hover:text-[var(--ink)]"
                       >
                         Cancel
                       </button>
@@ -206,7 +206,7 @@ export function NotificationCenter({ isOpen, onClose }: Props) {
                   ) : (
                     <button
                       onClick={() => setConfirmClear(true)}
-                      className="text-[11px] text-white/40 hover:text-red-400 flex items-center gap-1 transition px-2 py-1 rounded-lg hover:bg-white/5"
+                      className="text-[11px] text-[var(--ink-faint)] hover:text-red-400 flex items-center gap-1 transition px-2 py-1 rounded-lg hover:bg-[var(--hover-bg)]"
                       title="Clear all notifications"
                     >
                       <Trash2 size={12} />
@@ -216,7 +216,7 @@ export function NotificationCenter({ isOpen, onClose }: Props) {
                 )}
                 <button
                   onClick={onClose}
-                  className="rounded-full p-1.5 text-white/40 hover:bg-white/10 hover:text-white transition"
+                  className="rounded-full p-1.5 text-[var(--ink-faint)] hover:bg-[var(--hover-bg)] hover:text-[var(--ink)] transition"
                 >
                   <X size={16} />
                 </button>
@@ -224,7 +224,7 @@ export function NotificationCenter({ isOpen, onClose }: Props) {
             </div>
 
             {/* List */}
-            <div className="overflow-y-auto custom-scrollbar flex-1 pb-4 divide-y divide-white/5">
+            <div className="overflow-y-auto custom-scrollbar flex-1 pb-4 divide-y divide-[var(--glass-border)]">
               {isLoading && (
                 <div className="p-4 space-y-3">
                   {[...Array(4)].map((_, i) => (
@@ -235,12 +235,12 @@ export function NotificationCenter({ isOpen, onClose }: Props) {
 
               {!isLoading && notifications.length === 0 && (
                 <div className="flex flex-col items-center justify-center py-20 text-center px-4 space-y-3">
-                  <div className="h-14 w-14 rounded-2xl bg-white/5 flex items-center justify-center border border-white/5">
-                    <Bell size={26} className="text-white/20" />
+                  <div className="h-14 w-14 rounded-2xl bg-[var(--hover-bg)] flex items-center justify-center border border-[var(--glass-border)]">
+                    <Bell size={26} className="text-[var(--ink-faint)]" />
                   </div>
                   <div>
-                    <p className="text-sm font-medium text-white/70">You&apos;re all caught up!</p>
-                    <p className="text-xs text-white/30 mt-1">No new notifications at this time.</p>
+                    <p className="text-sm font-medium text-[var(--ink)]">You&apos;re all caught up!</p>
+                    <p className="text-xs text-[var(--ink-dim)] mt-1">No new notifications at this time.</p>
                   </div>
                 </div>
               )}
@@ -255,8 +255,8 @@ export function NotificationCenter({ isOpen, onClose }: Props) {
                       key={n.id}
                       initial={{ opacity: 0 }}
                       animate={{ opacity: 1 }}
-                      className={`group flex items-start gap-3.5 px-5 py-3.5 hover:bg-white/[0.04] transition cursor-pointer ${
-                        !n.isRead ? "bg-white/[0.02]" : ""
+                      className={`group flex items-start gap-3.5 px-5 py-3.5 hover:bg-[var(--hover-bg)] transition cursor-pointer ${
+                        !n.isRead ? "bg-[var(--hover-bg)]/50" : ""
                       }`}
                       onClick={() => handleNotifClick(n)}
                     >
@@ -265,12 +265,12 @@ export function NotificationCenter({ isOpen, onClose }: Props) {
                         {avatarUrl ? (
                           <div className="relative">
                             <Avatar src={avatarUrl} name={fromName || "User"} className="h-9 w-9 rounded-full" />
-                            <div className="absolute -bottom-1 -right-1 h-5 w-5 rounded-full bg-[#121214] border border-white/10 flex items-center justify-center shadow-md">
+                            <div className="absolute -bottom-1 -right-1 h-5 w-5 rounded-full bg-[var(--bg)] border border-[var(--glass-border)] flex items-center justify-center shadow-md">
                               <NotifIcon type={n.type} />
                             </div>
                           </div>
                         ) : (
-                          <div className="h-9 w-9 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center">
+                          <div className="h-9 w-9 rounded-xl bg-[var(--hover-bg)] border border-[var(--glass-border)] flex items-center justify-center">
                             <NotifIcon type={n.type} />
                           </div>
                         )}
@@ -278,10 +278,10 @@ export function NotificationCenter({ isOpen, onClose }: Props) {
 
                       {/* Text */}
                       <div className="flex-1 min-w-0 pr-2">
-                        <p className={`text-xs leading-relaxed ${n.isRead ? "text-white/60" : "text-white/90 font-medium"}`}>
+                        <p className={`text-xs leading-relaxed ${n.isRead ? "text-[var(--ink-dim)]" : "text-[var(--ink)] font-medium"}`}>
                           {notifSummary(n)}
                         </p>
-                        <p className="text-[10px] text-white/30 mt-1">
+                        <p className="text-[10px] text-[var(--ink-faint)] mt-1">
                           {formatDistanceToNowStrict(new Date(n.createdAt), { addSuffix: true })}
                         </p>
                       </div>
@@ -295,7 +295,7 @@ export function NotificationCenter({ isOpen, onClose }: Props) {
                                 e.stopPropagation();
                                 markRead.mutate(n.id);
                               }}
-                              className="p-1.5 rounded-lg hover:bg-white/10 text-white/40 hover:text-white transition"
+                              className="p-1.5 rounded-lg hover:bg-[var(--hover-bg)] text-[var(--ink-faint)] hover:text-[var(--ink)] transition"
                               title="Mark as read"
                             >
                               <Check size={13} />
@@ -306,7 +306,7 @@ export function NotificationCenter({ isOpen, onClose }: Props) {
                               e.stopPropagation();
                               deleteNotif.mutate(n.id);
                             }}
-                            className="p-1.5 rounded-lg hover:bg-red-500/20 text-white/40 hover:text-red-400 transition"
+                            className="p-1.5 rounded-lg hover:bg-red-500/20 text-[var(--ink-faint)] hover:text-red-400 transition"
                             title="Delete"
                           >
                             <Trash2 size={13} />
