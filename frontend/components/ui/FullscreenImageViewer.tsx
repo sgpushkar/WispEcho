@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef, useCallback } from "react";
-import { X, ZoomIn, ZoomOut, Download, Eye, ShieldAlert } from "lucide-react";
+import { X, ZoomIn, ZoomOut, Download, Eye, ShieldAlert, Flag } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { TransformWrapper, TransformComponent } from "react-zoom-pan-pinch";
 import { Capacitor } from "@capacitor/core";
@@ -10,6 +10,7 @@ interface FullscreenImageViewerProps {
   url: string;
   caption?: string;
   onClose: () => void;
+  onReport?: () => void;
   /** When true: no download, canvas rendering, auto-close timer, screenshot detection */
   isViewOnce?: boolean;
   /** Auto-close timer in seconds for view-once images */
@@ -22,6 +23,7 @@ export function FullscreenImageViewer({
   url,
   caption,
   onClose,
+  onReport,
   isViewOnce = false,
   viewOnceTimeoutSeconds = VIEW_ONCE_DURATION,
 }: FullscreenImageViewerProps) {
@@ -268,8 +270,22 @@ export function FullscreenImageViewer({
             <button
               onClick={handleDownload}
               className="p-2 rounded-full hover:bg-white/10 text-white transition bg-black/20"
+              title="Download Image"
             >
               <Download size={20} />
+            </button>
+          )}
+
+          {/* Report Button */}
+          {onReport && (
+            <button
+              onClick={() => {
+                onReport();
+              }}
+              className="p-2 rounded-full hover:bg-red-500/20 text-white/70 hover:text-red-400 transition bg-black/20"
+              title="Report Media"
+            >
+              <Flag size={20} />
             </button>
           )}
         </div>
