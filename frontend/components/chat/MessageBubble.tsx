@@ -166,10 +166,10 @@ export const MessageBubble = memo(function MessageBubble(props: MessageBubblePro
             );
           }
           if (token.startsWith("**") && token.endsWith("**") && token.length > 4) {
-            return <strong key={i} className="font-semibold text-white">{token.slice(2, -2)}</strong>;
+            return <strong key={i} className="font-semibold text-inherit">{token.slice(2, -2)}</strong>;
           }
           if (token.startsWith("*") && token.endsWith("*") && token.length > 2) {
-            return <em key={i} className="italic text-white/90">{token.slice(1, -1)}</em>;
+            return <em key={i} className="italic text-inherit opacity-90">{token.slice(1, -1)}</em>;
           }
           if (token.startsWith("~") && token.endsWith("~") && token.length > 2) {
             return <del key={i} className="opacity-70 line-through">{token.slice(1, -1)}</del>;
@@ -412,19 +412,19 @@ export const MessageBubble = memo(function MessageBubble(props: MessageBubblePro
           {!isMine && isGroup && !isPreviousSameSender && (
              <Link href={`/profile?u=${message.sender?.username}`} className="flex items-center gap-2 mb-1 ml-2 group/profile">
                <Avatar src={message.sender?.avatarUrl} name={message.sender?.displayName} className="w-5 h-5 rounded-full text-[8px] border-none" />
-               <span className="text-[12px] font-medium text-white/60 group-hover/profile:text-white group-hover/profile:underline transition">{message.sender?.displayName}</span>
+               <span className="text-[12px] font-medium text-[var(--ink-dim)] group-hover/profile:text-[var(--ink)] group-hover/profile:underline transition">{message.sender?.displayName}</span>
              </Link>
           )}
           {message.replyTo && (
-            <div className={`border-l-[2px] border-white/20 pl-3 py-0.5 text-[13px] text-white/50 mb-1 w-fit max-w-full line-clamp-2 ${isMine ? "self-end" : "self-start"}`}>
-              <span className="font-medium text-white/70">{message.replyTo.sender?.displayName}</span>: {message.replyTo.content}
+            <div className={`border-l-[2px] border-[var(--glass-border-strong)] pl-3 py-0.5 text-[13px] text-[var(--ink-dim)] mb-1 w-fit max-w-full line-clamp-2 ${isMine ? "self-end" : "self-start"}`}>
+              <span className="font-medium text-[var(--ink)]">{message.replyTo.sender?.displayName}</span>: {message.replyTo.content}
             </div>
           )}
           <div className={`relative flex flex-col group/bubble ${isMine ? "items-end" : "items-start"}`}>
 
           <div className={`bubble ${isMine ? "mine" : "theirs"} ${getBubbleShape()} ${message.isDeleted ? "italic opacity-60" : ""}`}>
             {message.isForwarded && (
-              <div className="flex items-center gap-1 text-[11px] text-white/50 mb-1 italic">
+              <div className="flex items-center gap-1 text-[11px] text-[var(--ink-dim)] mb-1 italic">
                 <Reply size={12} className="-scale-x-100" />
                 <span>Forwarded</span>
               </div>
@@ -453,9 +453,9 @@ export const MessageBubble = memo(function MessageBubble(props: MessageBubblePro
             {message.isEdited && <span>· edited</span>}
             {isMine && !pendingUpload && (
               <span className="ml-1 flex items-center">
-                {message.status === "sending" && <Clock size={10} className="text-white/50" />}
-                {message.status === "sent" && <Check size={12} className="text-white/50" />}
-                {message.status === "delivered" && <CheckCheck size={12} className="text-white/50" />}
+                {message.status === "sending" && <Clock size={10} className="text-[var(--ink-faint)]" />}
+                {message.status === "sent" && <Check size={12} className="text-[var(--ink-faint)]" />}
+                {message.status === "delivered" && <CheckCheck size={12} className="text-[var(--ink-faint)]" />}
                 {message.status === "read" && <CheckCheck size={12} className="text-accent" />}
                 {message.status === "failed" && <AlertCircle size={12} className="text-red-500" />}
                 {message.scheduledAt && (
@@ -515,7 +515,7 @@ export const MessageBubble = memo(function MessageBubble(props: MessageBubblePro
                     {emoji}
                   </button>
                 ))}
-                <button onClick={() => setShowEmojiPicker(!showEmojiPicker)} className="text-white/50 hover:text-white transition p-1 hover:bg-white/10 rounded-full ml-1">
+                <button onClick={() => setShowEmojiPicker(!showEmojiPicker)} className="text-[var(--ink-faint)] hover:text-[var(--ink)] transition p-1 hover:bg-[var(--hover-bg)] rounded-full ml-1">
                   <Plus size={14} />
                 </button>
 
@@ -546,7 +546,7 @@ export const MessageBubble = memo(function MessageBubble(props: MessageBubblePro
 
         {/* Always Visible Reply Button */}
         {!isMine && !pendingUpload && (
-          <button onClick={() => onReply?.(message)} className="text-white/30 hover:text-white transition p-2 rounded-full hover:bg-white/5" title="Reply">
+          <button onClick={() => onReply?.(message)} className="text-[var(--ink-faint)] hover:text-[var(--ink)] transition p-2 rounded-full hover:bg-[var(--hover-bg)]" title="Reply">
             <Reply size={16} />
           </button>
         )}
