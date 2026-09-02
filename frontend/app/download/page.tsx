@@ -24,10 +24,34 @@ interface VersionData {
 
 export default function DownloadPage() {
   const [data, setData] = useState<VersionData>({
-    latestVersion: "1.3.1",
-    downloadUrl: "https://github.com/sgpushkar/WispEcho/releases/download/latest/WispEcho-v1.3.1.apk",
-    releaseDate: "2026-08-19",
+    latestVersion: "1.4.0",
+    downloadUrl: "https://github.com/sgpushkar/WispEcho/releases/download/latest/WispEcho-v1.4.0.apk",
+    releaseDate: "2026-09-03",
     changelog: [
+      {
+        version: "1.4.0",
+        date: "2026-09-03",
+        changes: {
+          new: [
+            "Real-Time Notification Center — dedicated in-app inbox with filter tabs, unread badge, and real-time socket delivery for requests, invites, mentions, reactions, and messages",
+            "Multi-Level Content & User Reporting — structured in-app reporting for users, messages, and shared media files",
+            "Privacy-First Moderation Architecture — admins can only view content and messages that have been explicitly reported by users; general chats remain strictly private with zero background snooping",
+            "Universal Reporting Triggers — seamless report action integrations across User Profiles, Chat Header, Message Bubbles, Context Menus, and Media Viewer",
+            "Admin Moderation Center with Media Previews — enhanced admin dashboard with live media previews, content inspection, type tags, and report resolution workflow"
+          ],
+          improved: [
+            "Android Hardware Back-Button Support — native back-gesture handling for all modal dialogs including the Report Modal",
+            "Authentication & Onboarding Flow — refreshed login and registration views with responsive styling and enhanced validation feedback",
+            "Group Creation Experience — streamlined group creation modal with smooth member selection and enhanced validation",
+            "Landing Page Streamlining — refined hero section, updated version badges, and clean modern aesthetic"
+          ],
+          fixed: [
+            "Notification unread counter synchronization across multiple active devices/sessions",
+            "Report modal dismiss state handling on navigation and back button events",
+            "Admin report list media type detection and preview rendering"
+          ]
+        }
+      },
       {
         version: "1.3.1",
         date: "2026-08-19",
@@ -91,9 +115,9 @@ export default function DownloadPage() {
       .then((json) => {
         if (json && (json.latestVersion || json.version)) {
           setData({
-            latestVersion: json.latestVersion || json.version || "1.3.1",
-            downloadUrl: json.downloadUrl || json.apkUrl || "https://github.com/sgpushkar/WispEcho/releases/download/latest/WispEcho-v1.3.1.apk",
-            releaseDate: json.releaseDate || "2026-08-19",
+            latestVersion: json.latestVersion || json.version || "1.4.0",
+            downloadUrl: json.downloadUrl || json.apkUrl || "https://github.com/sgpushkar/WispEcho/releases/download/latest/WispEcho-v1.4.0.apk",
+            releaseDate: json.releaseDate || "2026-09-03",
             changelog: json.changelog?.length ? json.changelog : data.changelog,
           });
         }
