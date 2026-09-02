@@ -65,15 +65,15 @@ export function ContextMenu({ position, message, onClose, onReply, onReact, onDe
         exit={{ opacity: 0, scale: 0.95, y: -5 }}
         transition={{ type: "spring", stiffness: 400, damping: 25 }}
         style={{ left: x, top: y }}
-        className="absolute pointer-events-auto w-48 rounded-[16px] glass-strong shadow-2xl border border-white/10 p-1.5 flex flex-col gap-0.5"
+        className="absolute pointer-events-auto w-48 rounded-[16px] glass-strong shadow-2xl border border-[var(--glass-border-strong)] p-1.5 flex flex-col gap-0.5"
       >
         <ContextItem icon={<Reply size={14} />} label="Reply" onClick={() => { onReply(message); onClose(); }} />
         <ContextItem icon={<SmilePlus size={14} />} label="React" onClick={() => { onReact(message); onClose(); }} />
-        <div className="h-[1px] bg-white/5 my-1 mx-2" />
+        <div className="h-[1px] bg-[var(--glass-border)] my-1 mx-2" />
         <ContextItem icon={<Copy size={14} />} label="Copy Text" onClick={() => { navigator.clipboard.writeText(message.content || ""); onClose(); }} />
         <ContextItem icon={<Forward size={14} />} label="Forward" onClick={() => { onForward(message); onClose(); }} />
         <ContextItem icon={<Bookmark size={14} />} label="Save Message" onClick={() => { onSave(message); onClose(); }} />
-        <div className="h-[1px] bg-white/5 my-1 mx-2" />
+        <div className="h-[1px] bg-[var(--glass-border)] my-1 mx-2" />
         {currentUserId === message.senderId && (
           <ContextItem icon={<Edit2 size={14} />} label="Edit" onClick={() => { onEdit(message); onClose(); }} />
         )}
@@ -83,7 +83,7 @@ export function ContextMenu({ position, message, onClose, onReply, onReact, onDe
         )}
         {currentUserId !== message.senderId && onReport && (
           <>
-            <div className="h-[1px] bg-white/5 my-1 mx-2" />
+            <div className="h-[1px] bg-[var(--glass-border)] my-1 mx-2" />
             <ContextItem
               icon={<Flag size={14} />}
               label={message.type === "IMAGE" || message.type === "VIDEO" ? "Report Media" : "Report Message"}
@@ -106,7 +106,7 @@ function ContextItem({ icon, label, onClick, danger }: { icon: React.ReactNode, 
       className={`flex items-center gap-2.5 w-full px-3 py-2 rounded-xl text-[13px] font-medium transition-colors ${
         danger 
           ? "text-red-400 hover:bg-red-400/10 hover:text-red-300" 
-          : "text-white/80 hover:bg-white/10 hover:text-white"
+          : "text-[var(--ink-dim)] hover:bg-[var(--hover-bg)] hover:text-[var(--ink)]"
       }`}
     >
       {icon}
